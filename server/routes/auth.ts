@@ -7,6 +7,11 @@ import { generateOTP, sendOTPEmail } from "../services/emailService";
 export const authRouter = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "studystack_secret_jwt_key_2026";
 
+// Helper to validate any IITR domain (@iitr.ac.in, @ece.iitr.ac.in, @cse.iitr.ac.in, etc.)
+export function isValidIITREmail(email: string): boolean {
+  return /^[^\s@]+@([a-zA-Z0-9-]+\.)*iitr\.ac\.in$/.test(email.trim().toLowerCase());
+}
+
 // Middleware to protect routes
 export function authenticateToken(req: any, res: any, next: any) {
   const authHeader = req.headers["authorization"];
@@ -36,9 +41,9 @@ authRouter.post("/signup", async (req, res) => {
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    // IITR email check (allow bypass for testing if explicitly desired, but enforce format)
-    if (!normalizedEmail.endsWith("@iitr.ac.in")) {
-      return res.status(400).json({ error: "Only IIT Roorkee (@iitr.ac.in) email addresses are allowed" });
+    // IITR email check (supports @iitr.ac.in, @ece.iitr.ac.in, @cse.iitr.ac.in, etc.)
+    if (!isValidIITREmail(normalizedEmail)) {
+      return res.status(400).json({ error: "Only IIT Roorkee (*.iitr.ac.in) email addresses are allowed" });
     }
 
     // Check if user already exists
@@ -153,8 +158,8 @@ authRouter.post("/login", async (req, res) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    if (!normalizedEmail.endsWith("@iitr.ac.in")) {
-      return res.status(400).json({ error: "Only IIT Roorkee (@iitr.ac.in) email addresses are allowed" });
+    if (!isValidIITREmail(normalizedEmail)) {
+      return res.status(400).json({ error: "Only IIT Roorkee (*.iitr.ac.in) email addresses are allowed" });
     }
 
     const user = db.prepare("SELECT * FROM users WHERE email = ?").get(normalizedEmail) as any;
@@ -216,8 +221,8 @@ authRouter.post("/forgot-password", async (req, res) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    if (!normalizedEmail.endsWith("@iitr.ac.in")) {
-      return res.status(400).json({ error: "Only IIT Roorkee (@iitr.ac.in) email addresses are allowed" });
+    if (!isValidIITREmail(normalizedEmail)) {
+      return res.status(400).json({ error: "Only IIT Roorkee (*.iitr.ac.in) email addresses are allowed" });
     }
 
     const user = db.prepare("SELECT * FROM users WHERE email = ?").get(normalizedEmail) as any;

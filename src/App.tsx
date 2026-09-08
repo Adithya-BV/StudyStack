@@ -30,6 +30,9 @@ type Resource = {
 
 type Page = "login" | "signup" | "otp" | "forgot" | "home" | "courses" | "course-detail" | "upload" | "pins" | "profile";
 
+// Helper to validate any IITR email domain (e.g. @iitr.ac.in, @ece.iitr.ac.in, @cse.iitr.ac.in)
+const isValidIITREmail = (email: string) => /^[^\s@]+@([a-zA-Z0-9-]+\.)*iitr\.ac\.in$/.test(email.trim().toLowerCase());
+
 // ── Icons ────────────────────────────────────────────────────────────────────
 const Icon = {
   Home: () => (
@@ -404,8 +407,8 @@ function LoginPage({ onLogin, onSignup, onForgot, onToast, setEmailForOtp }: {
       onToast("Please enter email and password", "error");
       return;
     }
-    if (!email.trim().toLowerCase().endsWith("@iitr.ac.in")) {
-      onToast("Only @iitr.ac.in email addresses are allowed", "error");
+    if (!isValidIITREmail(email)) {
+      onToast("Only IIT Roorkee (*.iitr.ac.in) email addresses are allowed", "error");
       return;
     }
     setLoading(true);
@@ -448,7 +451,7 @@ function LoginPage({ onLogin, onSignup, onForgot, onToast, setEmailForOtp }: {
           <div style={{ color: C.muted, fontSize: 14, marginBottom: 32 }}>Continue your learning journey with StudyStack.</div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 24 }}>
-            <Input label="IITR Email" placeholder="yourname@iitr.ac.in" value={email} onChange={setEmail} />
+            <Input label="IITR Email" placeholder="yourname@iitr.ac.in or yourname@ece.iitr.ac.in" value={email} onChange={setEmail} />
             <Input label="Password" type="password" placeholder="Enter your password" value={password} onChange={setPassword} />
           </div>
 
@@ -492,8 +495,8 @@ function SignupPage({ onNext, onBack, onToast, setEmailForOtp }: {
       onToast("Please fill all fields", "error");
       return;
     }
-    if (!email.trim().toLowerCase().endsWith("@iitr.ac.in")) {
-      onToast("Only @iitr.ac.in email addresses allowed", "error");
+    if (!isValidIITREmail(email)) {
+      onToast("Only IIT Roorkee (*.iitr.ac.in) email addresses are allowed", "error");
       return;
     }
     if (pw !== pw2) {
@@ -644,8 +647,8 @@ function ForgotPasswordPage({ onDone, onBack, onToast }: {
       onToast("Enter your email", "error");
       return;
     }
-    if (!email.trim().toLowerCase().endsWith("@iitr.ac.in")) {
-      onToast("Only @iitr.ac.in email addresses are allowed", "error");
+    if (!isValidIITREmail(email)) {
+      onToast("Only IIT Roorkee (*.iitr.ac.in) email addresses are allowed", "error");
       return;
     }
     setLoading(true);
