@@ -166,7 +166,12 @@ resourcesRouter.get("/:id/download", async (req, res) => {
     if (resource.file_path) {
       const fullPath = path.join(uploadDir, resource.file_path);
       if (fs.existsSync(fullPath)) {
-        return res.download(fullPath, `${resource.title}.pdf`);
+        const ext = path.extname(resource.file_path) || "";
+        const cleanTitle = resource.title.replace(/[/\\?%*:|"<>]/g, "_").trim();
+        const downloadFilename = cleanTitle.toLowerCase().endsWith(ext.toLowerCase())
+          ? cleanTitle
+          : `${cleanTitle}${ext}`;
+        return res.download(fullPath, downloadFilename);
       }
     }
 
