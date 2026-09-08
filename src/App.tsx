@@ -1061,6 +1061,10 @@ function UploadPage({ onToast, courses, onUploaded }: {
   const [dragging, setDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [course, setCourse] = useState("");
+  const [isNewCourse, setIsNewCourse] = useState(false);
+  const [newCourseCode, setNewCourseCode] = useState("");
+  const [newCourseName, setNewCourseName] = useState("");
+  const [newCourseDept, setNewCourseDept] = useState("Computer Science & Engineering");
   const [resType, setResType] = useState("Notes");
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
@@ -1078,26 +1082,61 @@ function UploadPage({ onToast, courses, onUploaded }: {
   };
 
   const handleSubmit = async () => {
-    if (!title || !course || !resType) {
-      onToast("Please provide title, course, and type", "error");
+    let finalCourseCode = "";
+    let finalCourseName = "";
+    let finalCourseDept = "";
+
+    if (isNewCourse) {
+      if (!newCourseCode.trim()) {
+        onToast("Please enter a Course Code (e.g. CSN-301)", "error");
+        return;
+      }
+      if (!newCourseName.trim()) {
+        onToast("Please enter the Course Name", "error");
+        return;
+      }
+      finalCourseCode = newCourseCode.trim().toUpperCase();
+      finalCourseName = newCourseName.trim();
+      finalCourseDept = newCourseDept.trim();
+    } else {
+      if (!course) {
+        onToast("Please select a course", "error");
+        return;
+      }
+      finalCourseCode = course.trim().toUpperCase();
+    }
+
+    if (!title.trim() || !resType) {
+      onToast("Please provide resource title and type", "error");
       return;
     }
 
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append("title", title);
-      formData.append("course", course);
+      formData.append("title", title.trim());
+      formData.append("course", finalCourseCode);
       formData.append("type", resType);
-      if (desc) formData.append("description", desc);
+      if (finalCourseName) formData.append("courseName", finalCourseName);
+      if (finalCourseDept) formData.append("courseDept", finalCourseDept);
+      if (desc.trim()) formData.append("description", desc.trim());
       if (selectedFile) formData.append("file", selectedFile);
 
-      await api.resources.upload(formData);
+      const res: any = await api.resources.upload(formData);
       setSuccess(true);
-      onToast("Resource uploaded successfully! 🎉");
+      if (res?.courseCreated) {
+        onToast(`Resource uploaded & course ${finalCourseCode} created! 🎉`);
+      } else {
+        onToast("Resource uploaded successfully! 🎉");
+      }
       setTitle("");
       setDesc("");
       setSelectedFile(null);
+      if (isNewCourse) {
+        setNewCourseCode("");
+        setNewCourseName("");
+        setIsNewCourse(false);
+      }
       onUploaded();
       setTimeout(() => setSuccess(false), 4000);
     } catch (err: any) {
@@ -1169,15 +1208,152 @@ function UploadPage({ onToast, courses, onUploaded }: {
       {/* Fields */}
       <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 24 }}>
         <div>
-          <label style={{ fontSize: 13, fontWeight: 600, color: C.text, display: "block", marginBottom: 6 }}>Course *</label>
-          <select
-            value={course}
-            onChange={(e) => setCourse(e.target.value)}
-            style={{ width: "100%", padding: "11px 14px", border: `1.5px solid ${C.border}`, borderRadius: 10, fontSize: 14, color: C.text, background: "#fff", fontFamily: "Inter, sans-serif" }}
-          >
-            <option value="">Select a course</option>
-            {courses.map((c) => <option key={c.id} value={c.code}>{c.code} — {c.name}</option>)}
-          </select>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+            <label style={{ fontSize: 13, fontWeight: 600, color: C.text }}>Course *</label>
+            <button
+              type="button"
+              onClick={() => {
+                const next = !isNewCourse;
+                setIsNewCourse(next);
+                if (next) setCourse("");
+              }}
+              style={{
+                background: "none",
+                border: "none",
+                color: C.blue,
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: "pointer",
+                padding: "2px 4px",
+              }}
+            >
+              {isNewCourse ? "← Choose from existing courses" : "+ Course not in list?"}
+            </button>
+          </div>
+
+          {!isNewCourse ? (
+            <select
+              value={course}
+              onChange={(e) => {
+                if (e.target.value === "__NEW__") {
+                  setIsNewCourse(true);
+                  setCourse("");
+                } else {
+                  setCourse(e.target.value);
+                }
+              }}
+              style={{
+                width: "100%",
+                padding: "11px 14px",
+                border: `1.5px solid ${C.border}`,
+                borderRadius: 10,
+                fontSize: 14,
+                color: C.text,
+                background: "#fff",
+                fontFamily: "Inter, sans-serif",
+                cursor: "pointer",
+              }}
+            >
+              <option value="">Select a course</option>
+              {courses.map((c) => (
+                <option key={c.id} value={c.code}>
+                  {c.code} — {c.name}
+                </option>
+              ))}
+              <option value="__NEW__">➕ + Add New Course (Course not in list)</option>
+            </select>
+          ) : (
+            <div
+              style={{
+                background: "#F8FAFC",
+                border: `1.5px solid ${C.blue}`,
+                borderRadius: 12,
+                padding: "16px",
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: C.blue }}>
+                <span>✨</span> Course doesn't exist yet? It will be created automatically and added to all courses!
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: C.text, display: "block", marginBottom: 4 }}>
+                    Course Code *
+                  </label>
+                  <input
+                    value={newCourseCode}
+                    onChange={(e) => setNewCourseCode(e.target.value.toUpperCase())}
+                    placeholder="e.g. CSN-301 or ECE-202"
+                    style={{
+                      width: "100%",
+                      padding: "9px 12px",
+                      border: `1.5px solid ${C.border}`,
+                      borderRadius: 8,
+                      fontSize: 13,
+                      color: C.text,
+                      background: "#fff",
+                      outline: "none",
+                      boxSizing: "border-box",
+                      fontFamily: "Inter, sans-serif",
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: C.text, display: "block", marginBottom: 4 }}>
+                    Department / Branch
+                  </label>
+                  <select
+                    value={newCourseDept}
+                    onChange={(e) => setNewCourseDept(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "9px 12px",
+                      border: `1.5px solid ${C.border}`,
+                      borderRadius: 8,
+                      fontSize: 13,
+                      color: C.text,
+                      background: "#fff",
+                      outline: "none",
+                      boxSizing: "border-box",
+                      fontFamily: "Inter, sans-serif",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {IITR_BRANCHES.map((b) => (
+                      <option key={b} value={b}>{b}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: C.text, display: "block", marginBottom: 4 }}>
+                    Course Name *
+                  </label>
+                  <input
+                    value={newCourseName}
+                    onChange={(e) => setNewCourseName(e.target.value)}
+                    placeholder="e.g. Operating Systems or Signals and Systems"
+                    style={{
+                      width: "100%",
+                      padding: "9px 12px",
+                      border: `1.5px solid ${C.border}`,
+                      borderRadius: 8,
+                      fontSize: 13,
+                      color: C.text,
+                      background: "#fff",
+                      outline: "none",
+                      boxSizing: "border-box",
+                      fontFamily: "Inter, sans-serif",
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         <div>
           <label style={{ fontSize: 13, fontWeight: 600, color: C.text, display: "block", marginBottom: 6 }}>Resource Type *</label>

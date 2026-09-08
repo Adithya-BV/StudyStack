@@ -116,6 +116,8 @@ resourcesRouter.post("/upload", authenticateToken, upload.single("file"), (req: 
       year: "numeric",
     });
 
+    const cleanCourseCode = course.trim().toUpperCase();
+
     const info = db
       .prepare(`
         INSERT INTO resources (title, course_code, type, by, uploader_email, file_path, file_size, date)
@@ -123,7 +125,7 @@ resourcesRouter.post("/upload", authenticateToken, upload.single("file"), (req: 
       `)
       .run(
         title.trim(),
-        course.trim().toUpperCase(),
+        cleanCourseCode,
         type.trim(),
         req.user.name || "IITR Student",
         req.user.email,
@@ -132,15 +134,39 @@ resourcesRouter.post("/upload", authenticateToken, upload.single("file"), (req: 
         today
       );
 
-    // Increment course resource count
-    db.prepare("UPDATE courses SET resources = resources + 1 WHERE UPPER(code) = UPPER(?)").run(
-      course.trim().toUpperCase()
-    );
+    // Check if course already exists in `courses` table
+    const existingCourse = db
+      .prepare("SELECT * FROM courses WHERE UPPER(code) = ?")
+      .get(cleanCourseCode) as any;
+
+    let courseCreated = false;
+    if (!existingCourse) {
+      // Course does not exist: automatically create it so it appears in course lists and resources
+      const courseName = (req.body.courseName && req.body.courseName.trim()) || cleanCourseCode;
+      const courseDept =
+        (req.body.courseDept && req.body.courseDept.trim()) ||
+        req.user?.department ||
+        "General Engineering";
+
+      db.prepare("INSERT INTO courses (code, name, dept, resources) VALUES (?, ?, ?, 1)").run(
+        cleanCourseCode,
+        courseName,
+        courseDept
+      );
+      courseCreated = true;
+    } else {
+      // Course exists: increment its resource count
+      db.prepare("UPDATE courses SET resources = resources + 1 WHERE UPPER(code) = ?").run(
+        cleanCourseCode
+      );
+    }
 
     const newResource = db.prepare("SELECT * FROM resources WHERE id = ?").get(info.lastInsertRowid) as any;
 
     res.status(201).json({
       success: true,
+      courseCreated,
+      courseCode: cleanCourseCode,
       resource: {
         ...newResource,
         course: newResource.course_code,

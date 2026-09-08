@@ -184,7 +184,7 @@ export const api = {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to upload resource");
-      return data.resource;
+      return { ...data.resource, courseCreated: data.courseCreated, courseCode: data.courseCode };
     },
 
     getDownloadUrl: (id: number) => `${API_BASE}/resources/${id}/download`,
