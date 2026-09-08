@@ -33,6 +33,25 @@ type Page = "login" | "signup" | "otp" | "forgot" | "home" | "courses" | "course
 // Helper to validate any IITR email domain (e.g. @iitr.ac.in, @ece.iitr.ac.in, @cse.iitr.ac.in)
 const isValidIITREmail = (email: string) => /^[^\s@]+@([a-zA-Z0-9-]+\.)*iitr\.ac\.in$/.test(email.trim().toLowerCase());
 
+const IITR_BRANCHES = [
+  "Computer Science & Engineering",
+  "Electronics & Communication Engineering",
+  "Electrical Engineering",
+  "Mechanical Engineering",
+  "Civil Engineering",
+  "Chemical Engineering",
+  "Applied Mathematics & Scientific Computing",
+  "Biotechnology",
+  "Metallurgical & Materials Engineering",
+  "Architecture & Planning",
+  "Engineering Physics",
+  "Data Science & Artificial Intelligence",
+  "Design",
+  "Earth Sciences",
+  "Production & Industrial Engineering",
+  "Other",
+];
+
 // ── Icons ────────────────────────────────────────────────────────────────────
 const Icon = {
   Home: () => (
@@ -485,13 +504,18 @@ function SignupPage({ onNext, onBack, onToast, setEmailForOtp }: {
   setEmailForOtp: (email: string) => void;
 }) {
   const [name, setName] = useState("");
+  const [branch, setBranch] = useState("Computer Science & Engineering");
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!name || !email || !pw) {
+    if (!name.trim()) {
+      onToast("Student name cannot be empty", "error");
+      return;
+    }
+    if (!email || !pw) {
       onToast("Please fill all fields", "error");
       return;
     }
@@ -506,7 +530,7 @@ function SignupPage({ onNext, onBack, onToast, setEmailForOtp }: {
 
     setLoading(true);
     try {
-      await api.auth.signup(name, email, pw);
+      await api.auth.signup(name.trim(), email, pw, branch);
       setEmailForOtp(email);
       onToast("OTP generated! (Check terminal console if SMTP not configured)");
       onNext();
@@ -527,10 +551,34 @@ function SignupPage({ onNext, onBack, onToast, setEmailForOtp }: {
         <div style={{ color: C.muted, fontSize: 13, marginBottom: 28, textAlign: "center" }}>Join thousands of IITR students</div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 24 }}>
-          <Input label="Full Name" placeholder="Your full name" value={name} onChange={setName} />
-          <Input label="IITR Email" placeholder="yourname@iitr.ac.in" value={email} onChange={setEmail} />
-          <Input label="Password" type="password" placeholder="Create a password" value={pw} onChange={setPw} />
-          <Input label="Confirm Password" type="password" placeholder="Repeat your password" value={pw2} onChange={setPw2} />
+          <Input label="Full Name *" placeholder="Your full name" value={name} onChange={setName} />
+          <div>
+            <label style={{ fontSize: 13, fontWeight: 600, color: C.text, display: "block", marginBottom: 6 }}>Branch / Department *</label>
+            <select
+              value={branch}
+              onChange={(e) => setBranch(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "11px 14px",
+                border: `1.5px solid ${C.border}`,
+                borderRadius: 10,
+                fontSize: 14,
+                color: C.text,
+                background: "#fff",
+                outline: "none",
+                fontFamily: "Inter, sans-serif",
+                cursor: "pointer",
+                boxSizing: "border-box",
+              }}
+            >
+              {IITR_BRANCHES.map((b) => (
+                <option key={b} value={b}>{b}</option>
+              ))}
+            </select>
+          </div>
+          <Input label="IITR Email *" placeholder="yourname@iitr.ac.in" value={email} onChange={setEmail} />
+          <Input label="Password *" type="password" placeholder="Create a password" value={pw} onChange={setPw} />
+          <Input label="Confirm Password *" type="password" placeholder="Repeat your password" value={pw2} onChange={setPw2} />
         </div>
 
         <Btn onClick={handleSubmit} fullWidth disabled={loading}>
@@ -1223,21 +1271,84 @@ function PinsPage({ resources, onPin, onToast, setPage }: {
 }
 
 // ── Profile Page ──────────────────────────────────────────────────────────────
-function ProfilePage({ resources, user, onLogout }: { resources: Resource[]; user: any; onLogout: () => void }) {
+function ProfilePage({
+  resources,
+  user,
+  onLogout,
+  onToast,
+  onUserUpdated,
+}: {
+  resources: Resource[];
+  user: any;
+  onLogout: () => void;
+  onToast: (msg: string, type?: "success" | "error") => void;
+  onUserUpdated: (u: any) => void;
+}) {
   const [tab, setTab] = useState<"uploads" | "pins" | "settings">("uploads");
   const [profileData, setProfileData] = useState<any>(null);
+  const [editName, setEditName] = useState("");
+  const [editBranch, setEditBranch] = useState("Computer Science & Engineering");
+  const [saving, setSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const pinned = resources.filter((r) => r.pinned);
 
   useEffect(() => {
-    api.profile.get().then((data) => setProfileData(data)).catch(() => {});
-  }, []);
+    api.profile
+      .get()
+      .then((data) => {
+        setProfileData(data);
+        setEditName(data.name || user?.name || "");
+        setEditBranch(data.department || user?.department || "Computer Science & Engineering");
+      })
+      .catch(() => {
+        setEditName(user?.name || "");
+        setEditBranch(user?.department || "Computer Science & Engineering");
+      });
+  }, [user]);
 
   const displayName = profileData?.name || user?.name || "IITR Student";
   const displayEmail = profileData?.email || user?.email || "student@iitr.ac.in";
-  const displayDept = profileData?.department || "Computer Science";
+  const displayDept = profileData?.department || user?.department || "Computer Science & Engineering";
   const displayYear = profileData?.year || "2nd Year";
 
   const userUploads = profileData?.uploads || resources.filter((r) => r.by === displayName);
+
+  const handleSaveProfile = async () => {
+    if (!editName.trim()) {
+      onToast("Student name cannot be empty", "error");
+      return;
+    }
+    setSaving(true);
+    try {
+      const updated = await api.profile.update({
+        name: editName.trim(),
+        department: editBranch,
+      });
+      setProfileData((prev: any) => ({
+        ...prev,
+        ...updated,
+      }));
+      onUserUpdated(updated);
+      onToast("Profile updated successfully!", "success");
+    } catch (err: any) {
+      onToast(err.message || "Failed to update profile", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    try {
+      await api.profile.deleteAccount();
+      onToast("Account deleted successfully", "success");
+      onLogout();
+    } catch (err: any) {
+      onToast(err.message || "Failed to delete account", "error");
+      setDeleting(false);
+    }
+  };
 
   return (
     <div style={{ padding: "32px 36px", maxWidth: 800 }}>
@@ -1329,30 +1440,217 @@ function ProfilePage({ resources, user, onLogout }: { resources: Resource[]; use
       )}
 
       {tab === "settings" && (
-        <Card>
-          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 0", borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {/* Edit Profile Form */}
+          <Card>
+            <div style={{ fontSize: 16, fontWeight: 700, color: C.text, marginBottom: 4 }}>Profile Details</div>
+            <div style={{ fontSize: 13, color: C.muted, marginBottom: 20 }}>Update your student name and department branch</div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div>
-                <div style={{ fontWeight: 600, color: C.text, fontSize: 14 }}>Student Name</div>
-                <div style={{ fontSize: 13, color: C.muted }}>{displayName}</div>
+                <label style={{ fontSize: 13, fontWeight: 600, color: C.text, display: "block", marginBottom: 6 }}>
+                  Student Name *
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter your student name"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "11px 14px",
+                    border: `1.5px solid ${C.border}`,
+                    borderRadius: 10,
+                    fontSize: 14,
+                    color: C.text,
+                    background: "#fff",
+                    outline: "none",
+                    boxSizing: "border-box",
+                    fontFamily: "Inter, sans-serif",
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: 13, fontWeight: 600, color: C.text, display: "block", marginBottom: 6 }}>
+                  Branch / Department *
+                </label>
+                <select
+                  value={editBranch}
+                  onChange={(e) => setEditBranch(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "11px 14px",
+                    border: `1.5px solid ${C.border}`,
+                    borderRadius: 10,
+                    fontSize: 14,
+                    color: C.text,
+                    background: "#fff",
+                    outline: "none",
+                    boxSizing: "border-box",
+                    fontFamily: "Inter, sans-serif",
+                    cursor: "pointer",
+                  }}
+                >
+                  {IITR_BRANCHES.map((b) => (
+                    <option key={b} value={b}>{b}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: 13, fontWeight: 600, color: C.text, display: "block", marginBottom: 6 }}>
+                  IITR Email Address
+                </label>
+                <input
+                  type="text"
+                  value={displayEmail}
+                  disabled
+                  style={{
+                    width: "100%",
+                    padding: "11px 14px",
+                    border: `1.5px solid ${C.border}`,
+                    borderRadius: 10,
+                    fontSize: 14,
+                    color: C.muted,
+                    background: "#F8FAFC",
+                    outline: "none",
+                    boxSizing: "border-box",
+                    cursor: "not-allowed",
+                    fontFamily: "Inter, sans-serif",
+                  }}
+                />
+                <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>
+                  Email address is verified and tied to your IITR account.
+                </div>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+                <Btn onClick={handleSaveProfile} disabled={saving}>
+                  {saving ? "Saving Changes..." : "Save Changes"}
+                </Btn>
               </div>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 0", borderBottom: `1px solid ${C.border}` }}>
+          </Card>
+
+          {/* Session Card */}
+          <Card>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <div style={{ fontWeight: 600, color: C.text, fontSize: 14 }}>IITR Email</div>
-                <div style={{ fontSize: 13, color: C.muted }}>{displayEmail}</div>
+                <div style={{ fontWeight: 600, color: C.text, fontSize: 14 }}>Session Management</div>
+                <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>Log out from this device</div>
               </div>
-            </div>
-            <div style={{ paddingTop: 18 }}>
               <button
                 onClick={onLogout}
-                style={{ color: "#ef4444", background: "none", border: "1px solid #FECACA", borderRadius: 7, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+                style={{
+                  color: C.text,
+                  background: "#fff",
+                  border: `1px solid ${C.border}`,
+                  borderRadius: 8,
+                  padding: "8px 16px",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                }}
               >
-                Logout from StudyStack
+                Logout
               </button>
             </div>
+          </Card>
+
+          {/* Danger Zone: Delete Account */}
+          <div
+            style={{
+              background: "#FFF5F5",
+              border: "1.5px solid #FCA5A5",
+              borderRadius: 14,
+              padding: "20px 24px",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
+              <div>
+                <div style={{ fontWeight: 700, color: "#DC2626", fontSize: 15, marginBottom: 4 }}>
+                  Delete Account
+                </div>
+                <div style={{ fontSize: 13, color: "#7F1D1D", lineHeight: 1.5, maxWidth: 520 }}>
+                  Permanently delete your StudyStack account, bookmarks, and all personal data. This action is irreversible.
+                </div>
+              </div>
+              {!showDeleteConfirm && (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  style={{
+                    color: "#DC2626",
+                    background: "#fff",
+                    border: "1.5px solid #DC2626",
+                    borderRadius: 8,
+                    padding: "9px 18px",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  Delete Account
+                </button>
+              )}
+            </div>
+
+            {showDeleteConfirm && (
+              <div
+                style={{
+                  marginTop: 18,
+                  paddingTop: 16,
+                  borderTop: "1px dashed #FCA5A5",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12,
+                }}
+              >
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#991B1B" }}>
+                  ⚠️ Are you sure you want to delete your account? This cannot be undone.
+                </div>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={deleting}
+                    style={{
+                      background: "#DC2626",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 8,
+                      padding: "9px 20px",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: deleting ? "not-allowed" : "pointer",
+                      opacity: deleting ? 0.7 : 1,
+                    }}
+                  >
+                    {deleting ? "Deleting Account..." : "Yes, Delete Account"}
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={deleting}
+                    style={{
+                      background: "#fff",
+                      color: C.text,
+                      border: `1px solid ${C.border}`,
+                      borderRadius: 8,
+                      padding: "9px 18px",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-        </Card>
+        </div>
       )}
     </div>
   );
@@ -1543,6 +1841,11 @@ export default function App() {
             resources={resources}
             user={currentUser}
             onLogout={handleLogout}
+            onToast={show}
+            onUserUpdated={(u) => {
+              setCurrentUser(u);
+              api.auth.setUser(u);
+            }}
           />
         )}
       </main>

@@ -33,10 +33,13 @@ export function authenticateToken(req: any, res: any, next: any) {
 // ── Signup ───────────────────────────────────────────────────────────────────
 authRouter.post("/signup", async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, branch } = req.body;
 
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: "Name, email, and password are required" });
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: "Student name cannot be empty" });
+    }
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
@@ -54,14 +57,21 @@ authRouter.post("/signup", async (req, res) => {
 
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(password, salt);
+    const studentBranch = (branch && branch.trim()) || "Electronics & Communication";
 
     if (existing) {
-      db.prepare("UPDATE users SET name = ?, password_hash = ? WHERE email = ?").run(name, password_hash, normalizedEmail);
+      db.prepare("UPDATE users SET name = ?, password_hash = ?, department = ? WHERE email = ?").run(
+        name.trim(),
+        password_hash,
+        studentBranch,
+        normalizedEmail
+      );
     } else {
-      db.prepare("INSERT INTO users (name, email, password_hash, is_verified) VALUES (?, ?, ?, 0)").run(
-        name,
+      db.prepare("INSERT INTO users (name, email, password_hash, department, is_verified) VALUES (?, ?, ?, ?, 0)").run(
+        name.trim(),
         normalizedEmail,
-        password_hash
+        password_hash,
+        studentBranch
       );
     }
 

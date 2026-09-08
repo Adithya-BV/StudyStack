@@ -33,11 +33,11 @@ export const api = {
     },
     setUser: (user: any) => localStorage.setItem("studystack_user", JSON.stringify(user)),
 
-    signup: async (name: string, email: string, password: string) => {
+    signup: async (name: string, email: string, password: string, branch?: string) => {
       const res = await fetch(`${API_BASE}/auth/signup`, {
         method: "POST",
         headers: getHeaders(),
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, branch }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Signup failed");
@@ -229,6 +229,16 @@ export const api = {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to update profile");
       return data.user;
+    },
+
+    deleteAccount: async () => {
+      const res = await fetch(`${API_BASE}/profile`, {
+        method: "DELETE",
+        headers: getHeaders(),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to delete account");
+      return data;
     },
   },
 };

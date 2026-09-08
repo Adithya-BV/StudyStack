@@ -45,10 +45,19 @@ profileRouter.put("/", authenticateToken, (req: any, res) => {
     const userEmail = req.user.email;
     const { name, department, year } = req.body;
 
-    db.prepare("UPDATE users SET name = COALESCE(?, name), department = COALESCE(?, department), year = COALESCE(?, year) WHERE email = ?").run(
-      name,
-      department,
-      year,
+    // Validate that student name cannot be empty
+    if (name !== undefined) {
+      if (typeof name !== "string" || !name.trim()) {
+        return res.status(400).json({ error: "Student name cannot be empty" });
+      }
+    }
+
+    db.prepare(
+      "UPDATE users SET name = COALESCE(?, name), department = COALESCE(?, department), year = COALESCE(?, year) WHERE email = ?"
+    ).run(
+      name !== undefined ? name.trim() : null,
+      department !== undefined ? department.trim() : null,
+      year !== undefined ? year.trim() : null,
       userEmail
     );
 
@@ -56,5 +65,26 @@ profileRouter.put("/", authenticateToken, (req: any, res) => {
     res.json({ success: true, user: updated });
   } catch (error: any) {
     res.status(500).json({ error: error.message || "Failed to update profile" });
+  }
+});
+
+// DELETE account
+profileRouter.delete("/", authenticateToken, (req: any, res) => {
+  try {
+    const userEmail = req.user.email;
+
+    // Remove user's pins
+    db.prepare("DELETE FROM pins WHERE user_email = ?").run(userEmail);
+
+    // Remove user's OTPs
+    db.prepare("DELETE FROM otps WHERE email = ?").run(userEmail);
+
+    // Remove user account
+    db.prepare("DELETE FROM users WHERE email = ?").run(userEmail);
+
+    res.json({ success: true, message: "Account deleted successfully" });
+  } catch (error: any) {
+    console.error("Delete account error:", error);
+    res.status(500).json({ error: error.message || "Failed to delete account" });
   }
 });
