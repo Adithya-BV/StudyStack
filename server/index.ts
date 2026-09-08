@@ -46,7 +46,7 @@ app.use("/api/profile", profileRouter);
 const distDir = path.resolve(process.cwd(), "dist");
 if (fs.existsSync(distDir)) {
   app.use(express.static(distDir));
-  app.get("*", (req, res, next) => {
+  app.use((req, res, next) => {
     if (req.path.startsWith("/api") || req.path.startsWith("/uploads")) {
       return next();
     }
