@@ -451,7 +451,7 @@ function LoginPage({ onLogin, onSignup, onForgot, onToast, setEmailForOtp }: {
           <div style={{ color: C.muted, fontSize: 14, marginBottom: 32 }}>Continue your learning journey with StudyStack.</div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 24 }}>
-            <Input label="IITR Email" placeholder="yourname@iitr.ac.in or yourname@ece.iitr.ac.in" value={email} onChange={setEmail} />
+            <Input label="IITR Email" placeholder="yourname@iitr.ac.in" value={email} onChange={setEmail} />
             <Input label="Password" type="password" placeholder="Enter your password" value={password} onChange={setPassword} />
           </div>
 
