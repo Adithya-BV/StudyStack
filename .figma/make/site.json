@@ -1,7 +1,8 @@
 {
-  "description": "Streamline task management with an intuitive interface designed to boost productivity and simplify project tracking for teams and individuals.",
+  "title": "StudyStack — Your Stack. Your Track.",
+  "description": "StudyStack is an academic resource-sharing platform exclusively for IIT Roorkee students. Discover, upload, and share notes, PYQs, assignments, and lab files.",
   "robots": {
-    "index": false
+    "index": true
   },
   "accessibility": {
     "addBypassLinks": false,
