@@ -1,6 +1,7 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import logoImg from "@/imports/ChatGPT_Image_Sep_8__2026__10_02_08_PM.png";
 import sidebarIcon from "@/imports/ChatGPT_Image_Sep_8__2026__10_12_04_PM.png";
+import { api } from "./services/api";
 
 // ── Colors ──────────────────────────────────────────────────────────────────
 const C = {
@@ -14,29 +15,20 @@ const C = {
   border: "#E2E8F0",
 };
 
-// ── Mock data ────────────────────────────────────────────────────────────────
+// ── Types ────────────────────────────────────────────────────────────────────
 type Course = { id: number; code: string; name: string; dept: string; resources: number };
+type Resource = {
+  id: number;
+  title: string;
+  course: string;
+  type: string;
+  by: string;
+  date: string;
+  size: string;
+  pinned?: boolean;
+};
 
-const INITIAL_COURSES: Course[] = [
-  { id: 1, code: "CSN-201", name: "Data Structures and Algorithms", dept: "Computer Science", resources: 24 },
-  { id: 2, code: "MA-201", name: "Mathematics III", dept: "Mathematics", resources: 18 },
-  { id: 3, code: "EE-301", name: "Signals and Systems", dept: "Electrical Engineering", resources: 31 },
-  { id: 4, code: "CSN-301", name: "Operating Systems", dept: "Computer Science", resources: 27 },
-  { id: 5, code: "ME-201", name: "Engineering Mechanics", dept: "Mechanical Engineering", resources: 15 },
-  { id: 6, code: "CH-101", name: "Engineering Chemistry", dept: "Chemistry", resources: 22 },
-  { id: 7, code: "CSN-401", name: "Computer Networks", dept: "Computer Science", resources: 19 },
-  { id: 8, code: "EE-201", name: "Basic Electronics", dept: "Electrical Engineering", resources: 33 },
-];
-
-const RESOURCES = [
-  { id: 1, title: "DSA Mid-Sem Notes 2024", course: "CSN-201", type: "Notes", by: "Arjun Sharma", date: "Aug 28, 2026", size: "2.4 MB", pinned: false },
-  { id: 2, title: "OS Previous Year Paper 2023", course: "CSN-301", type: "PYQ", by: "Priya Verma", date: "Aug 25, 2026", size: "1.1 MB", pinned: true },
-  { id: 3, title: "Signals Lab Manual", course: "EE-301", type: "Labs", by: "Rahul Gupta", date: "Aug 20, 2026", size: "3.8 MB", pinned: false },
-  { id: 4, title: "Maths III Assignment 2", course: "MA-201", type: "Assignments", by: "Neha Singh", date: "Aug 18, 2026", size: "0.6 MB", pinned: true },
-  { id: 5, title: "Computer Networks Cheatsheet", course: "CSN-401", type: "Notes", by: "Arjun Sharma", date: "Sep 1, 2026", size: "0.9 MB", pinned: false },
-];
-
-type Page = "login" | "signup" | "otp" | "home" | "courses" | "course-detail" | "upload" | "pins" | "profile";
+type Page = "login" | "signup" | "otp" | "forgot" | "home" | "courses" | "course-detail" | "upload" | "pins" | "profile";
 
 // ── Icons ────────────────────────────────────────────────────────────────────
 const Icon = {
@@ -144,7 +136,7 @@ function useToast() {
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const show = (msg: string, type: "success" | "error" = "success") => {
     setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
+    setTimeout(() => setToast(null), 3500);
   };
   return { toast, show };
 }
@@ -286,18 +278,20 @@ function Input({ label, type = "text", placeholder, value, onChange }: {
 }
 
 // ── Btn ──────────────────────────────────────────────────────────────────────
-function Btn({ children, onClick, variant = "primary", fullWidth }: {
-  children: React.ReactNode; onClick?: () => void; variant?: "primary" | "secondary" | "ghost"; fullWidth?: boolean;
+function Btn({ children, onClick, variant = "primary", fullWidth, disabled }: {
+  children: React.ReactNode; onClick?: () => void; variant?: "primary" | "secondary" | "ghost"; fullWidth?: boolean; disabled?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       style={{
         padding: "11px 20px",
         borderRadius: 10,
         fontSize: 14,
         fontWeight: 600,
-        cursor: "pointer",
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.65 : 1,
         width: fullWidth ? "100%" : undefined,
         fontFamily: "Inter, sans-serif",
         transition: "all 0.15s",
@@ -349,8 +343,13 @@ function TypeBadge({ type }: { type: string }) {
 
 // ── Resource Card ─────────────────────────────────────────────────────────────
 function ResourceCard({ r, onPin, onToast }: {
-  r: typeof RESOURCES[0]; onPin: (id: number) => void; onToast: (msg: string) => void;
+  r: Resource; onPin: (id: number) => void; onToast: (msg: string, type?: "success" | "error") => void;
 }) {
+  const handleDownload = () => {
+    window.open(api.resources.getDownloadUrl(r.id), "_blank");
+    onToast(`Downloading ${r.title}...`);
+  };
+
   return (
     <Card style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "16px 20px" }}>
       <div style={{ background: "#EFF6FF", borderRadius: 10, padding: 10, flexShrink: 0 }}>
@@ -371,13 +370,13 @@ function ResourceCard({ r, onPin, onToast }: {
       </div>
       <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
         <button
-          onClick={() => onToast("Download started.")}
+          onClick={handleDownload}
           style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 12px", background: C.blue, color: "#fff", border: "none", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer" }}
         >
           <Icon.Download /> Download
         </button>
         <button
-          onClick={() => { onPin(r.id); onToast(r.pinned ? "Resource unpinned." : "Resource pinned!"); }}
+          onClick={() => onPin(r.id)}
           style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 12px", background: r.pinned ? "#EFF6FF" : "#F8FAFC", color: r.pinned ? C.blue : C.muted, border: `1px solid ${r.pinned ? "#BFDBFE" : C.border}`, borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer" }}
         >
           <Icon.Pin filled={r.pinned} />
@@ -389,9 +388,38 @@ function ResourceCard({ r, onPin, onToast }: {
 }
 
 // ── Login Page ────────────────────────────────────────────────────────────────
-function LoginPage({ onLogin, onSignup }: { onLogin: () => void; onSignup: () => void }) {
+function LoginPage({ onLogin, onSignup, onForgot, onToast, setEmailForOtp }: {
+  onLogin: () => void;
+  onSignup: () => void;
+  onForgot: () => void;
+  onToast: (msg: string, type?: "success" | "error") => void;
+  setEmailForOtp: (email: string) => void;
+}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      onToast("Please enter email and password", "error");
+      return;
+    }
+    setLoading(true);
+    try {
+      await api.auth.login(email, password);
+      onToast("Welcome back!");
+      onLogin();
+    } catch (err: any) {
+      if (err.needsVerification) {
+        setEmailForOtp(err.email);
+        onToast("Please verify your email with the OTP sent", "error");
+      } else {
+        onToast(err.message || "Invalid credentials", "error");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div style={{ minHeight: "100%", display: "flex", background: C.bg }}>
@@ -404,7 +432,6 @@ function LoginPage({ onLogin, onSignup }: { onLogin: () => void; onSignup: () =>
             width: 420,
             height: 420,
             objectFit: "cover",
-            borderRadius: 0,
             mixBlendMode: "lighten",
           }}
         />
@@ -422,12 +449,14 @@ function LoginPage({ onLogin, onSignup }: { onLogin: () => void; onSignup: () =>
           </div>
 
           <div style={{ textAlign: "right", marginBottom: 24 }}>
-            <button style={{ background: "none", border: "none", color: C.blue, fontSize: 13, fontWeight: 500, cursor: "pointer" }}>
+            <button onClick={onForgot} style={{ background: "none", border: "none", color: C.blue, fontSize: 13, fontWeight: 500, cursor: "pointer" }}>
               Forgot Password?
             </button>
           </div>
 
-          <Btn onClick={onLogin} fullWidth>Login</Btn>
+          <Btn onClick={handleLogin} fullWidth disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
+          </Btn>
 
           <div style={{ marginTop: 24, textAlign: "center", fontSize: 13, color: C.muted }}>
             Don't have an account?{" "}
@@ -442,11 +471,44 @@ function LoginPage({ onLogin, onSignup }: { onLogin: () => void; onSignup: () =>
 }
 
 // ── Signup Page ───────────────────────────────────────────────────────────────
-function SignupPage({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
+function SignupPage({ onNext, onBack, onToast, setEmailForOtp }: {
+  onNext: () => void;
+  onBack: () => void;
+  onToast: (msg: string, type?: "success" | "error") => void;
+  setEmailForOtp: (email: string) => void;
+}) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!name || !email || !pw) {
+      onToast("Please fill all fields", "error");
+      return;
+    }
+    if (!email.trim().toLowerCase().endsWith("@iitr.ac.in")) {
+      onToast("Only @iitr.ac.in email addresses allowed", "error");
+      return;
+    }
+    if (pw !== pw2) {
+      onToast("Passwords do not match", "error");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await api.auth.signup(name, email, pw);
+      setEmailForOtp(email);
+      onToast("OTP generated! (Check terminal console if SMTP not configured)");
+      onNext();
+    } catch (err: any) {
+      onToast(err.message || "Failed to create account", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div style={{ minHeight: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: C.bg, padding: 24 }}>
@@ -464,7 +526,9 @@ function SignupPage({ onNext, onBack }: { onNext: () => void; onBack: () => void
           <Input label="Confirm Password" type="password" placeholder="Repeat your password" value={pw2} onChange={setPw2} />
         </div>
 
-        <Btn onClick={onNext} fullWidth>Create Account</Btn>
+        <Btn onClick={handleSubmit} fullWidth disabled={loading}>
+          {loading ? "Sending OTP..." : "Create Account"}
+        </Btn>
 
         <div style={{ marginTop: 20, textAlign: "center", fontSize: 13, color: C.muted }}>
           Already have an account?{" "}
@@ -478,8 +542,13 @@ function SignupPage({ onNext, onBack }: { onNext: () => void; onBack: () => void
 }
 
 // ── OTP Page ──────────────────────────────────────────────────────────────────
-function OtpPage({ onVerify }: { onVerify: () => void }) {
+function OtpPage({ onVerify, email, onToast }: {
+  onVerify: () => void;
+  email: string;
+  onToast: (msg: string, type?: "success" | "error") => void;
+}) {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [loading, setLoading] = useState(false);
   const refs = Array.from({ length: 6 }, () => useRef<HTMLInputElement>(null));
 
   const handleChange = (i: number, v: string) => {
@@ -490,12 +559,41 @@ function OtpPage({ onVerify }: { onVerify: () => void }) {
     if (v && i < 5) refs[i + 1].current?.focus();
   };
 
+  const handleVerify = async () => {
+    const code = otp.join("");
+    if (code.length !== 6) {
+      onToast("Please enter the 6-digit OTP", "error");
+      return;
+    }
+    setLoading(true);
+    try {
+      await api.auth.verifyOtp(email, code);
+      onToast("Account verified successfully! 🎉");
+      onVerify();
+    } catch (err: any) {
+      onToast(err.message || "Invalid OTP", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    try {
+      await api.auth.resendOtp(email);
+      onToast("New OTP sent! (Check console if SMTP unconfigured)");
+    } catch (err: any) {
+      onToast(err.message || "Failed to resend OTP", "error");
+    }
+  };
+
   return (
     <div style={{ minHeight: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: C.bg, padding: 24 }}>
       <div style={{ width: "100%", maxWidth: 400, background: "#fff", borderRadius: 20, padding: 40, border: `1px solid ${C.border}`, boxShadow: "0 4px 24px rgba(0,0,0,0.07)", textAlign: "center" }}>
         <div style={{ fontSize: 40, marginBottom: 12 }}>📬</div>
         <div style={{ fontSize: 22, fontWeight: 800, color: C.text, marginBottom: 6 }}>Verify Your IITR Email</div>
-        <div style={{ color: C.muted, fontSize: 13, marginBottom: 32 }}>Enter the OTP sent to your IIT Roorkee email.</div>
+        <div style={{ color: C.muted, fontSize: 13, marginBottom: 32 }}>
+          Enter the OTP sent to <b>{email || "your IITR email"}</b>.
+        </div>
 
         <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 32 }}>
           {otp.map((d, i) => (
@@ -506,15 +604,17 @@ function OtpPage({ onVerify }: { onVerify: () => void }) {
               onChange={(e) => handleChange(i, e.target.value)}
               maxLength={1}
               style={{
-                width: 48, height: 56, textAlign: "center", fontSize: 22, fontWeight: 700, border: `2px solid ${d ? C.blue : C.border}`, borderRadius: 10, outline: "none", color: C.text, fontFamily: "Inter, sans-serif",
+                width: 44, height: 52, textAlign: "center", fontSize: 22, fontWeight: 700, border: `2px solid ${d ? C.blue : C.border}`, borderRadius: 10, outline: "none", color: C.text, fontFamily: "Inter, sans-serif",
               }}
             />
           ))}
         </div>
 
-        <Btn onClick={onVerify} fullWidth>Verify</Btn>
+        <Btn onClick={handleVerify} fullWidth disabled={loading}>
+          {loading ? "Verifying..." : "Verify"}
+        </Btn>
         <div style={{ marginTop: 16 }}>
-          <button style={{ background: "none", border: "none", color: C.blue, fontSize: 13, fontWeight: 500, cursor: "pointer" }}>
+          <button onClick={handleResend} style={{ background: "none", border: "none", color: C.blue, fontSize: 13, fontWeight: 500, cursor: "pointer" }}>
             Resend OTP
           </button>
         </div>
@@ -523,22 +623,113 @@ function OtpPage({ onVerify }: { onVerify: () => void }) {
   );
 }
 
+// ── Forgot Password Page ─────────────────────────────────────────────────────
+function ForgotPasswordPage({ onDone, onBack, onToast }: {
+  onDone: () => void;
+  onBack: () => void;
+  onToast: (msg: string, type?: "success" | "error") => void;
+}) {
+  const [step, setStep] = useState<"email" | "reset">("email");
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSendOtp = async () => {
+    if (!email) {
+      onToast("Enter your email", "error");
+      return;
+    }
+    setLoading(true);
+    try {
+      await api.auth.forgotPassword(email);
+      onToast("Reset OTP sent! (Check terminal console)");
+      setStep("reset");
+    } catch (err: any) {
+      onToast(err.message || "Failed to send reset OTP", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReset = async () => {
+    if (!otp || !newPw) {
+      onToast("Please enter OTP and new password", "error");
+      return;
+    }
+    setLoading(true);
+    try {
+      await api.auth.resetPassword(email, otp, newPw);
+      onToast("Password updated! Please log in.");
+      onDone();
+    } catch (err: any) {
+      onToast(err.message || "Failed to reset password", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ minHeight: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: C.bg, padding: 24 }}>
+      <div style={{ width: "100%", maxWidth: 400, background: "#fff", borderRadius: 20, padding: 40, border: `1px solid ${C.border}`, boxShadow: "0 4px 24px rgba(0,0,0,0.07)" }}>
+        <div style={{ fontSize: 24, fontWeight: 800, color: C.text, marginBottom: 6 }}>
+          {step === "email" ? "Forgot password?" : "Reset password"}
+        </div>
+        <div style={{ color: C.muted, fontSize: 13, marginBottom: 24 }}>
+          {step === "email" ? "Enter your IITR email to receive a recovery code." : "Enter the OTP received and choose a new password."}
+        </div>
+
+        {step === "email" ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 24 }}>
+            <Input label="IITR Email" placeholder="yourname@iitr.ac.in" value={email} onChange={setEmail} />
+            <Btn onClick={handleSendOtp} fullWidth disabled={loading}>
+              {loading ? "Sending..." : "Send Reset Code"}
+            </Btn>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 24 }}>
+            <Input label="6-Digit OTP" placeholder="123456" value={otp} onChange={setOtp} />
+            <Input label="New Password" type="password" placeholder="Enter new password" value={newPw} onChange={setNewPw} />
+            <Btn onClick={handleReset} fullWidth disabled={loading}>
+              {loading ? "Resetting..." : "Save New Password"}
+            </Btn>
+          </div>
+        )}
+
+        <div style={{ textAlign: "center", marginTop: 12 }}>
+          <button onClick={onBack} style={{ background: "none", border: "none", color: C.blue, fontSize: 13, cursor: "pointer" }}>
+            ← Back to Login
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Home Dashboard ────────────────────────────────────────────────────────────
-function HomePage({ setPage, resources, onPin, onToast, courses }: {
+function HomePage({ setPage, resources, onPin, onToast, courses, user, setSelectedCourse }: {
   setPage: (p: Page) => void;
-  resources: typeof RESOURCES;
+  resources: Resource[];
   onPin: (id: number) => void;
-  onToast: (msg: string) => void;
+  onToast: (msg: string, type?: "success" | "error") => void;
   courses: Course[];
+  user: any;
+  setSelectedCourse: (c: Course) => void;
 }) {
   const [search, setSearch] = useState("");
   const recent = courses.slice(0, 3);
+
+  const filteredResources = search
+    ? resources.filter((r) => r.title.toLowerCase().includes(search.toLowerCase()) || r.course.toLowerCase().includes(search.toLowerCase()))
+    : resources;
 
   return (
     <div style={{ padding: "32px 36px", maxWidth: 1100 }}>
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 4, letterSpacing: "-0.5px" }}>Hey Arjun 👋</h1>
+        <h1 style={{ fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 4, letterSpacing: "-0.5px" }}>
+          Hey {user?.name ? user.name.split(" ")[0] : "Student"} 👋
+        </h1>
         <p style={{ color: C.muted, fontSize: 15 }}>Ready to find something useful?</p>
       </div>
 
@@ -560,7 +751,7 @@ function HomePage({ setPage, resources, onPin, onToast, courses }: {
       {/* Recently Accessed Courses */}
       <div style={{ marginBottom: 36 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 700, color: C.text }}>Recently Accessed Courses</h2>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: C.text }}>Featured Courses</h2>
           <button onClick={() => setPage("courses")} style={{ background: "none", border: "none", color: C.blue, fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
             View all <Icon.ChevronRight />
           </button>
@@ -570,7 +761,7 @@ function HomePage({ setPage, resources, onPin, onToast, courses }: {
             No courses added yet. <button onClick={() => setPage("courses")} style={{ background: "none", border: "none", color: C.blue, fontWeight: 600, cursor: "pointer" }}>Add your first course →</button>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 }}>
             {recent.map((c) => (
               <Card key={c.id} style={{ cursor: "pointer" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
@@ -581,7 +772,7 @@ function HomePage({ setPage, resources, onPin, onToast, courses }: {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontSize: 13, fontWeight: 600, color: C.muted }}>{c.resources} Resources</span>
                   <button
-                    onClick={() => setPage("course-detail")}
+                    onClick={() => { setSelectedCourse(c); setPage("course-detail"); }}
                     style={{ background: C.blue, color: "#fff", border: "none", borderRadius: 7, padding: "6px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}
                   >
                     View
@@ -595,11 +786,16 @@ function HomePage({ setPage, resources, onPin, onToast, courses }: {
 
       {/* Recently Added */}
       <div>
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: C.text, marginBottom: 16 }}>Recently Added</h2>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: C.text, marginBottom: 16 }}>
+          {search ? `Search Results (${filteredResources.length})` : "Recently Added"}
+        </h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {resources.slice(0, 3).map((r) => (
+          {filteredResources.slice(0, 5).map((r) => (
             <ResourceCard key={r.id} r={r} onPin={onPin} onToast={onToast} />
           ))}
+          {filteredResources.length === 0 && (
+            <div style={{ textAlign: "center", padding: "40px 0", color: C.muted }}>No resources match your search.</div>
+          )}
         </div>
       </div>
     </div>
@@ -607,15 +803,16 @@ function HomePage({ setPage, resources, onPin, onToast, courses }: {
 }
 
 // ── Courses Page ──────────────────────────────────────────────────────────────
-function CoursesPage({ setPage, courses, onAdd, onRemove }: {
+function CoursesPage({ setPage, courses, onAdd, onRemove, setSelectedCourse }: {
   setPage: (p: Page) => void;
   courses: Course[];
-  onAdd: (c: Course) => void;
+  onAdd: (code: string, name: string, dept: string) => void;
   onRemove: (id: number) => void;
+  setSelectedCourse: (c: Course) => void;
 }) {
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ code: "", name: "", dept: "", resources: "" });
+  const [form, setForm] = useState({ code: "", name: "", dept: "" });
 
   const filtered = courses.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase()) || c.code.toLowerCase().includes(search.toLowerCase())
@@ -623,8 +820,8 @@ function CoursesPage({ setPage, courses, onAdd, onRemove }: {
 
   const handleAdd = () => {
     if (!form.code.trim() || !form.name.trim()) return;
-    onAdd({ id: Date.now(), code: form.code.trim(), name: form.name.trim(), dept: form.dept.trim(), resources: parseInt(form.resources) || 0 });
-    setForm({ code: "", name: "", dept: "", resources: "" });
+    onAdd(form.code.trim(), form.name.trim(), form.dept.trim() || "Engineering");
+    setForm({ code: "", name: "", dept: "" });
     setShowForm(false);
   };
 
@@ -660,10 +857,6 @@ function CoursesPage({ setPage, courses, onAdd, onRemove }: {
               <label style={{ fontSize: 12, fontWeight: 600, color: C.muted, display: "block", marginBottom: 5 }}>Course Name *</label>
               <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Data Structures and Algorithms" style={{ width: "100%", padding: "9px 12px", border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 14, color: C.text, outline: "none", boxSizing: "border-box", fontFamily: "Inter, sans-serif" }} />
             </div>
-            <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: C.muted, display: "block", marginBottom: 5 }}>No. of Resources</label>
-              <input value={form.resources} onChange={(e) => setForm({ ...form, resources: e.target.value })} placeholder="0" type="number" style={{ width: "100%", padding: "9px 12px", border: `1.5px solid ${C.border}`, borderRadius: 8, fontSize: 14, color: C.text, outline: "none", boxSizing: "border-box", fontFamily: "Inter, sans-serif" }} />
-            </div>
           </div>
           <div style={{ display: "flex", gap: 10 }}>
             <button onClick={handleAdd} style={{ background: C.blue, color: "#fff", border: "none", borderRadius: 8, padding: "9px 20px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Add Course</button>
@@ -683,7 +876,7 @@ function CoursesPage({ setPage, courses, onAdd, onRemove }: {
       {filtered.length === 0 ? (
         <div style={{ textAlign: "center", padding: "60px 0" }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>📚</div>
-          <div style={{ fontWeight: 700, fontSize: 16, color: C.text, marginBottom: 6 }}>No courses yet</div>
+          <div style={{ fontWeight: 700, fontSize: 16, color: C.text, marginBottom: 6 }}>No courses found</div>
           <div style={{ color: C.muted, fontSize: 14 }}>Click "Add Course" to add your first course.</div>
         </div>
       ) : (
@@ -698,7 +891,7 @@ function CoursesPage({ setPage, courses, onAdd, onRemove }: {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: C.muted }}>{c.resources} Resources</span>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => setPage("course-detail")} style={{ background: C.blue, color: "#fff", border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>View</button>
+                  <button onClick={() => { setSelectedCourse(c); setPage("course-detail"); }} style={{ background: C.blue, color: "#fff", border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>View</button>
                   <button onClick={() => onRemove(c.id)} style={{ background: "#FEF2F2", color: "#ef4444", border: "1px solid #FECACA", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Remove</button>
                 </div>
               </div>
@@ -711,22 +904,25 @@ function CoursesPage({ setPage, courses, onAdd, onRemove }: {
 }
 
 // ── Course Detail Page ────────────────────────────────────────────────────────
-function CourseDetailPage({ setPage, resources, onPin, onToast }: {
+function CourseDetailPage({ setPage, resources, onPin, onToast, course }: {
   setPage: (p: Page) => void;
-  resources: typeof RESOURCES;
+  resources: Resource[];
   onPin: (id: number) => void;
-  onToast: (msg: string) => void;
+  onToast: (msg: string, type?: "success" | "error") => void;
+  course: Course | null;
 }) {
   const [activeTab, setActiveTab] = useState<string | null>(null);
 
   const tabs = [
     { label: "Notes", emoji: "📚", desc: "Lecture notes, study material and summaries." },
-    { label: "PYQs", emoji: "📝", desc: "Previous year question papers." },
+    { label: "PYQ", emoji: "📝", desc: "Previous year question papers." },
     { label: "Assignments", emoji: "📄", desc: "Assignments and problem sets." },
     { label: "Labs", emoji: "🧪", desc: "Lab sheets, files and useful lab resources." },
   ];
 
-  const filtered = activeTab ? resources.filter((r) => r.type === activeTab || (activeTab === "PYQs" && r.type === "PYQ") || (activeTab === "Assignments" && r.type === "Assignments")) : [];
+  const courseCode = course ? course.code : "CSN-201";
+  const courseResources = resources.filter((r) => r.course.toUpperCase() === courseCode.toUpperCase());
+  const filtered = activeTab ? courseResources.filter((r) => r.type.toLowerCase() === activeTab.toLowerCase()) : [];
 
   return (
     <div style={{ padding: "32px 36px", maxWidth: 1000 }}>
@@ -737,20 +933,25 @@ function CourseDetailPage({ setPage, resources, onPin, onToast }: {
       <Card style={{ marginBottom: 28 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
-            <span style={{ background: "#EFF6FF", color: C.blue, fontSize: 13, fontWeight: 700, padding: "4px 10px", borderRadius: 6, display: "inline-block", marginBottom: 10 }}>CSN-201</span>
-            <h1 style={{ fontSize: 26, fontWeight: 800, color: C.text, marginBottom: 6, letterSpacing: "-0.3px" }}>Data Structures and Algorithms</h1>
-            <p style={{ color: C.muted, fontSize: 14, marginBottom: 12 }}>Department of Computer Science & Engineering · Semester 3</p>
-            <p style={{ color: C.muted, fontSize: 13, lineHeight: 1.6 }}>Core computer science course covering arrays, linked lists, trees, graphs, sorting and searching algorithms with practical implementation.</p>
+            <span style={{ background: "#EFF6FF", color: C.blue, fontSize: 13, fontWeight: 700, padding: "4px 10px", borderRadius: 6, display: "inline-block", marginBottom: 10 }}>
+              {course?.code || "CSN-201"}
+            </span>
+            <h1 style={{ fontSize: 26, fontWeight: 800, color: C.text, marginBottom: 6, letterSpacing: "-0.3px" }}>
+              {course?.name || "Data Structures and Algorithms"}
+            </h1>
+            <p style={{ color: C.muted, fontSize: 14, marginBottom: 12 }}>
+              {course?.dept || "Computer Science"} · IIT Roorkee
+            </p>
           </div>
           <div style={{ textAlign: "right", flexShrink: 0 }}>
-            <div style={{ fontSize: 28, fontWeight: 800, color: C.blue }}>24</div>
+            <div style={{ fontSize: 28, fontWeight: 800, color: C.blue }}>{courseResources.length}</div>
             <div style={{ fontSize: 12, color: C.muted }}>Resources</div>
           </div>
         </div>
       </Card>
 
       {!activeTab ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
           {tabs.map((t) => (
             <button
               key={t.label}
@@ -769,7 +970,7 @@ function CourseDetailPage({ setPage, resources, onPin, onToast }: {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
             <button onClick={() => setActiveTab(null)} style={{ background: "none", border: "none", color: C.blue, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-              ← Back
+              ← Back to Categories
             </button>
             <h2 style={{ fontSize: 20, fontWeight: 700, color: C.text }}>{activeTab}</h2>
           </div>
@@ -793,26 +994,58 @@ function CourseDetailPage({ setPage, resources, onPin, onToast }: {
 }
 
 // ── Upload Page ───────────────────────────────────────────────────────────────
-function UploadPage({ onToast }: { onToast: (msg: string) => void }) {
+function UploadPage({ onToast, courses, onUploaded }: {
+  onToast: (msg: string, type?: "success" | "error") => void;
+  courses: Course[];
+  onUploaded: () => void;
+}) {
   const [dragging, setDragging] = useState(false);
-  const [fileName, setFileName] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [course, setCourse] = useState("");
-  const [resType, setResType] = useState("");
+  const [resType, setResType] = useState("Notes");
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragging(false);
     const file = e.dataTransfer.files[0];
-    if (file) setFileName(file.name);
+    if (file) {
+      setSelectedFile(file);
+      if (!title) setTitle(file.name.replace(/\.[^/.]+$/, ""));
+    }
   };
 
-  const handleSubmit = () => {
-    setSuccess(true);
-    onToast("Resource uploaded successfully! 🎉");
-    setTimeout(() => setSuccess(false), 4000);
+  const handleSubmit = async () => {
+    if (!title || !course || !resType) {
+      onToast("Please provide title, course, and type", "error");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("course", course);
+      formData.append("type", resType);
+      if (desc) formData.append("description", desc);
+      if (selectedFile) formData.append("file", selectedFile);
+
+      await api.resources.upload(formData);
+      setSuccess(true);
+      onToast("Resource uploaded successfully! 🎉");
+      setTitle("");
+      setDesc("");
+      setSelectedFile(null);
+      onUploaded();
+      setTimeout(() => setSuccess(false), 4000);
+    } catch (err: any) {
+      onToast(err.message || "Failed to upload resource", "error");
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -845,15 +1078,30 @@ function UploadPage({ onToast }: { onToast: (msg: string) => void }) {
         }}
       >
         <div style={{ fontSize: 36, marginBottom: 12 }}>☁️</div>
-        {fileName ? (
-          <div style={{ fontWeight: 600, color: C.text }}>{fileName}</div>
+        {selectedFile ? (
+          <div>
+            <div style={{ fontWeight: 600, color: C.text }}>{selectedFile.name}</div>
+            <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>
+              {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+            </div>
+          </div>
         ) : (
           <>
             <div style={{ fontWeight: 600, color: C.text, marginBottom: 6 }}>Drag & drop your file here</div>
-            <div style={{ color: C.muted, fontSize: 13, marginBottom: 14 }}>or</div>
+            <div style={{ color: C.muted, fontSize: 13, marginBottom: 14 }}>PDF, DOCX, Images up to 50MB</div>
             <label style={{ background: C.blue, color: "#fff", padding: "9px 20px", borderRadius: 9, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
               Browse Files
-              <input type="file" style={{ display: "none" }} onChange={(e) => { if (e.target.files?.[0]) setFileName(e.target.files[0].name); }} />
+              <input
+                type="file"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  if (e.target.files?.[0]) {
+                    const f = e.target.files[0];
+                    setSelectedFile(f);
+                    if (!title) setTitle(f.name.replace(/\.[^/.]+$/, ""));
+                  }
+                }}
+              />
             </label>
           </>
         )}
@@ -862,29 +1110,28 @@ function UploadPage({ onToast }: { onToast: (msg: string) => void }) {
       {/* Fields */}
       <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 24 }}>
         <div>
-          <label style={{ fontSize: 13, fontWeight: 600, color: C.text, display: "block", marginBottom: 6 }}>Course</label>
+          <label style={{ fontSize: 13, fontWeight: 600, color: C.text, display: "block", marginBottom: 6 }}>Course *</label>
           <select
             value={course}
             onChange={(e) => setCourse(e.target.value)}
             style={{ width: "100%", padding: "11px 14px", border: `1.5px solid ${C.border}`, borderRadius: 10, fontSize: 14, color: C.text, background: "#fff", fontFamily: "Inter, sans-serif" }}
           >
             <option value="">Select a course</option>
-            {INITIAL_COURSES.map((c) => <option key={c.id} value={c.code}>{c.code} — {c.name}</option>)}
+            {courses.map((c) => <option key={c.id} value={c.code}>{c.code} — {c.name}</option>)}
           </select>
         </div>
         <div>
-          <label style={{ fontSize: 13, fontWeight: 600, color: C.text, display: "block", marginBottom: 6 }}>Resource Type</label>
+          <label style={{ fontSize: 13, fontWeight: 600, color: C.text, display: "block", marginBottom: 6 }}>Resource Type *</label>
           <select
             value={resType}
             onChange={(e) => setResType(e.target.value)}
             style={{ width: "100%", padding: "11px 14px", border: `1.5px solid ${C.border}`, borderRadius: 10, fontSize: 14, color: C.text, background: "#fff", fontFamily: "Inter, sans-serif" }}
           >
-            <option value="">Select type</option>
-            {["Notes", "PYQ", "Assignment", "Lab", "Other"].map((t) => <option key={t}>{t}</option>)}
+            {["Notes", "PYQ", "Assignments", "Labs", "Other"].map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
         <div>
-          <label style={{ fontSize: 13, fontWeight: 600, color: C.text, display: "block", marginBottom: 6 }}>Resource Title</label>
+          <label style={{ fontSize: 13, fontWeight: 600, color: C.text, display: "block", marginBottom: 6 }}>Resource Title *</label>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -906,16 +1153,18 @@ function UploadPage({ onToast }: { onToast: (msg: string) => void }) {
         </div>
       </div>
 
-      <Btn onClick={handleSubmit} fullWidth>Upload Resource</Btn>
+      <Btn onClick={handleSubmit} fullWidth disabled={uploading}>
+        {uploading ? "Uploading Resource..." : "Upload Resource"}
+      </Btn>
     </div>
   );
 }
 
 // ── My Pins Page ──────────────────────────────────────────────────────────────
 function PinsPage({ resources, onPin, onToast, setPage }: {
-  resources: typeof RESOURCES;
+  resources: Resource[];
   onPin: (id: number) => void;
-  onToast: (msg: string) => void;
+  onToast: (msg: string, type?: "success" | "error") => void;
   setPage: (p: Page) => void;
 }) {
   const pinned = resources.filter((r) => r.pinned);
@@ -963,9 +1212,21 @@ function PinsPage({ resources, onPin, onToast, setPage }: {
 }
 
 // ── Profile Page ──────────────────────────────────────────────────────────────
-function ProfilePage({ resources }: { resources: typeof RESOURCES }) {
+function ProfilePage({ resources, user, onLogout }: { resources: Resource[]; user: any; onLogout: () => void }) {
   const [tab, setTab] = useState<"uploads" | "pins" | "settings">("uploads");
+  const [profileData, setProfileData] = useState<any>(null);
   const pinned = resources.filter((r) => r.pinned);
+
+  useEffect(() => {
+    api.profile.get().then((data) => setProfileData(data)).catch(() => {});
+  }, []);
+
+  const displayName = profileData?.name || user?.name || "IITR Student";
+  const displayEmail = profileData?.email || user?.email || "student@iitr.ac.in";
+  const displayDept = profileData?.department || "Computer Science";
+  const displayYear = profileData?.year || "2nd Year";
+
+  const userUploads = profileData?.uploads || resources.filter((r) => r.by === displayName);
 
   return (
     <div style={{ padding: "32px 36px", maxWidth: 800 }}>
@@ -975,15 +1236,19 @@ function ProfilePage({ resources }: { resources: typeof RESOURCES }) {
       <Card style={{ marginBottom: 24 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
           <div style={{ width: 72, height: 72, borderRadius: "50%", background: `linear-gradient(135deg, ${C.blue}, ${C.cyan})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
-            A
+            {displayName.charAt(0).toUpperCase()}
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 18, color: C.text }}>Arjun Sharma</div>
-            <div style={{ color: C.muted, fontSize: 14 }}>arjun.sharma@iitr.ac.in</div>
-            <div style={{ color: C.muted, fontSize: 13, marginTop: 2 }}>B.Tech CSE · Semester 5</div>
+            <div style={{ fontWeight: 700, fontSize: 18, color: C.text }}>{displayName}</div>
+            <div style={{ color: C.muted, fontSize: 14 }}>{displayEmail}</div>
+            <div style={{ color: C.muted, fontSize: 13, marginTop: 2 }}>{displayDept} · {displayYear}</div>
           </div>
           <div style={{ display: "flex", gap: 24 }}>
-            {[{ label: "Uploads", val: 7 }, { label: "Pinned", val: pinned.length }, { label: "Downloads", val: 34 }].map(({ label, val }) => (
+            {[
+              { label: "Uploads", val: profileData?.uploadsCount ?? userUploads.length },
+              { label: "Pinned", val: profileData?.pinsCount ?? pinned.length },
+              { label: "Community", val: "IITR" },
+            ].map(({ label, val }) => (
               <div key={label} style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 22, fontWeight: 800, color: C.blue }}>{val}</div>
                 <div style={{ fontSize: 12, color: C.muted }}>{label}</div>
@@ -1013,8 +1278,8 @@ function ProfilePage({ resources }: { resources: typeof RESOURCES }) {
 
       {tab === "uploads" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {RESOURCES.filter((r) => r.by === "Arjun Sharma").length > 0 ? (
-            RESOURCES.filter((r) => r.by === "Arjun Sharma").map((r) => (
+          {userUploads.length > 0 ? (
+            userUploads.map((r: any) => (
               <Card key={r.id} style={{ padding: "14px 18px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
@@ -1055,17 +1320,24 @@ function ProfilePage({ resources }: { resources: typeof RESOURCES }) {
       {tab === "settings" && (
         <Card>
           <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            {["Change Password", "Edit Profile"].map((item, i) => (
-              <div key={item} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 0", borderBottom: i < 1 ? `1px solid ${C.border}` : "none" }}>
-                <div style={{ fontWeight: 500, color: C.text, fontSize: 14 }}>{item}</div>
-                <button style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 7, padding: "6px 14px", color: C.muted, fontSize: 13, cursor: "pointer" }}>
-                  Edit
-                </button>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 0", borderBottom: `1px solid ${C.border}` }}>
+              <div>
+                <div style={{ fontWeight: 600, color: C.text, fontSize: 14 }}>Student Name</div>
+                <div style={{ fontSize: 13, color: C.muted }}>{displayName}</div>
               </div>
-            ))}
-            <div style={{ paddingTop: 14 }}>
-              <button style={{ color: "#ef4444", background: "none", border: "1px solid #FECACA", borderRadius: 7, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-                Logout
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 0", borderBottom: `1px solid ${C.border}` }}>
+              <div>
+                <div style={{ fontWeight: 600, color: C.text, fontSize: 14 }}>IITR Email</div>
+                <div style={{ fontSize: 13, color: C.muted }}>{displayEmail}</div>
+              </div>
+            </div>
+            <div style={{ paddingTop: 18 }}>
+              <button
+                onClick={onLogout}
+                style={{ color: "#ef4444", background: "none", border: "1px solid #FECACA", borderRadius: 7, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+              >
+                Logout from StudyStack
               </button>
             </div>
           </div>
@@ -1075,56 +1347,193 @@ function ProfilePage({ resources }: { resources: typeof RESOURCES }) {
   );
 }
 
-// ── App ───────────────────────────────────────────────────────────────────────
+// ── App Root ──────────────────────────────────────────────────────────────────
 export default function App() {
   const [page, setPage] = useState<Page>("login");
-  const [resources, setResources] = useState(RESOURCES);
-  const [courses, setCourses] = useState<Course[]>(INITIAL_COURSES);
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [emailForOtp, setEmailForOtp] = useState("");
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const { toast, show } = useToast();
 
-  const togglePin = (id: number) => {
-    setResources((prev) => prev.map((r) => r.id === id ? { ...r, pinned: !r.pinned } : r));
+  // Load data from backend
+  const loadData = async () => {
+    try {
+      const [fetchedCourses, fetchedResources] = await Promise.all([
+        api.courses.getAll().catch(() => []),
+        api.resources.getAll().catch(() => []),
+      ]);
+      if (fetchedCourses) setCourses(fetchedCourses);
+      if (fetchedResources) setResources(fetchedResources);
+    } catch {
+      // Fallback if offline
+    }
   };
 
-  const addCourse = (c: Course) => {
-    setCourses((prev) => [c, ...prev]);
-    show("Course added!");
+  useEffect(() => {
+    const user = api.auth.getUser();
+    const token = api.auth.getToken();
+    if (user && token) {
+      setCurrentUser(user);
+      setPage("home");
+    }
+    loadData();
+  }, []);
+
+  const handleLogout = () => {
+    api.auth.clearAuth();
+    setCurrentUser(null);
+    setPage("login");
+    show("Logged out successfully");
   };
 
-  const removeCourse = (id: number) => {
-    setCourses((prev) => prev.filter((c) => c.id !== id));
-    show("Course removed.");
+  const togglePin = async (id: number) => {
+    try {
+      const res = await api.resources.togglePin(id);
+      setResources((prev) => prev.map((r) => (r.id === id ? { ...r, pinned: res.pinned } : r)));
+      show(res.message || (res.pinned ? "Resource pinned!" : "Resource unpinned"));
+    } catch {
+      // Optimistic toggle if unauthenticated
+      setResources((prev) => prev.map((r) => (r.id === id ? { ...r, pinned: !r.pinned } : r)));
+    }
+  };
+
+  const addCourse = async (code: string, name: string, dept: string) => {
+    try {
+      const newCourse = await api.courses.create(code, name, dept);
+      setCourses((prev) => [newCourse, ...prev]);
+      show("Course added successfully!");
+    } catch (err: any) {
+      show(err.message || "Failed to add course", "error");
+    }
+  };
+
+  const removeCourse = async (id: number) => {
+    try {
+      await api.courses.delete(id);
+      setCourses((prev) => prev.filter((c) => c.id !== id));
+      show("Course removed.");
+    } catch (err: any) {
+      show(err.message || "Failed to remove course", "error");
+    }
   };
 
   if (page === "login") return (
     <>
-      <LoginPage onLogin={() => setPage("home")} onSignup={() => setPage("signup")} />
+      <LoginPage
+        onLogin={() => {
+          const user = api.auth.getUser();
+          setCurrentUser(user);
+          loadData();
+          setPage("home");
+        }}
+        onSignup={() => setPage("signup")}
+        onForgot={() => setPage("forgot")}
+        onToast={show}
+        setEmailForOtp={(em) => {
+          setEmailForOtp(em);
+          setPage("otp");
+        }}
+      />
       {toast && <Toast msg={toast.msg} type={toast.type} />}
     </>
   );
+
   if (page === "signup") return (
     <>
-      <SignupPage onNext={() => setPage("otp")} onBack={() => setPage("login")} />
+      <SignupPage
+        onNext={() => setPage("otp")}
+        onBack={() => setPage("login")}
+        onToast={show}
+        setEmailForOtp={setEmailForOtp}
+      />
       {toast && <Toast msg={toast.msg} type={toast.type} />}
     </>
   );
+
   if (page === "otp") return (
     <>
-      <OtpPage onVerify={() => setPage("home")} />
+      <OtpPage
+        onVerify={() => {
+          const user = api.auth.getUser();
+          setCurrentUser(user);
+          loadData();
+          setPage("home");
+        }}
+        email={emailForOtp}
+        onToast={show}
+      />
+      {toast && <Toast msg={toast.msg} type={toast.type} />}
+    </>
+  );
+
+  if (page === "forgot") return (
+    <>
+      <ForgotPasswordPage
+        onDone={() => setPage("login")}
+        onBack={() => setPage("login")}
+        onToast={show}
+      />
       {toast && <Toast msg={toast.msg} type={toast.type} />}
     </>
   );
 
   return (
     <div style={{ display: "flex", height: "100%", background: C.bg, fontFamily: "Inter, sans-serif" }}>
-      <Sidebar page={page} setPage={setPage} onLogout={() => setPage("login")} />
+      <Sidebar page={page} setPage={setPage} onLogout={handleLogout} />
       <main style={{ flex: 1, overflow: "auto", height: "100%" }}>
-        {page === "home" && <HomePage setPage={setPage} resources={resources} onPin={togglePin} onToast={show} courses={courses} />}
-        {page === "courses" && <CoursesPage setPage={setPage} courses={courses} onAdd={addCourse} onRemove={removeCourse} />}
-        {page === "course-detail" && <CourseDetailPage setPage={setPage} resources={resources} onPin={togglePin} onToast={show} />}
-        {page === "upload" && <UploadPage onToast={show} />}
-        {page === "pins" && <PinsPage resources={resources} onPin={togglePin} onToast={show} setPage={setPage} />}
-        {page === "profile" && <ProfilePage resources={resources} />}
+        {page === "home" && (
+          <HomePage
+            setPage={setPage}
+            resources={resources}
+            onPin={togglePin}
+            onToast={show}
+            courses={courses}
+            user={currentUser}
+            setSelectedCourse={setSelectedCourse}
+          />
+        )}
+        {page === "courses" && (
+          <CoursesPage
+            setPage={setPage}
+            courses={courses}
+            onAdd={addCourse}
+            onRemove={removeCourse}
+            setSelectedCourse={setSelectedCourse}
+          />
+        )}
+        {page === "course-detail" && (
+          <CourseDetailPage
+            setPage={setPage}
+            resources={resources}
+            onPin={togglePin}
+            onToast={show}
+            course={selectedCourse}
+          />
+        )}
+        {page === "upload" && (
+          <UploadPage
+            onToast={show}
+            courses={courses}
+            onUploaded={loadData}
+          />
+        )}
+        {page === "pins" && (
+          <PinsPage
+            resources={resources}
+            onPin={togglePin}
+            onToast={show}
+            setPage={setPage}
+          />
+        )}
+        {page === "profile" && (
+          <ProfilePage
+            resources={resources}
+            user={currentUser}
+            onLogout={handleLogout}
+          />
+        )}
       </main>
       {toast && <Toast msg={toast.msg} type={toast.type} />}
     </div>
