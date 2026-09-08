@@ -3,6 +3,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import jwt from "jsonwebtoken";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { db } from "../db/database";
 import { authenticateToken } from "./auth";
 
@@ -153,7 +154,7 @@ resourcesRouter.post("/upload", authenticateToken, upload.single("file"), (req: 
 });
 
 // ── GET Download Resource ────────────────────────────────────────────────────
-resourcesRouter.get("/:id/download", (req, res) => {
+resourcesRouter.get("/:id/download", async (req, res) => {
   try {
     const { id } = req.params;
     const resource = db.prepare("SELECT * FROM resources WHERE id = ?").get(Number(id)) as any;
@@ -169,11 +170,65 @@ resourcesRouter.get("/:id/download", (req, res) => {
       }
     }
 
-    // If pre-seeded resource with no disk file, generate a clean placeholder PDF / text document
-    const content = `StudyStack IIT Roorkee Resource\n\nTitle: ${resource.title}\nCourse: ${resource.course_code}\nType: ${resource.type}\nUploaded by: ${resource.by}\nDate: ${resource.date}\n\nThis is a certified academic resource provided by StudyStack.`;
-    res.setHeader("Content-Disposition", `attachment; filename="${resource.title.replace(/\s+/g, "_")}.txt"`);
-    res.setHeader("Content-Type", "text/plain");
-    res.send(content);
+    // Dynamic PDF generator fallback for any resources without a disk file
+    const pdfDoc = await PDFDocument.create();
+    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const page = pdfDoc.addPage([595.28, 841.89]);
+    const { width, height } = page.getSize();
+
+    page.drawRectangle({
+      x: 0,
+      y: height - 90,
+      width: width,
+      height: 90,
+      color: rgb(6 / 255, 27 / 255, 73 / 255),
+    });
+
+    page.drawText("StudyStack — IIT Roorkee", {
+      x: 40,
+      y: height - 45,
+      size: 20,
+      font: fontBold,
+      color: rgb(1, 1, 1),
+    });
+
+    page.drawText("Your Stack. Your Track. · Academic Resource Document", {
+      x: 40,
+      y: height - 68,
+      size: 11,
+      font: fontRegular,
+      color: rgb(85 / 255, 199 / 255, 255 / 255),
+    });
+
+    page.drawText(resource.title, {
+      x: 40,
+      y: height - 130,
+      size: 16,
+      font: fontBold,
+      color: rgb(15 / 255, 23 / 255, 42 / 255),
+    });
+
+    page.drawText(`Course: ${resource.course_code}  |  Type: ${resource.type}  |  By: ${resource.by}  |  Date: ${resource.date}`, {
+      x: 40,
+      y: height - 155,
+      size: 11,
+      font: fontRegular,
+      color: rgb(100 / 255, 116 / 255, 139 / 255),
+    });
+
+    page.drawText("This verified academic resource document was certified by StudyStack for IIT Roorkee students.", {
+      x: 40,
+      y: height - 200,
+      size: 11,
+      font: fontRegular,
+      color: rgb(51 / 255, 65 / 255, 85 / 255),
+    });
+
+    const pdfBytes = await pdfDoc.save();
+    res.setHeader("Content-Disposition", `attachment; filename="${resource.title.replace(/[^a-zA-Z0-9_-]/g, "_")}.pdf"`);
+    res.setHeader("Content-Type", "application/pdf");
+    res.send(Buffer.from(pdfBytes));
   } catch (error: any) {
     console.error("Download error:", error);
     res.status(500).json({ error: error.message || "Download failed" });
