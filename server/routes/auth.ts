@@ -153,6 +153,10 @@ authRouter.post("/login", async (req, res) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail.endsWith("@iitr.ac.in")) {
+      return res.status(400).json({ error: "Only IIT Roorkee (@iitr.ac.in) email addresses are allowed" });
+    }
+
     const user = db.prepare("SELECT * FROM users WHERE email = ?").get(normalizedEmail) as any;
 
     if (!user) {
@@ -212,6 +216,10 @@ authRouter.post("/forgot-password", async (req, res) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail.endsWith("@iitr.ac.in")) {
+      return res.status(400).json({ error: "Only IIT Roorkee (@iitr.ac.in) email addresses are allowed" });
+    }
+
     const user = db.prepare("SELECT * FROM users WHERE email = ?").get(normalizedEmail) as any;
 
     if (!user) {

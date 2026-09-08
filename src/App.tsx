@@ -404,6 +404,10 @@ function LoginPage({ onLogin, onSignup, onForgot, onToast, setEmailForOtp }: {
       onToast("Please enter email and password", "error");
       return;
     }
+    if (!email.trim().toLowerCase().endsWith("@iitr.ac.in")) {
+      onToast("Only @iitr.ac.in email addresses are allowed", "error");
+      return;
+    }
     setLoading(true);
     try {
       await api.auth.login(email, password);
@@ -638,6 +642,10 @@ function ForgotPasswordPage({ onDone, onBack, onToast }: {
   const handleSendOtp = async () => {
     if (!email) {
       onToast("Enter your email", "error");
+      return;
+    }
+    if (!email.trim().toLowerCase().endsWith("@iitr.ac.in")) {
+      onToast("Only @iitr.ac.in email addresses are allowed", "error");
       return;
     }
     setLoading(true);
