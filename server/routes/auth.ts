@@ -169,7 +169,12 @@ authRouter.post("/verify-otp", async (req, res) => {
 
     const normalizedEmail = email.trim().toLowerCase()
 
-    const record = (await pool.query(\"SELECT * FROM otps WHERE email = $1 AND otp_code = $2 AND type = 'signup' AND expires_at > NOW() ORDER BY id DESC LIMIT 1\", [normalizedEmail, otp.trim()])).rows[0] as any
+    const record = (
+      await pool.query(
+        "SELECT * FROM otps WHERE email = $1 AND otp_code = $2 AND type = 'signup' AND expires_at > NOW() ORDER BY id DESC LIMIT 1",
+        [normalizedEmail, otp.trim()],
+      )
+    ).rows[0] as any
 
     if (!record) {
       return res.status(400).json({ error: "Invalid or expired OTP code" })
@@ -437,7 +442,12 @@ authRouter.post("/reset-password", async (req, res) => {
 
     const normalizedEmail = email.trim().toLowerCase()
 
-    const record = (await pool.query(\"SELECT * FROM otps WHERE email = $1 AND otp_code = $2 AND type = 'forgot_password' AND expires_at > NOW() ORDER BY id DESC LIMIT 1\", [normalizedEmail, otp.trim()])).rows[0] as any
+    const record = (
+      await pool.query(
+        "SELECT * FROM otps WHERE email = $1 AND otp_code = $2 AND type = 'forgot_password' AND expires_at > NOW() ORDER BY id DESC LIMIT 1",
+        [normalizedEmail, otp.trim()],
+      )
+    ).rows[0] as any
 
     if (!record) {
       return res.status(400).json({ error: "Invalid or expired OTP code" })
