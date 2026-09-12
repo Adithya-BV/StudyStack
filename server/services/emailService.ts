@@ -15,9 +15,11 @@ export async function sendOTPEmail(
 
   const smtpPass = process.env.SMTP_PASSWORD || process.env.SMTP_PASS
 
+  const appsScriptUrl = process.env.APPS_SCRIPT_URL
+
   console.log("--------------------------------------------------")
 
-  console.log(`🔑 [STUDYSTACK OTP CODE] (${type})`)
+  console.log(`[STUDYSTACK OTP CODE] (${type})`)
 
   console.log(`Recipient: ${toEmail}`)
 
@@ -25,13 +27,84 @@ export async function sendOTPEmail(
 
   console.log("--------------------------------------------------")
 
-  if (!smtpEmail || !smtpPass) {
+  if (!appsScriptUrl && (!smtpEmail || !smtpPass)) {
     console.log(
-      "ℹ️ Note: SMTP_EMAIL / SMTP_PASSWORD not yet set in .env. Using console OTP for local testing.",
+      "Note: APPS_SCRIPT_URL or SMTP_EMAIL not set in .env. Using console OTP for local testing.",
     )
 
     return true
   }
+
+  const isSignup = type === "signup"
+
+  const subject = isSignup
+    ? "StudyStack - Verify Your IITR Email"
+    : "StudyStack - Reset Your Password"
+
+  const title = isSignup ? "Verify Your Account" : "Password Reset Request"
+
+  const desc = isSignup
+    ? "Welcome to StudyStack, the academic resource-sharing platform for IIT Roorkee students. Enter the OTP code below to verify your email:"
+    : "You requested to reset your StudyStack password. Use the verification code below to complete the reset:"
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; background-color: #F5F8FC; padding: 40px 20px; color: #0F172A;">
+      <div style="max-width: 500px; margin: 0 auto; background: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid #E2E8F0;">
+        <div style="background-color: #061B49; padding: 24px; text-align: center;">
+          <h1 style="color: #FFFFFF; margin: 0; font-size: 24px; letter-spacing: 0.5px;">StudyStack</h1>
+          <p style="color: #55C7FF; margin: 4px 0 0 0; font-size: 13px;">Your Stack. Your Track.</p>
+        </div>
+        <div style="padding: 32px 24px;">
+          <h2 style="color: #0F172A; font-size: 20px; margin-top: 0;">${title}</h2>
+          <p style="color: #64748B; font-size: 14px; line-height: 1.6;">${desc}</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <span style="display: inline-block; background-color: #F5F8FC; border: 2px dashed #146EF5; color: #146EF5; font-size: 32px; font-weight: bold; letter-spacing: 6px; padding: 12px 28px; border-radius: 8px;">
+              ${otp}
+            </span>
+          </div>
+          <p style="color: #64748B; font-size: 12px; text-align: center; margin-bottom: 0;">
+            This code will expire in 10 minutes. If you did not make this request, you can safely ignore this email.
+          </p>
+        </div>
+      </div>
+    </div>
+  `
+
+  if (appsScriptUrl) {
+    try {
+      const response = await fetch(appsScriptUrl, {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          to: toEmail,
+
+          subject,
+
+          html,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        console.log(`Email sent successfully via Apps Script to ${toEmail}`)
+      } else {
+        console.error("Apps Script returned error:", result.error)
+      }
+
+      return true
+    } catch (error) {
+      console.error("Failed to send email via Apps Script:", error)
+
+      return true
+    }
+  }
+
+  // Fallback to Nodemailer (for local development or if SMTP isn't blocked)
 
   try {
     const transporter = nodemailer.createTransport({
@@ -50,41 +123,6 @@ export async function sendOTPEmail(
       socketTimeout: 5000,
     })
 
-    const isSignup = type === "signup"
-
-    const subject = isSignup
-      ? "StudyStack — Verify Your IITR Email"
-      : "StudyStack — Reset Your Password"
-
-    const title = isSignup ? "Verify Your Account" : "Password Reset Request"
-
-    const desc = isSignup
-      ? "Welcome to StudyStack, the academic resource-sharing platform for IIT Roorkee students. Enter the OTP code below to verify your email:"
-      : "You requested to reset your StudyStack password. Use the verification code below to complete the reset:"
-
-    const html = `
-      <div style="font-family: Arial, sans-serif; background-color: #F5F8FC; padding: 40px 20px; color: #0F172A;">
-        <div style="max-width: 500px; margin: 0 auto; background: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid #E2E8F0;">
-          <div style="background-color: #061B49; padding: 24px; text-align: center;">
-            <h1 style="color: #FFFFFF; margin: 0; font-size: 24px; letter-spacing: 0.5px;">StudyStack</h1>
-            <p style="color: #55C7FF; margin: 4px 0 0 0; font-size: 13px;">Your Stack. Your Track.</p>
-          </div>
-          <div style="padding: 32px 24px;">
-            <h2 style="color: #0F172A; font-size: 20px; margin-top: 0;">${title}</h2>
-            <p style="color: #64748B; font-size: 14px; line-height: 1.6;">${desc}</p>
-            <div style="text-align: center; margin: 30px 0;">
-              <span style="display: inline-block; background-color: #F5F8FC; border: 2px dashed #146EF5; color: #146EF5; font-size: 32px; font-weight: bold; letter-spacing: 6px; padding: 12px 28px; border-radius: 8px;">
-                ${otp}
-              </span>
-            </div>
-            <p style="color: #64748B; font-size: 12px; text-align: center; margin-bottom: 0;">
-              This code will expire in 10 minutes. If you did not make this request, you can safely ignore this email.
-            </p>
-          </div>
-        </div>
-      </div>
-    `
-
     await transporter.sendMail({
       from: `"StudyStack IITR" <${smtpEmail}>`,
 
@@ -95,16 +133,16 @@ export async function sendOTPEmail(
       html,
     })
 
-    console.log(`✅ Email sent successfully to ${toEmail}`)
+    console.log(`Email sent successfully via SMTP to ${toEmail}`)
 
     return true
   } catch (error) {
     console.error(
-      "⚠️ Failed to send email via SMTP, but OTP is logged in console above:",
+      "Failed to send email via SMTP, but OTP is logged in console above:",
 
       error,
     )
 
-    return true // Still allow testing via console log
+    return true
   }
 }
