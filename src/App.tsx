@@ -4837,40 +4837,61 @@ export default function App() {
         <div
           style={{
             position: "fixed",
+
             top: 0,
+
             left: 0,
+
             right: 0,
+
             bottom: 0,
 
             background: "rgba(15, 23, 42, 0.4)",
+
             backdropFilter: "blur(4px)",
 
             display: "flex",
+
             alignItems: "center",
+
             justifyContent: "center",
+
             zIndex: 9999,
           }}
         >
           <div
             style={{
               width: 400,
+
               textAlign: "center",
+
               padding: "32px 24px",
+
               animation: "popIn 0.2s ease-out",
+
               background: "#fff",
+
               borderRadius: 12,
+
               boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
             }}
           >
             <div
               style={{
                 width: 48,
+
                 height: 48,
+
                 borderRadius: "50%",
+
                 background: "#FEE2E2",
+
                 display: "flex",
+
                 alignItems: "center",
+
                 justifyContent: "center",
+
                 margin: "0 auto 16px",
               }}
             >
@@ -4882,8 +4903,11 @@ export default function App() {
             <p
               style={{
                 color: "#64748B",
+
                 fontSize: 14,
+
                 marginBottom: 28,
+
                 lineHeight: 1.5,
               }}
             >
@@ -4895,14 +4919,21 @@ export default function App() {
                 onClick={cancelLogout}
                 style={{
                   flex: 1,
+
                   padding: "12px",
+
                   background: "#F1F5F9",
+
                   color: "#475569",
 
                   border: "none",
+
                   borderRadius: 8,
+
                   fontWeight: 600,
+
                   cursor: "pointer",
+
                   transition: "all 0.15s",
                 }}
               >
@@ -4912,14 +4943,21 @@ export default function App() {
                 onClick={confirmLogout}
                 style={{
                   flex: 1,
+
                   padding: "12px",
+
                   background: "#EF4444",
+
                   color: "#fff",
 
                   border: "none",
+
                   borderRadius: 8,
+
                   fontWeight: 600,
+
                   cursor: "pointer",
+
                   transition: "all 0.15s",
                 }}
               >
