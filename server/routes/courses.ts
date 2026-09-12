@@ -10,9 +10,8 @@ export const coursesRouter = Router()
 
 coursesRouter.get("/", async (req: any, res: any) => {
   try {
-    const courses = db
-
-      .prepare(`
+    const courses = (
+      await pool.query(`
       SELECT 
         c.id, 
         c.code, 
@@ -27,8 +26,7 @@ coursesRouter.get("/", async (req: any, res: any) => {
       ) r ON UPPER(r.course_code) = UPPER(c.code)
       ORDER BY c.code ASC
     `)
-
-      .all()
+    ).rows
 
     res.json({ success: true, courses })
   } catch (error: any) {
@@ -102,19 +100,12 @@ coursesRouter.post("/", authenticateToken, async (req, res) => {
         .json({ error: "A course with this code already exists" })
     }
 
-    const info = db
-
-      .prepare(
-        "INSERT INTO courses (code, name, dept, resources) VALUES (?, ?, ?, 0)",
+    const info = (
+      await pool.query(
+        "INSERT INTO courses (code, name, dept, resources) VALUES ($1, $2, $3, 0) RETURNING id",
+        [cleanCode, name.trim(), dept.trim()],
       )
-
-      .run(
-        cleanCode,
-
-        name.trim(),
-
-        dept.trim(),
-      )
+    ).rows[0]
 
     const newCourse = (
       await pool.query("SELECT * FROM courses WHERE id = $1", [info.id])
