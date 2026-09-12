@@ -4911,8 +4911,8 @@ export default function App() {
                 lineHeight: 1.5,
               }}
             >
-              You will need to verify your IITR email again with a new OTP next
-              time you log in.
+              Are you sure you want to log out of your account? You will need
+              your password to log back in.
             </p>
             <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
               <button
