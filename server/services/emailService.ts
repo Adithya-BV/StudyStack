@@ -42,6 +42,12 @@ export async function sendOTPEmail(
 
         pass: smtpPass,
       },
+
+      connectionTimeout: 5000,
+
+      greetingTimeout: 5000,
+
+      socketTimeout: 5000,
     })
 
     const isSignup = type === "signup"
