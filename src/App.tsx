@@ -4712,6 +4712,104 @@ export default function App() {
             setPage("otp")
           }}
         />
+        {showLogoutConfirm && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+
+              background: "rgba(15, 23, 42, 0.4)",
+              backdropFilter: "blur(4px)",
+
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+            }}
+          >
+            <div
+              style={{
+                width: 400,
+                textAlign: "center",
+                padding: "32px 24px",
+                animation: "popIn 0.2s ease-out",
+                background: "#fff",
+                borderRadius: 12,
+                boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+              }}
+            >
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: "50%",
+                  background: "#FEE2E2",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 16px",
+                }}
+              >
+                <Icon.Logout />
+              </div>
+              <h3 style={{ marginTop: 0, fontSize: 20, color: "#0F172A" }}>
+                Log out of StudyStack?
+              </h3>
+              <p
+                style={{
+                  color: "#64748B",
+                  fontSize: 14,
+                  marginBottom: 28,
+                  lineHeight: 1.5,
+                }}
+              >
+                You will need to verify your IITR email again with a new OTP
+                next time you log in.
+              </p>
+              <div
+                style={{ display: "flex", gap: 12, justifyContent: "center" }}
+              >
+                <button
+                  onClick={cancelLogout}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    background: "#F1F5F9",
+                    color: "#475569",
+
+                    border: "none",
+                    borderRadius: 8,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmLogout}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    background: "#EF4444",
+                    color: "#fff",
+
+                    border: "none",
+                    borderRadius: 8,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  Yes, log out
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         {toast && <Toast msg={toast.msg} type={toast.type} />}
       </>
     )
@@ -4725,6 +4823,104 @@ export default function App() {
           onToast={show}
           setEmailForOtp={setEmailForOtp}
         />
+        {showLogoutConfirm && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+
+              background: "rgba(15, 23, 42, 0.4)",
+              backdropFilter: "blur(4px)",
+
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+            }}
+          >
+            <div
+              style={{
+                width: 400,
+                textAlign: "center",
+                padding: "32px 24px",
+                animation: "popIn 0.2s ease-out",
+                background: "#fff",
+                borderRadius: 12,
+                boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+              }}
+            >
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: "50%",
+                  background: "#FEE2E2",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 16px",
+                }}
+              >
+                <Icon.Logout />
+              </div>
+              <h3 style={{ marginTop: 0, fontSize: 20, color: "#0F172A" }}>
+                Log out of StudyStack?
+              </h3>
+              <p
+                style={{
+                  color: "#64748B",
+                  fontSize: 14,
+                  marginBottom: 28,
+                  lineHeight: 1.5,
+                }}
+              >
+                You will need to verify your IITR email again with a new OTP
+                next time you log in.
+              </p>
+              <div
+                style={{ display: "flex", gap: 12, justifyContent: "center" }}
+              >
+                <button
+                  onClick={cancelLogout}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    background: "#F1F5F9",
+                    color: "#475569",
+
+                    border: "none",
+                    borderRadius: 8,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmLogout}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    background: "#EF4444",
+                    color: "#fff",
+
+                    border: "none",
+                    borderRadius: 8,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  Yes, log out
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         {toast && <Toast msg={toast.msg} type={toast.type} />}
       </>
     )
@@ -4745,6 +4941,104 @@ export default function App() {
           email={emailForOtp}
           onToast={show}
         />
+        {showLogoutConfirm && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+
+              background: "rgba(15, 23, 42, 0.4)",
+              backdropFilter: "blur(4px)",
+
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+            }}
+          >
+            <div
+              style={{
+                width: 400,
+                textAlign: "center",
+                padding: "32px 24px",
+                animation: "popIn 0.2s ease-out",
+                background: "#fff",
+                borderRadius: 12,
+                boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+              }}
+            >
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: "50%",
+                  background: "#FEE2E2",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 16px",
+                }}
+              >
+                <Icon.Logout />
+              </div>
+              <h3 style={{ marginTop: 0, fontSize: 20, color: "#0F172A" }}>
+                Log out of StudyStack?
+              </h3>
+              <p
+                style={{
+                  color: "#64748B",
+                  fontSize: 14,
+                  marginBottom: 28,
+                  lineHeight: 1.5,
+                }}
+              >
+                You will need to verify your IITR email again with a new OTP
+                next time you log in.
+              </p>
+              <div
+                style={{ display: "flex", gap: 12, justifyContent: "center" }}
+              >
+                <button
+                  onClick={cancelLogout}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    background: "#F1F5F9",
+                    color: "#475569",
+
+                    border: "none",
+                    borderRadius: 8,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmLogout}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    background: "#EF4444",
+                    color: "#fff",
+
+                    border: "none",
+                    borderRadius: 8,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  Yes, log out
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         {toast && <Toast msg={toast.msg} type={toast.type} />}
       </>
     )
@@ -4757,6 +5051,104 @@ export default function App() {
           onBack={() => setPage("login")}
           onToast={show}
         />
+        {showLogoutConfirm && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+
+              background: "rgba(15, 23, 42, 0.4)",
+              backdropFilter: "blur(4px)",
+
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+            }}
+          >
+            <div
+              style={{
+                width: 400,
+                textAlign: "center",
+                padding: "32px 24px",
+                animation: "popIn 0.2s ease-out",
+                background: "#fff",
+                borderRadius: 12,
+                boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+              }}
+            >
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: "50%",
+                  background: "#FEE2E2",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 16px",
+                }}
+              >
+                <Icon.Logout />
+              </div>
+              <h3 style={{ marginTop: 0, fontSize: 20, color: "#0F172A" }}>
+                Log out of StudyStack?
+              </h3>
+              <p
+                style={{
+                  color: "#64748B",
+                  fontSize: 14,
+                  marginBottom: 28,
+                  lineHeight: 1.5,
+                }}
+              >
+                You will need to verify your IITR email again with a new OTP
+                next time you log in.
+              </p>
+              <div
+                style={{ display: "flex", gap: 12, justifyContent: "center" }}
+              >
+                <button
+                  onClick={cancelLogout}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    background: "#F1F5F9",
+                    color: "#475569",
+
+                    border: "none",
+                    borderRadius: 8,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmLogout}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    background: "#EF4444",
+                    color: "#fff",
+
+                    border: "none",
+                    borderRadius: 8,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  Yes, log out
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         {toast && <Toast msg={toast.msg} type={toast.type} />}
       </>
     )
