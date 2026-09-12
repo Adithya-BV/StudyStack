@@ -4647,22 +4647,32 @@ export default function App() {
   }
 
   const togglePin = async (id: number) => {
+    // Optimistically update the UI to eliminate lag
+
+    setResources((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, pinned: !r.pinned } : r)),
+    )
+
     try {
       const res = await api.resources.togglePin(id)
+
+      // Sync with server state
 
       setResources((prev) =>
         prev.map((r) => (r.id === id ? { ...r, pinned: res.pinned } : r)),
       )
 
       show(
-        res.message || (res.pinned ? "Resource pinned!" : "Resource unpinned"),
+        res.message || (res.pinned ? "Resource pinned" : "Resource unpinned"),
       )
-    } catch {
-      // Optimistic toggle if unauthenticated
+    } catch (err: any) {
+      // Revert optimistic update on failure
 
       setResources((prev) =>
         prev.map((r) => (r.id === id ? { ...r, pinned: !r.pinned } : r)),
       )
+
+      show(err.message || "Failed to update pin", "error")
     }
   }
 
