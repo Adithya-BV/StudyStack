@@ -413,7 +413,7 @@ function Sidebar({
   const navItems: { label: string icon: keyof typeof Icon target: Page }[] = [
     { label: "Home", icon: "Home", target: "home" },
 
-    { label: "My Courses", icon: "Book", target: "courses" },
+    { label: "All Courses", icon: "Book", target: "courses" },
 
     { label: "My Pins", icon: "Bookmark", target: "pins" },
 
@@ -2289,7 +2289,7 @@ function CoursesPage({
               letterSpacing: "-0.5px",
             }}
           >
-            My Courses
+            All Courses
           </h1>
           <p
             style={{
@@ -2302,7 +2302,7 @@ function CoursesPage({
               marginBottom: 0,
             }}
           >
-            Your academic courses and resources.
+            All academic courses and resources in StudyStack.
           </p>
         </div>
         <button
@@ -2557,7 +2557,7 @@ function CoursesPage({
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search my courses..."
+          placeholder="Search all courses..."
           style={{
             width: "100%",
 
