@@ -96,6 +96,7 @@ authRouter.post("/signup", async (req, res) => {
     if (existing) {
       await pool.query(
         "UPDATE users SET name = $1, password_hash = $2, department = $3 WHERE email = $4",
+
         [
           name.trim(),
 
@@ -109,6 +110,7 @@ authRouter.post("/signup", async (req, res) => {
     } else {
       await pool.query(
         "INSERT INTO users (name, email, password_hash, department, is_verified) VALUES ($1, $2, $3, $4, 0)",
+
         [
           name.trim(),
 
@@ -125,17 +127,18 @@ authRouter.post("/signup", async (req, res) => {
 
     const otp = generateOTP()
 
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()(
-      await pool.query(
-        "INSERT INTO otps (email, otp_code, type, expires_at) VALUES ($1, $2, 'signup', $3)",
-        [
-          normalizedEmail,
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
 
-          otp,
+    await pool.query(
+      "INSERT INTO otps (email, otp_code, type, expires_at) VALUES ($1, $2, 'signup', $3)",
 
-          expiresAt,
-        ],
-      ),
+      [
+        normalizedEmail,
+
+        otp,
+
+        expiresAt,
+      ],
     )
 
     await sendOTPEmail(normalizedEmail, otp, "signup")
@@ -228,19 +231,20 @@ authRouter.post("/resend-otp", async (req, res) => {
 
     const otp = generateOTP()
 
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()(
-      await pool.query(
-        "INSERT INTO otps (email, otp_code, type, expires_at) VALUES ($1, $2, $3, $4)",
-        [
-          normalizedEmail,
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
 
-          otp,
+    await pool.query(
+      "INSERT INTO otps (email, otp_code, type, expires_at) VALUES ($1, $2, $3, $4)",
 
-          type,
+      [
+        normalizedEmail,
 
-          expiresAt,
-        ],
-      ),
+        otp,
+
+        type,
+
+        expiresAt,
+      ],
     )
 
     await sendOTPEmail(normalizedEmail, otp, type as any)
@@ -296,17 +300,18 @@ authRouter.post("/login", async (req, res) => {
 
       const otp = generateOTP()
 
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()(
-        await pool.query(
-          "INSERT INTO otps (email, otp_code, type, expires_at) VALUES ($1, $2, 'signup', $3)",
-          [
-            normalizedEmail,
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
 
-            otp,
+      await pool.query(
+        "INSERT INTO otps (email, otp_code, type, expires_at) VALUES ($1, $2, 'signup', $3)",
 
-            expiresAt,
-          ],
-        ),
+        [
+          normalizedEmail,
+
+          otp,
+
+          expiresAt,
+        ],
       )
 
       await sendOTPEmail(normalizedEmail, otp, "signup")
@@ -388,17 +393,18 @@ authRouter.post("/forgot-password", async (req, res) => {
 
     const otp = generateOTP()
 
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()(
-      await pool.query(
-        "INSERT INTO otps (email, otp_code, type, expires_at) VALUES ($1, $2, 'forgot_password', $3)",
-        [
-          normalizedEmail,
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
 
-          otp,
+    await pool.query(
+      "INSERT INTO otps (email, otp_code, type, expires_at) VALUES ($1, $2, 'forgot_password', $3)",
 
-          expiresAt,
-        ],
-      ),
+      [
+        normalizedEmail,
+
+        otp,
+
+        expiresAt,
+      ],
     )
 
     await sendOTPEmail(normalizedEmail, otp, "forgot_password")
