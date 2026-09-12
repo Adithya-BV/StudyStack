@@ -2892,43 +2892,66 @@ function CourseDetailPage({
             gap: 14,
           }}
         >
-          {tabs.map((t) => (
-            <button
-              key={t.label}
-              onClick={() => setActiveTab(t.label)}
-              style={{
-                background: "#fff",
+          {tabs.map((t) => {
+            const count = courseResources.filter(
+              (r) => r.type.toLowerCase() === t.label.toLowerCase(),
+            ).length
 
-                border: `1.5px solid ${C.border}`,
-
-                borderRadius: 14,
-
-                padding: "24px 20px",
-
-                cursor: "pointer",
-
-                textAlign: "left",
-
-                transition: "all 0.15s",
-              }}
-            >
-              <div style={{ fontSize: 32, marginBottom: 10 }}>{t.emoji}</div>
-              <div
+            return (
+              <button
+                key={t.label}
+                onClick={() => setActiveTab(t.label)}
                 style={{
-                  fontWeight: 700,
+                  background: "#fff",
 
-                  fontSize: 16,
+                  border: `1.5px solid ${C.border}`,
 
-                  color: C.text,
+                  borderRadius: 14,
 
-                  marginBottom: 4,
+                  padding: "24px 20px",
+
+                  cursor: "pointer",
+
+                  textAlign: "left",
+
+                  transition: "all 0.15s",
+
+                  position: "relative",
                 }}
               >
-                {t.label}
-              </div>
-              <div style={{ fontSize: 13, color: C.muted }}>{t.desc}</div>
-            </button>
-          ))}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 20,
+                    right: 20,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: C.blue,
+                    background: "#EFF6FF",
+                    padding: "4px 8px",
+                    borderRadius: 6,
+                  }}
+                >
+                  {count} {count === 1 ? "Resource" : "Resources"}
+                </div>
+                <div style={{ fontSize: 32, marginBottom: 10 }}>{t.emoji}</div>
+                <div
+                  style={{
+                    fontWeight: 700,
+
+                    fontSize: 16,
+
+                    color: C.text,
+
+                    marginBottom: 4,
+                  }}
+                >
+                  {t.label}
+                </div>
+                <div style={{ fontSize: 13, color: C.muted }}>{t.desc}</div>
+              </button>
+            )
+          })}
         </div>
       ) : (
         <div>
