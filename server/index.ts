@@ -28,7 +28,9 @@ const PORT = process.env.PORT || 5000
 
 // Initialize SQLite database & seed data
 
-initDatabase().then(() => console.log('DB init done')).catch(console.error)
+initDatabase()
+  .then(() => console.log("DB init done"))
+  .catch(console.error)
 
 // Middleware
 

@@ -6,6 +6,7 @@ dotenv.config()
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+
   ssl: { rejectUnauthorized: false },
 })
 
@@ -109,56 +110,91 @@ export async function initDatabase() {
     const initialResources = [
       [
         "DSA Mid-Sem Notes 2024",
+
         "CSN-201",
+
         "Notes",
+
         "Arjun Sharma",
+
         "arjun@iitr.ac.in",
+
         null,
+
         "2.4 MB",
+
         "Aug 28, 2026",
       ],
 
       [
         "OS Previous Year Paper 2023",
+
         "CSN-301",
+
         "PYQ",
+
         "Priya Verma",
+
         "priya@iitr.ac.in",
+
         null,
+
         "1.1 MB",
+
         "Aug 25, 2026",
       ],
 
       [
         "Signals Lab Manual",
+
         "EE-301",
+
         "Labs",
+
         "Rahul Gupta",
+
         "rahul@iitr.ac.in",
+
         null,
+
         "3.8 MB",
+
         "Aug 20, 2026",
       ],
 
       [
         "Maths III Assignment 2",
+
         "MA-201",
+
         "Assignments",
+
         "Neha Singh",
+
         "neha@iitr.ac.in",
+
         null,
+
         "0.6 MB",
+
         "Aug 18, 2026",
       ],
 
       [
         "Computer Networks Cheatsheet",
+
         "CSN-401",
+
         "Notes",
+
         "Arjun Sharma",
+
         "arjun@iitr.ac.in",
+
         null,
+
         "0.9 MB",
+
         "Sep 1, 2026",
       ],
     ]

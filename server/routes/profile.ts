@@ -74,16 +74,17 @@ profileRouter.put("/", authenticateToken, async (req: any, res) => {
       }
     }
 
-    db.prepare(
-      "UPDATE users SET name = COALESCE(?, name), department = COALESCE(?, department), year = COALESCE(?, year) WHERE email = ?",
-    ).run(
-      name !== undefined ? name.trim() : null,
+    await pool.query(
+      "UPDATE users SET name = COALESCE($1, name), department = COALESCE($2, department), year = COALESCE($3, year) WHERE email = $4",
+      [
+        name !== undefined ? name.trim() : null,
 
-      department !== undefined ? department.trim() : null,
+        department !== undefined ? department.trim() : null,
 
-      year !== undefined ? year.trim() : null,
+        year !== undefined ? year.trim() : null,
 
-      userEmail,
+        userEmail,
+      ],
     )
 
     const updated = (

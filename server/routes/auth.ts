@@ -94,28 +94,30 @@ authRouter.post("/signup", async (req, res) => {
       (branch && branch.trim()) || "Electronics & Communication"
 
     if (existing) {
-      db.prepare(
-        "UPDATE users SET name = ?, password_hash = ?, department = ? WHERE email = ?",
-      ).run(
-        name.trim(),
+      await pool.query(
+        "UPDATE users SET name = $1, password_hash = $2, department = $3 WHERE email = $4",
+        [
+          name.trim(),
 
-        password_hash,
+          password_hash,
 
-        studentBranch,
+          studentBranch,
 
-        normalizedEmail,
+          normalizedEmail,
+        ],
       )
     } else {
-      db.prepare(
-        "INSERT INTO users (name, email, password_hash, department, is_verified) VALUES (?, ?, ?, ?, 0)",
-      ).run(
-        name.trim(),
+      await pool.query(
+        "INSERT INTO users (name, email, password_hash, department, is_verified) VALUES ($1, $2, $3, $4, 0)",
+        [
+          name.trim(),
 
-        normalizedEmail,
+          normalizedEmail,
 
-        password_hash,
+          password_hash,
 
-        studentBranch,
+          studentBranch,
+        ],
       )
     }
 
@@ -123,16 +125,17 @@ authRouter.post("/signup", async (req, res) => {
 
     const otp = generateOTP()
 
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()(
+      await pool.query(
+        "INSERT INTO otps (email, otp_code, type, expires_at) VALUES ($1, $2, 'signup', $3)",
+        [
+          normalizedEmail,
 
-    db.prepare(
-      "INSERT INTO otps (email, otp_code, type, expires_at) VALUES (?, ?, 'signup', ?)",
-    ).run(
-      normalizedEmail,
+          otp,
 
-      otp,
-
-      expiresAt,
+          expiresAt,
+        ],
+      ),
     )
 
     await sendOTPEmail(normalizedEmail, otp, "signup")
@@ -225,18 +228,19 @@ authRouter.post("/resend-otp", async (req, res) => {
 
     const otp = generateOTP()
 
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()(
+      await pool.query(
+        "INSERT INTO otps (email, otp_code, type, expires_at) VALUES ($1, $2, $3, $4)",
+        [
+          normalizedEmail,
 
-    db.prepare(
-      "INSERT INTO otps (email, otp_code, type, expires_at) VALUES (?, ?, ?, ?)",
-    ).run(
-      normalizedEmail,
+          otp,
 
-      otp,
+          type,
 
-      type,
-
-      expiresAt,
+          expiresAt,
+        ],
+      ),
     )
 
     await sendOTPEmail(normalizedEmail, otp, type as any)
@@ -292,16 +296,17 @@ authRouter.post("/login", async (req, res) => {
 
       const otp = generateOTP()
 
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()(
+        await pool.query(
+          "INSERT INTO otps (email, otp_code, type, expires_at) VALUES ($1, $2, 'signup', $3)",
+          [
+            normalizedEmail,
 
-      db.prepare(
-        "INSERT INTO otps (email, otp_code, type, expires_at) VALUES (?, ?, 'signup', ?)",
-      ).run(
-        normalizedEmail,
+            otp,
 
-        otp,
-
-        expiresAt,
+            expiresAt,
+          ],
+        ),
       )
 
       await sendOTPEmail(normalizedEmail, otp, "signup")
@@ -383,16 +388,17 @@ authRouter.post("/forgot-password", async (req, res) => {
 
     const otp = generateOTP()
 
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()(
+      await pool.query(
+        "INSERT INTO otps (email, otp_code, type, expires_at) VALUES ($1, $2, 'forgot_password', $3)",
+        [
+          normalizedEmail,
 
-    db.prepare(
-      "INSERT INTO otps (email, otp_code, type, expires_at) VALUES (?, ?, 'forgot_password', ?)",
-    ).run(
-      normalizedEmail,
+          otp,
 
-      otp,
-
-      expiresAt,
+          expiresAt,
+        ],
+      ),
     )
 
     await sendOTPEmail(normalizedEmail, otp, "forgot_password")

@@ -48,8 +48,11 @@ export const api = {
 
     signup: async (
       name: string,
+
       email: string,
+
       password: string,
+
       branch?: string,
     ) => {
       const res = await fetch(`${API_BASE}/auth/signup`, {
@@ -273,7 +276,9 @@ export const api = {
 
       return {
         ...data.resource,
+
         courseCreated: data.courseCreated,
+
         courseCode: data.courseCode,
       }
     },
@@ -325,7 +330,9 @@ export const api = {
 
     update: async (body: {
       name?: string
+
       department?: string
+
       year?: string
     }) => {
       const res = await fetch(`${API_BASE}/profile`, {

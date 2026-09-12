@@ -126,7 +126,9 @@ resourcesRouter.get("/", async (req, res) => {
     console.error("Get resources error:", error)
 
     res
+
       .status(500)
+
       .json({ error: error.message || "Failed to fetch resources" })
   }
 })
@@ -135,15 +137,20 @@ resourcesRouter.get("/", async (req, res) => {
 
 resourcesRouter.post(
   "/upload",
+
   authenticateToken,
+
   upload.single("file"),
+
   async (req: any, res) => {
     try {
       const { title, course, type } = req.body
 
       if (!title || !course || !type) {
         return res
+
           .status(400)
+
           .json({ error: "Title, course, and type are required" })
       }
 
@@ -216,25 +223,27 @@ resourcesRouter.post(
         const courseDept =
           (req.body.courseDept && req.body.courseDept.trim()) ||
           req.user?.department ||
-          "General Engineering"
+          "General Engineering"(
+            await pool.query(
+              "INSERT INTO courses (code, name, dept, resources) VALUES ($1, $2, $3, 1)",
+              [
+                cleanCourseCode,
 
-        db.prepare(
-          "INSERT INTO courses (code, name, dept, resources) VALUES (?, ?, ?, 1)",
-        ).run(
-          cleanCourseCode,
+                courseName,
 
-          courseName,
-
-          courseDept,
-        )
+                courseDept,
+              ],
+            ),
+          )
 
         courseCreated = true
       } else {
         // Course exists: increment its resource count
 
-        db.prepare(
-          "UPDATE courses SET resources = resources + 1 WHERE UPPER(code) = ?",
-        ).run(cleanCourseCode)
+        await pool.query(
+          "UPDATE courses SET resources = resources + 1 WHERE UPPER(code) = $1",
+          [cleanCourseCode],
+        )
       }
 
       const newResource = (
@@ -289,7 +298,9 @@ resourcesRouter.get("/:id/download", async (req, res) => {
         const cleanTitle = resource.title.replace(/[/\\?%*:|"<>]/g, "_").trim()
 
         const downloadFilename = cleanTitle
+
           .toLowerCase()
+
           .endsWith(ext.toLowerCase())
           ? cleanTitle
           : `${cleanTitle}${ext}`
@@ -360,6 +371,7 @@ resourcesRouter.get("/:id/download", async (req, res) => {
 
     page.drawText(
       `Course: ${resource.course_code}  |  Type: ${resource.type}  |  By: ${resource.by}  |  Date: ${resource.date}`,
+
       {
         x: 40,
 
@@ -375,6 +387,7 @@ resourcesRouter.get("/:id/download", async (req, res) => {
 
     page.drawText(
       "This verified academic resource document was certified by StudyStack for IIT Roorkee students.",
+
       {
         x: 40,
 
@@ -392,6 +405,7 @@ resourcesRouter.get("/:id/download", async (req, res) => {
 
     res.setHeader(
       "Content-Disposition",
+
       `attachment; filename="${resource.title.replace(/[^a-zA-Z0-9_-]/g, "_")}.pdf"`,
     )
 
@@ -422,23 +436,29 @@ resourcesRouter.post("/:id/pin", authenticateToken, async (req: any, res) => {
     if (existing) {
       await pool.query(
         "DELETE FROM pins WHERE user_email = $1 AND resource_id = $2",
+
         [userEmail, resourceId],
       )
 
       return res.json({
         success: true,
+
         pinned: false,
+
         message: "Resource removed from pins",
       })
     } else {
       await pool.query(
         "INSERT INTO pins (user_email, resource_id) VALUES ($1, $2)",
+
         [userEmail, resourceId],
       )
 
       return res.json({
         success: true,
+
         pinned: true,
+
         message: "Resource added to pins",
       })
     }
@@ -476,7 +496,9 @@ resourcesRouter.get("/pinned", authenticateToken, async (req: any, res) => {
     res.json({ success: true, resources: result })
   } catch (error: any) {
     res
+
       .status(500)
+
       .json({ error: error.message || "Failed to fetch pinned resources" })
   }
 })

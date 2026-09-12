@@ -11,6 +11,7 @@ export const coursesRouter = Router()
 coursesRouter.get("/", async (req: any, res: any) => {
   try {
     const courses = db
+
       .prepare(`
       SELECT 
         c.id, 
@@ -26,6 +27,7 @@ coursesRouter.get("/", async (req: any, res: any) => {
       ) r ON UPPER(r.course_code) = UPPER(c.code)
       ORDER BY c.code ASC
     `)
+
       .all()
 
     res.json({ success: true, courses })
@@ -48,6 +50,7 @@ coursesRouter.get("/:idOrCode", async (req, res) => {
       course = (
         await pool.query(
           "SELECT * FROM courses WHERE UPPER(code) = UPPER($1)",
+
           [idOrCode],
         )
       ).rows[0]
@@ -77,7 +80,9 @@ coursesRouter.post("/", authenticateToken, async (req, res) => {
 
     if (!code || !name || !dept) {
       return res
+
         .status(400)
+
         .json({ error: "Course code, name, and department are required" })
     }
 
@@ -91,14 +96,18 @@ coursesRouter.post("/", authenticateToken, async (req, res) => {
 
     if (existing) {
       return res
+
         .status(400)
+
         .json({ error: "A course with this code already exists" })
     }
 
     const info = db
+
       .prepare(
         "INSERT INTO courses (code, name, dept, resources) VALUES (?, ?, ?, 0)",
       )
+
       .run(
         cleanCode,
 

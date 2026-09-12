@@ -6,7 +6,9 @@ export function generateOTP(): string {
 
 export async function sendOTPEmail(
   toEmail: string,
+
   otp: string,
+
   type: "signup" | "forgot_password",
 ) {
   const smtpEmail = process.env.SMTP_EMAIL || process.env.SMTP_USER
@@ -93,6 +95,7 @@ export async function sendOTPEmail(
   } catch (error) {
     console.error(
       "⚠️ Failed to send email via SMTP, but OTP is logged in console above:",
+
       error,
     )
 

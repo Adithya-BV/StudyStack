@@ -30,9 +30,13 @@ const C = {
 
 type Course = {
   id: number
+
   code: string
+
   name: string
+
   dept: string
+
   resources: number
 }
 
@@ -378,6 +382,7 @@ function Toast({ msg, type }: { msg: string type: "success" | "error" }) {
 function useToast() {
   const [toast, setToast] = useState<{
     msg: string
+
     type: "success" | "error"
   } | null>(null)
 
@@ -394,11 +399,15 @@ function useToast() {
 
 function Sidebar({
   page,
+
   setPage,
+
   onLogout,
 }: {
   page: Page
+
   setPage: (p: Page) => void
+
   onLogout: () => void
 }) {
   const navItems: { label: string icon: keyof typeof Icon target: Page }[] = [
@@ -433,6 +442,7 @@ function Sidebar({
       <div
         style={{
           padding: "24px 20px 20px",
+
           borderBottom: "1px solid rgba(255,255,255,0.08)",
         }}
       >
@@ -442,9 +452,13 @@ function Sidebar({
             alt="StudyStack logo"
             style={{
               width: 40,
+
               height: 40,
+
               borderRadius: 8,
+
               objectFit: "cover",
+
               mixBlendMode: "lighten",
             }}
           />
@@ -452,8 +466,11 @@ function Sidebar({
             <div
               style={{
                 color: "#fff",
+
                 fontWeight: 700,
+
                 fontSize: 18,
+
                 letterSpacing: "-0.3px",
               }}
             >
@@ -462,8 +479,11 @@ function Sidebar({
             <div
               style={{
                 color: C.cyan,
+
                 fontSize: 11,
+
                 fontWeight: 500,
+
                 letterSpacing: "0.2px",
               }}
             >
@@ -477,9 +497,13 @@ function Sidebar({
       <nav
         style={{
           padding: "16px 12px",
+
           flex: 1,
+
           display: "flex",
+
           flexDirection: "column",
+
           gap: 2,
         }}
       >
@@ -579,15 +603,23 @@ function Sidebar({
 
 function Input({
   label,
+
   type = "text",
+
   placeholder,
+
   value,
+
   onChange,
 }: {
   label: string
+
   type?: string
+
   placeholder?: string
+
   value: string
+
   onChange: (v: string) => void
 }) {
   const [show, setShow] = useState(false)
@@ -633,13 +665,21 @@ function Input({
             onClick={() => setShow(!show)}
             style={{
               position: "absolute",
+
               right: 12,
+
               top: "50%",
+
               transform: "translateY(-50%)",
+
               background: "none",
+
               border: "none",
+
               cursor: "pointer",
+
               color: C.muted,
+
               padding: 0,
             }}
           >
@@ -655,15 +695,23 @@ function Input({
 
 function Btn({
   children,
+
   onClick,
+
   variant = "primary",
+
   fullWidth,
+
   disabled,
 }: {
   children: React.ReactNode
+
   onClick?: () => void
+
   variant?: "primary" | "secondary" | "ghost"
+
   fullWidth?: boolean
+
   disabled?: boolean
 }) {
   return (
@@ -691,19 +739,25 @@ function Btn({
 
         ...(variant === "primary" && {
           background: C.blue,
+
           color: "#fff",
+
           border: "none",
         }),
 
         ...(variant === "secondary" && {
           background: "#fff",
+
           color: C.blue,
+
           border: `1.5px solid ${C.blue}`,
         }),
 
         ...(variant === "ghost" && {
           background: "transparent",
+
           color: C.muted,
+
           border: "none",
         }),
       }}
@@ -717,9 +771,11 @@ function Btn({
 
 function Card({
   children,
+
   style,
 }: {
   children: React.ReactNode
+
   style?: React.CSSProperties
 }) {
   return (
@@ -764,10 +820,15 @@ function TypeBadge({ type }: { type: string }) {
     <span
       style={{
         background: colors.bg,
+
         color: colors.text,
+
         fontSize: 11,
+
         fontWeight: 600,
+
         padding: "3px 8px",
+
         borderRadius: 6,
       }}
     >
@@ -780,11 +841,15 @@ function TypeBadge({ type }: { type: string }) {
 
 function ResourceCard({
   r,
+
   onPin,
+
   onToast,
 }: {
   r: Resource
+
   onPin: (id: number) => void
+
   onToast: (msg: string, type?: "success" | "error") => void
 }) {
   const handleDownload = () => {
@@ -797,16 +862,22 @@ function ResourceCard({
     <Card
       style={{
         display: "flex",
+
         alignItems: "flex-start",
+
         gap: 14,
+
         padding: "16px 20px",
       }}
     >
       <div
         style={{
           background: "#EFF6FF",
+
           borderRadius: 10,
+
           padding: 10,
+
           flexShrink: 0,
         }}
       >
@@ -816,8 +887,11 @@ function ResourceCard({
         <div
           style={{
             fontWeight: 600,
+
             fontSize: 14,
+
             color: C.text,
+
             marginBottom: 4,
           }}
         >
@@ -826,8 +900,11 @@ function ResourceCard({
         <div
           style={{
             display: "flex",
+
             gap: 8,
+
             alignItems: "center",
+
             flexWrap: "wrap",
           }}
         >
@@ -846,15 +923,25 @@ function ResourceCard({
           onClick={handleDownload}
           style={{
             display: "flex",
+
             alignItems: "center",
+
             gap: 5,
+
             padding: "7px 12px",
+
             background: C.blue,
+
             color: "#fff",
+
             border: "none",
+
             borderRadius: 8,
+
             fontSize: 12,
+
             fontWeight: 600,
+
             cursor: "pointer",
           }}
         >
@@ -864,15 +951,25 @@ function ResourceCard({
           onClick={() => onPin(r.id)}
           style={{
             display: "flex",
+
             alignItems: "center",
+
             gap: 5,
+
             padding: "7px 12px",
+
             background: r.pinned ? "#EFF6FF" : "#F8FAFC",
+
             color: r.pinned ? C.blue : C.muted,
+
             border: `1px solid ${r.pinned ? "#BFDBFE" : C.border}`,
+
             borderRadius: 8,
+
             fontSize: 12,
+
             fontWeight: 600,
+
             cursor: "pointer",
           }}
         >
@@ -888,9 +985,13 @@ function ResourceCard({
 
 function LoginPage({
   onLogin,
+
   onSignup,
+
   onForgot,
+
   onToast,
+
   setEmailForOtp,
 }: {
   onLogin: () => void
@@ -919,6 +1020,7 @@ function LoginPage({
     if (!isValidIITREmail(email)) {
       onToast(
         "Only IIT Roorkee (*.iitr.ac.in) email addresses are allowed",
+
         "error",
       )
 
@@ -952,14 +1054,23 @@ function LoginPage({
       <div
         style={{
           width: 420,
+
           minWidth: 420,
+
           background: "#0d2356",
+
           display: "flex",
+
           flexDirection: "column",
+
           alignItems: "center",
+
           justifyContent: "center",
+
           padding: 48,
+
           position: "relative",
+
           overflow: "hidden",
         }}
       >
@@ -982,9 +1093,13 @@ function LoginPage({
       <div
         style={{
           flex: 1,
+
           display: "flex",
+
           alignItems: "center",
+
           justifyContent: "center",
+
           padding: 48,
         }}
       >
@@ -992,9 +1107,13 @@ function LoginPage({
           <div
             style={{
               fontSize: 28,
+
               fontWeight: 800,
+
               color: C.text,
+
               marginBottom: 6,
+
               letterSpacing: "-0.5px",
             }}
           >
@@ -1007,8 +1126,11 @@ function LoginPage({
           <div
             style={{
               display: "flex",
+
               flexDirection: "column",
+
               gap: 16,
+
               marginBottom: 24,
             }}
           >
@@ -1032,10 +1154,15 @@ function LoginPage({
               onClick={onForgot}
               style={{
                 background: "none",
+
                 border: "none",
+
                 color: C.blue,
+
                 fontSize: 13,
+
                 fontWeight: 500,
+
                 cursor: "pointer",
               }}
             >
@@ -1050,8 +1177,11 @@ function LoginPage({
           <div
             style={{
               marginTop: 24,
+
               textAlign: "center",
+
               fontSize: 13,
+
               color: C.muted,
             }}
           >
@@ -1060,9 +1190,13 @@ function LoginPage({
               onClick={onSignup}
               style={{
                 background: "none",
+
                 border: "none",
+
                 color: C.blue,
+
                 fontWeight: 600,
+
                 cursor: "pointer",
               }}
             >
@@ -1079,8 +1213,11 @@ function LoginPage({
 
 function SignupPage({
   onNext,
+
   onBack,
+
   onToast,
+
   setEmailForOtp,
 }: {
   onNext: () => void
@@ -1119,6 +1256,7 @@ function SignupPage({
     if (!isValidIITREmail(email)) {
       onToast(
         "Only IIT Roorkee (*.iitr.ac.in) email addresses are allowed",
+
         "error",
       )
 
@@ -1152,28 +1290,41 @@ function SignupPage({
     <div
       style={{
         minHeight: "100%",
+
         display: "flex",
+
         alignItems: "center",
+
         justifyContent: "center",
+
         background: C.bg,
+
         padding: 24,
       }}
     >
       <div
         style={{
           width: "100%",
+
           maxWidth: 420,
+
           background: "#fff",
+
           borderRadius: 20,
+
           padding: 40,
+
           border: `1px solid ${C.border}`,
+
           boxShadow: "0 4px 24px rgba(0,0,0,0.07)",
         }}
       >
         <div
           style={{
             display: "flex",
+
             justifyContent: "center",
+
             marginBottom: 24,
           }}
         >
@@ -1182,8 +1333,11 @@ function SignupPage({
             alt="StudyStack"
             style={{
               width: 60,
+
               height: 60,
+
               borderRadius: 12,
+
               objectFit: "cover",
             }}
           />
@@ -1191,9 +1345,13 @@ function SignupPage({
         <div
           style={{
             fontSize: 24,
+
             fontWeight: 800,
+
             color: C.text,
+
             marginBottom: 4,
+
             textAlign: "center",
           }}
         >
@@ -1202,8 +1360,11 @@ function SignupPage({
         <div
           style={{
             color: C.muted,
+
             fontSize: 13,
+
             marginBottom: 28,
+
             textAlign: "center",
           }}
         >
@@ -1213,8 +1374,11 @@ function SignupPage({
         <div
           style={{
             display: "flex",
+
             flexDirection: "column",
+
             gap: 16,
+
             marginBottom: 24,
           }}
         >
@@ -1228,9 +1392,13 @@ function SignupPage({
             <label
               style={{
                 fontSize: 13,
+
                 fontWeight: 600,
+
                 color: C.text,
+
                 display: "block",
+
                 marginBottom: 6,
               }}
             >
@@ -1299,8 +1467,11 @@ function SignupPage({
         <div
           style={{
             marginTop: 20,
+
             textAlign: "center",
+
             fontSize: 13,
+
             color: C.muted,
           }}
         >
@@ -1309,9 +1480,13 @@ function SignupPage({
             onClick={onBack}
             style={{
               background: "none",
+
               border: "none",
+
               color: C.blue,
+
               fontWeight: 600,
+
               cursor: "pointer",
             }}
           >
@@ -1327,7 +1502,9 @@ function SignupPage({
 
 function OtpPage({
   onVerify,
+
   email,
+
   onToast,
 }: {
   onVerify: () => void
@@ -1392,22 +1569,34 @@ function OtpPage({
     <div
       style={{
         minHeight: "100%",
+
         display: "flex",
+
         alignItems: "center",
+
         justifyContent: "center",
+
         background: C.bg,
+
         padding: 24,
       }}
     >
       <div
         style={{
           width: "100%",
+
           maxWidth: 400,
+
           background: "#fff",
+
           borderRadius: 20,
+
           padding: 40,
+
           border: `1px solid ${C.border}`,
+
           boxShadow: "0 4px 24px rgba(0,0,0,0.07)",
+
           textAlign: "center",
         }}
       >
@@ -1415,8 +1604,11 @@ function OtpPage({
         <div
           style={{
             fontSize: 22,
+
             fontWeight: 800,
+
             color: C.text,
+
             marginBottom: 6,
           }}
         >
@@ -1429,8 +1621,11 @@ function OtpPage({
         <div
           style={{
             display: "flex",
+
             gap: 10,
+
             justifyContent: "center",
+
             marginBottom: 32,
           }}
         >
@@ -1443,14 +1638,23 @@ function OtpPage({
               maxLength={1}
               style={{
                 width: 44,
+
                 height: 52,
+
                 textAlign: "center",
+
                 fontSize: 22,
+
                 fontWeight: 700,
+
                 border: `2px solid ${d ? C.blue : C.border}`,
+
                 borderRadius: 10,
+
                 outline: "none",
+
                 color: C.text,
+
                 fontFamily: "Inter, sans-serif",
               }}
             />
@@ -1465,10 +1669,15 @@ function OtpPage({
             onClick={handleResend}
             style={{
               background: "none",
+
               border: "none",
+
               color: C.blue,
+
               fontSize: 13,
+
               fontWeight: 500,
+
               cursor: "pointer",
             }}
           >
@@ -1484,7 +1693,9 @@ function OtpPage({
 
 function ForgotPasswordPage({
   onDone,
+
   onBack,
+
   onToast,
 }: {
   onDone: () => void
@@ -1513,6 +1724,7 @@ function ForgotPasswordPage({
     if (!isValidIITREmail(email)) {
       onToast(
         "Only IIT Roorkee (*.iitr.ac.in) email addresses are allowed",
+
         "error",
       )
 
@@ -1560,29 +1772,43 @@ function ForgotPasswordPage({
     <div
       style={{
         minHeight: "100%",
+
         display: "flex",
+
         alignItems: "center",
+
         justifyContent: "center",
+
         background: C.bg,
+
         padding: 24,
       }}
     >
       <div
         style={{
           width: "100%",
+
           maxWidth: 400,
+
           background: "#fff",
+
           borderRadius: 20,
+
           padding: 40,
+
           border: `1px solid ${C.border}`,
+
           boxShadow: "0 4px 24px rgba(0,0,0,0.07)",
         }}
       >
         <div
           style={{
             fontSize: 24,
+
             fontWeight: 800,
+
             color: C.text,
+
             marginBottom: 6,
           }}
         >
@@ -1598,8 +1824,11 @@ function ForgotPasswordPage({
           <div
             style={{
               display: "flex",
+
               flexDirection: "column",
+
               gap: 16,
+
               marginBottom: 24,
             }}
           >
@@ -1617,8 +1846,11 @@ function ForgotPasswordPage({
           <div
             style={{
               display: "flex",
+
               flexDirection: "column",
+
               gap: 16,
+
               marginBottom: 24,
             }}
           >
@@ -1646,9 +1878,13 @@ function ForgotPasswordPage({
             onClick={onBack}
             style={{
               background: "none",
+
               border: "none",
+
               color: C.blue,
+
               fontSize: 13,
+
               cursor: "pointer",
             }}
           >
@@ -1664,11 +1900,17 @@ function ForgotPasswordPage({
 
 function HomePage({
   setPage,
+
   resources,
+
   onPin,
+
   onToast,
+
   courses,
+
   user,
+
   setSelectedCourse,
 }: {
   setPage: (p: Page) => void
@@ -1704,9 +1946,13 @@ function HomePage({
         <h1
           style={{
             fontSize: 28,
+
             fontWeight: 800,
+
             color: C.text,
+
             marginBottom: 4,
+
             letterSpacing: "-0.5px",
           }}
         >
@@ -1722,9 +1968,13 @@ function HomePage({
         <div
           style={{
             position: "absolute",
+
             left: 16,
+
             top: "50%",
+
             transform: "translateY(-50%)",
+
             color: C.muted,
           }}
         >
@@ -1736,15 +1986,25 @@ function HomePage({
           placeholder="Search courses, notes, PYQs, assignments..."
           style={{
             width: "100%",
+
             padding: "14px 14px 14px 48px",
+
             border: `1.5px solid ${C.border}`,
+
             borderRadius: 12,
+
             fontSize: 15,
+
             color: C.text,
+
             background: "#fff",
+
             outline: "none",
+
             boxSizing: "border-box",
+
             fontFamily: "Inter, sans-serif",
+
             boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
           }}
         />
@@ -1755,8 +2015,11 @@ function HomePage({
         <div
           style={{
             display: "flex",
+
             justifyContent: "space-between",
+
             alignItems: "center",
+
             marginBottom: 16,
           }}
         >
@@ -1767,13 +2030,21 @@ function HomePage({
             onClick={() => setPage("courses")}
             style={{
               background: "none",
+
               border: "none",
+
               color: C.blue,
+
               fontSize: 13,
+
               fontWeight: 600,
+
               cursor: "pointer",
+
               display: "flex",
+
               alignItems: "center",
+
               gap: 4,
             }}
           >
@@ -1784,8 +2055,11 @@ function HomePage({
           <div
             style={{
               textAlign: "center",
+
               padding: "40px 0",
+
               color: C.muted,
+
               fontSize: 14,
             }}
           >
@@ -1794,9 +2068,13 @@ function HomePage({
               onClick={() => setPage("courses")}
               style={{
                 background: "none",
+
                 border: "none",
+
                 color: C.blue,
+
                 fontWeight: 600,
+
                 cursor: "pointer",
               }}
             >
@@ -1807,7 +2085,9 @@ function HomePage({
           <div
             style={{
               display: "grid",
+
               gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+
               gap: 14,
             }}
           >
@@ -1816,18 +2096,26 @@ function HomePage({
                 <div
                   style={{
                     display: "flex",
+
                     justifyContent: "space-between",
+
                     alignItems: "flex-start",
+
                     marginBottom: 8,
                   }}
                 >
                   <span
                     style={{
                       background: "#EFF6FF",
+
                       color: C.blue,
+
                       fontSize: 12,
+
                       fontWeight: 700,
+
                       padding: "3px 8px",
+
                       borderRadius: 6,
                     }}
                   >
@@ -1840,8 +2128,11 @@ function HomePage({
                 <div
                   style={{
                     fontWeight: 700,
+
                     fontSize: 15,
+
                     color: C.text,
+
                     marginBottom: 14,
                   }}
                 >
@@ -1850,7 +2141,9 @@ function HomePage({
                 <div
                   style={{
                     display: "flex",
+
                     justifyContent: "space-between",
+
                     alignItems: "center",
                   }}
                 >
@@ -1862,16 +2155,24 @@ function HomePage({
                   <button
                     onClick={() => {
                       setSelectedCourse(c)
+
                       setPage("course-detail")
                     }}
                     style={{
                       background: C.blue,
+
                       color: "#fff",
+
                       border: "none",
+
                       borderRadius: 7,
+
                       padding: "6px 12px",
+
                       fontSize: 12,
+
                       fontWeight: 600,
+
                       cursor: "pointer",
                     }}
                   >
@@ -1889,8 +2190,11 @@ function HomePage({
         <h2
           style={{
             fontSize: 18,
+
             fontWeight: 700,
+
             color: C.text,
+
             marginBottom: 16,
           }}
         >
@@ -1919,9 +2223,13 @@ function HomePage({
 
 function CoursesPage({
   setPage,
+
   courses,
+
   onAdd,
+
   onRemove,
+
   setSelectedCourse,
 }: {
   setPage: (p: Page) => void
@@ -1961,8 +2269,11 @@ function CoursesPage({
       <div
         style={{
           display: "flex",
+
           justifyContent: "space-between",
+
           alignItems: "flex-start",
+
           marginBottom: 4,
         }}
       >
@@ -1970,8 +2281,11 @@ function CoursesPage({
           <h1
             style={{
               fontSize: 28,
+
               fontWeight: 800,
+
               color: C.text,
+
               letterSpacing: "-0.5px",
             }}
           >
@@ -1980,8 +2294,11 @@ function CoursesPage({
           <p
             style={{
               color: C.muted,
+
               fontSize: 14,
+
               marginTop: 4,
+
               marginBottom: 0,
             }}
           >
@@ -1992,16 +2309,27 @@ function CoursesPage({
           onClick={() => setShowForm(!showForm)}
           style={{
             display: "flex",
+
             alignItems: "center",
+
             gap: 7,
+
             background: C.blue,
+
             color: "#fff",
+
             border: "none",
+
             borderRadius: 10,
+
             padding: "10px 18px",
+
             fontSize: 14,
+
             fontWeight: 600,
+
             cursor: "pointer",
+
             marginTop: 4,
           }}
         >
@@ -2015,8 +2343,11 @@ function CoursesPage({
           <div
             style={{
               fontSize: 15,
+
               fontWeight: 700,
+
               color: C.text,
+
               marginBottom: 16,
             }}
           >
@@ -2025,8 +2356,11 @@ function CoursesPage({
           <div
             style={{
               display: "grid",
+
               gridTemplateColumns: "1fr 1fr",
+
               gap: 12,
+
               marginBottom: 12,
             }}
           >
@@ -2034,9 +2368,13 @@ function CoursesPage({
               <label
                 style={{
                   fontSize: 12,
+
                   fontWeight: 600,
+
                   color: C.muted,
+
                   display: "block",
+
                   marginBottom: 5,
                 }}
               >
@@ -2048,13 +2386,21 @@ function CoursesPage({
                 placeholder="e.g. CSN-201"
                 style={{
                   width: "100%",
+
                   padding: "9px 12px",
+
                   border: `1.5px solid ${C.border}`,
+
                   borderRadius: 8,
+
                   fontSize: 14,
+
                   color: C.text,
+
                   outline: "none",
+
                   boxSizing: "border-box",
+
                   fontFamily: "Inter, sans-serif",
                 }}
               />
@@ -2063,9 +2409,13 @@ function CoursesPage({
               <label
                 style={{
                   fontSize: 12,
+
                   fontWeight: 600,
+
                   color: C.muted,
+
                   display: "block",
+
                   marginBottom: 5,
                 }}
               >
@@ -2077,13 +2427,21 @@ function CoursesPage({
                 placeholder="e.g. Computer Science"
                 style={{
                   width: "100%",
+
                   padding: "9px 12px",
+
                   border: `1.5px solid ${C.border}`,
+
                   borderRadius: 8,
+
                   fontSize: 14,
+
                   color: C.text,
+
                   outline: "none",
+
                   boxSizing: "border-box",
+
                   fontFamily: "Inter, sans-serif",
                 }}
               />
@@ -2092,9 +2450,13 @@ function CoursesPage({
               <label
                 style={{
                   fontSize: 12,
+
                   fontWeight: 600,
+
                   color: C.muted,
+
                   display: "block",
+
                   marginBottom: 5,
                 }}
               >
@@ -2106,13 +2468,21 @@ function CoursesPage({
                 placeholder="e.g. Data Structures and Algorithms"
                 style={{
                   width: "100%",
+
                   padding: "9px 12px",
+
                   border: `1.5px solid ${C.border}`,
+
                   borderRadius: 8,
+
                   fontSize: 14,
+
                   color: C.text,
+
                   outline: "none",
+
                   boxSizing: "border-box",
+
                   fontFamily: "Inter, sans-serif",
                 }}
               />
@@ -2123,12 +2493,19 @@ function CoursesPage({
               onClick={handleAdd}
               style={{
                 background: C.blue,
+
                 color: "#fff",
+
                 border: "none",
+
                 borderRadius: 8,
+
                 padding: "9px 20px",
+
                 fontSize: 13,
+
                 fontWeight: 600,
+
                 cursor: "pointer",
               }}
             >
@@ -2138,12 +2515,19 @@ function CoursesPage({
               onClick={() => setShowForm(false)}
               style={{
                 background: "transparent",
+
                 color: C.muted,
+
                 border: `1px solid ${C.border}`,
+
                 borderRadius: 8,
+
                 padding: "9px 20px",
+
                 fontSize: 13,
+
                 fontWeight: 600,
+
                 cursor: "pointer",
               }}
             >
@@ -2158,9 +2542,13 @@ function CoursesPage({
         <div
           style={{
             position: "absolute",
+
             left: 12,
+
             top: "50%",
+
             transform: "translateY(-50%)",
+
             color: C.muted,
           }}
         >
@@ -2172,14 +2560,23 @@ function CoursesPage({
           placeholder="Search my courses..."
           style={{
             width: "100%",
+
             padding: "10px 12px 10px 40px",
+
             border: `1.5px solid ${C.border}`,
+
             borderRadius: 10,
+
             fontSize: 14,
+
             color: C.text,
+
             background: "#fff",
+
             outline: "none",
+
             boxSizing: "border-box",
+
             fontFamily: "Inter, sans-serif",
           }}
         />
@@ -2191,8 +2588,11 @@ function CoursesPage({
           <div
             style={{
               fontWeight: 700,
+
               fontSize: 16,
+
               color: C.text,
+
               marginBottom: 6,
             }}
           >
@@ -2206,7 +2606,9 @@ function CoursesPage({
         <div
           style={{
             display: "grid",
+
             gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+
             gap: 16,
           }}
         >
@@ -2215,17 +2617,24 @@ function CoursesPage({
               <div
                 style={{
                   display: "flex",
+
                   justifyContent: "space-between",
+
                   marginBottom: 10,
                 }}
               >
                 <span
                   style={{
                     background: "#EFF6FF",
+
                     color: C.blue,
+
                     fontSize: 12,
+
                     fontWeight: 700,
+
                     padding: "3px 8px",
+
                     borderRadius: 6,
                   }}
                 >
@@ -2235,8 +2644,11 @@ function CoursesPage({
               <div
                 style={{
                   fontWeight: 700,
+
                   fontSize: 15,
+
                   color: C.text,
+
                   marginBottom: 4,
                 }}
               >
@@ -2248,7 +2660,9 @@ function CoursesPage({
               <div
                 style={{
                   display: "flex",
+
                   justifyContent: "space-between",
+
                   alignItems: "center",
                 }}
               >
@@ -2259,16 +2673,24 @@ function CoursesPage({
                   <button
                     onClick={() => {
                       setSelectedCourse(c)
+
                       setPage("course-detail")
                     }}
                     style={{
                       background: C.blue,
+
                       color: "#fff",
+
                       border: "none",
+
                       borderRadius: 8,
+
                       padding: "7px 14px",
+
                       fontSize: 12,
+
                       fontWeight: 600,
+
                       cursor: "pointer",
                     }}
                   >
@@ -2278,12 +2700,19 @@ function CoursesPage({
                     onClick={() => onRemove(c.id)}
                     style={{
                       background: "#FEF2F2",
+
                       color: "#ef4444",
+
                       border: "1px solid #FECACA",
+
                       borderRadius: 8,
+
                       padding: "7px 14px",
+
                       fontSize: 12,
+
                       fontWeight: 600,
+
                       cursor: "pointer",
                     }}
                   >
@@ -2303,9 +2732,13 @@ function CoursesPage({
 
 function CourseDetailPage({
   setPage,
+
   resources,
+
   onPin,
+
   onToast,
+
   course,
 }: {
   setPage: (p: Page) => void
@@ -2323,7 +2756,9 @@ function CourseDetailPage({
   const tabs = [
     {
       label: "Notes",
+
       emoji: "📚",
+
       desc: "Lecture notes, study material and summaries.",
     },
 
@@ -2331,13 +2766,17 @@ function CourseDetailPage({
 
     {
       label: "Assignments",
+
       emoji: "📄",
+
       desc: "Assignments and problem sets.",
     },
 
     {
       label: "Labs",
+
       emoji: "🧪",
+
       desc: "Lab sheets, files and useful lab resources.",
     },
   ]
@@ -2360,14 +2799,23 @@ function CourseDetailPage({
         onClick={() => setPage("courses")}
         style={{
           background: "none",
+
           border: "none",
+
           color: C.blue,
+
           fontSize: 13,
+
           fontWeight: 600,
+
           cursor: "pointer",
+
           marginBottom: 20,
+
           display: "flex",
+
           alignItems: "center",
+
           gap: 4,
         }}
       >
@@ -2378,7 +2826,9 @@ function CourseDetailPage({
         <div
           style={{
             display: "flex",
+
             justifyContent: "space-between",
+
             alignItems: "flex-start",
           }}
         >
@@ -2386,12 +2836,19 @@ function CourseDetailPage({
             <span
               style={{
                 background: "#EFF6FF",
+
                 color: C.blue,
+
                 fontSize: 13,
+
                 fontWeight: 700,
+
                 padding: "4px 10px",
+
                 borderRadius: 6,
+
                 display: "inline-block",
+
                 marginBottom: 10,
               }}
             >
@@ -2400,9 +2857,13 @@ function CourseDetailPage({
             <h1
               style={{
                 fontSize: 26,
+
                 fontWeight: 800,
+
                 color: C.text,
+
                 marginBottom: 6,
+
                 letterSpacing: "-0.3px",
               }}
             >
@@ -2425,7 +2886,9 @@ function CourseDetailPage({
         <div
           style={{
             display: "grid",
+
             gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+
             gap: 14,
           }}
         >
@@ -2435,11 +2898,17 @@ function CourseDetailPage({
               onClick={() => setActiveTab(t.label)}
               style={{
                 background: "#fff",
+
                 border: `1.5px solid ${C.border}`,
+
                 borderRadius: 14,
+
                 padding: "24px 20px",
+
                 cursor: "pointer",
+
                 textAlign: "left",
+
                 transition: "all 0.15s",
               }}
             >
@@ -2447,8 +2916,11 @@ function CourseDetailPage({
               <div
                 style={{
                   fontWeight: 700,
+
                   fontSize: 16,
+
                   color: C.text,
+
                   marginBottom: 4,
                 }}
               >
@@ -2463,8 +2935,11 @@ function CourseDetailPage({
           <div
             style={{
               display: "flex",
+
               alignItems: "center",
+
               gap: 12,
+
               marginBottom: 20,
             }}
           >
@@ -2472,10 +2947,15 @@ function CourseDetailPage({
               onClick={() => setActiveTab(null)}
               style={{
                 background: "none",
+
                 border: "none",
+
                 color: C.blue,
+
                 fontSize: 13,
+
                 fontWeight: 600,
+
                 cursor: "pointer",
               }}
             >
@@ -2502,8 +2982,11 @@ function CourseDetailPage({
               <div
                 style={{
                   fontWeight: 700,
+
                   fontSize: 16,
+
                   color: C.text,
+
                   marginBottom: 6,
                 }}
               >
@@ -2524,7 +3007,9 @@ function CourseDetailPage({
 
 function UploadPage({
   onToast,
+
   courses,
+
   onUploaded,
 }: {
   onToast: (msg: string, type?: "success" | "error") => void
@@ -2672,9 +3157,13 @@ function UploadPage({
       <h1
         style={{
           fontSize: 28,
+
           fontWeight: 800,
+
           color: C.text,
+
           marginBottom: 4,
+
           letterSpacing: "-0.5px",
         }}
       >
@@ -2688,16 +3177,22 @@ function UploadPage({
         <Card
           style={{
             background: "#F0FDF4",
+
             border: "1.5px solid #BBF7D0",
+
             marginBottom: 24,
           }}
         >
           <div
             style={{
               display: "flex",
+
               alignItems: "center",
+
               gap: 10,
+
               color: "#15803D",
+
               fontWeight: 600,
             }}
           >
@@ -2710,6 +3205,7 @@ function UploadPage({
       <div
         onDragOver={(e) => {
           e.preventDefault()
+
           setDragging(true)
         }}
         onDragLeave={() => setDragging(false)}
@@ -2753,11 +3249,17 @@ function UploadPage({
             <label
               style={{
                 background: C.blue,
+
                 color: "#fff",
+
                 padding: "9px 20px",
+
                 borderRadius: 9,
+
                 fontSize: 13,
+
                 fontWeight: 600,
+
                 cursor: "pointer",
               }}
             >
@@ -2784,8 +3286,11 @@ function UploadPage({
       <div
         style={{
           display: "flex",
+
           flexDirection: "column",
+
           gap: 16,
+
           marginBottom: 24,
         }}
       >
@@ -2793,8 +3298,11 @@ function UploadPage({
           <div
             style={{
               display: "flex",
+
               justifyContent: "space-between",
+
               alignItems: "center",
+
               marginBottom: 6,
             }}
           >
@@ -2895,10 +3403,15 @@ function UploadPage({
               <div
                 style={{
                   display: "flex",
+
                   alignItems: "center",
+
                   gap: 6,
+
                   fontSize: 12,
+
                   fontWeight: 600,
+
                   color: C.blue,
                 }}
               >
@@ -2909,7 +3422,9 @@ function UploadPage({
               <div
                 style={{
                   display: "grid",
+
                   gridTemplateColumns: "1fr 1fr",
+
                   gap: 12,
                 }}
               >
@@ -2917,9 +3432,13 @@ function UploadPage({
                   <label
                     style={{
                       fontSize: 12,
+
                       fontWeight: 600,
+
                       color: C.text,
+
                       display: "block",
+
                       marginBottom: 4,
                     }}
                   >
@@ -2959,9 +3478,13 @@ function UploadPage({
                   <label
                     style={{
                       fontSize: 12,
+
                       fontWeight: 600,
+
                       color: C.text,
+
                       display: "block",
+
                       marginBottom: 4,
                     }}
                   >
@@ -3006,9 +3529,13 @@ function UploadPage({
                   <label
                     style={{
                       fontSize: 12,
+
                       fontWeight: 600,
+
                       color: C.text,
+
                       display: "block",
+
                       marginBottom: 4,
                     }}
                   >
@@ -3049,9 +3576,13 @@ function UploadPage({
           <label
             style={{
               fontSize: 13,
+
               fontWeight: 600,
+
               color: C.text,
+
               display: "block",
+
               marginBottom: 6,
             }}
           >
@@ -3062,12 +3593,19 @@ function UploadPage({
             onChange={(e) => setResType(e.target.value)}
             style={{
               width: "100%",
+
               padding: "11px 14px",
+
               border: `1.5px solid ${C.border}`,
+
               borderRadius: 10,
+
               fontSize: 14,
+
               color: C.text,
+
               background: "#fff",
+
               fontFamily: "Inter, sans-serif",
             }}
           >
@@ -3082,9 +3620,13 @@ function UploadPage({
           <label
             style={{
               fontSize: 13,
+
               fontWeight: 600,
+
               color: C.text,
+
               display: "block",
+
               marginBottom: 6,
             }}
           >
@@ -3096,14 +3638,23 @@ function UploadPage({
             placeholder="e.g. DSA Mid-Sem Notes 2024"
             style={{
               width: "100%",
+
               padding: "11px 14px",
+
               border: `1.5px solid ${C.border}`,
+
               borderRadius: 10,
+
               fontSize: 14,
+
               color: C.text,
+
               background: "#fff",
+
               outline: "none",
+
               boxSizing: "border-box",
+
               fontFamily: "Inter, sans-serif",
             }}
           />
@@ -3112,9 +3663,13 @@ function UploadPage({
           <label
             style={{
               fontSize: 13,
+
               fontWeight: 600,
+
               color: C.text,
+
               display: "block",
+
               marginBottom: 6,
             }}
           >
@@ -3128,15 +3683,25 @@ function UploadPage({
             rows={3}
             style={{
               width: "100%",
+
               padding: "11px 14px",
+
               border: `1.5px solid ${C.border}`,
+
               borderRadius: 10,
+
               fontSize: 14,
+
               color: C.text,
+
               background: "#fff",
+
               outline: "none",
+
               resize: "vertical",
+
               boxSizing: "border-box",
+
               fontFamily: "Inter, sans-serif",
             }}
           />
@@ -3154,8 +3719,11 @@ function UploadPage({
 
 function PinsPage({
   resources,
+
   onPin,
+
   onToast,
+
   setPage,
 }: {
   resources: Resource[]
@@ -3179,9 +3747,13 @@ function PinsPage({
       <h1
         style={{
           fontSize: 28,
+
           fontWeight: 800,
+
           color: C.text,
+
           marginBottom: 4,
+
           letterSpacing: "-0.5px",
         }}
       >
@@ -3196,9 +3768,13 @@ function PinsPage({
           <div
             style={{
               position: "absolute",
+
               left: 12,
+
               top: "50%",
+
               transform: "translateY(-50%)",
+
               color: C.muted,
             }}
           >
@@ -3210,14 +3786,23 @@ function PinsPage({
             placeholder="Search pinned resources..."
             style={{
               width: "100%",
+
               padding: "10px 12px 10px 40px",
+
               border: `1.5px solid ${C.border}`,
+
               borderRadius: 10,
+
               fontSize: 14,
+
               color: C.text,
+
               background: "#fff",
+
               outline: "none",
+
               boxSizing: "border-box",
+
               fontFamily: "Inter, sans-serif",
             }}
           />
@@ -3230,8 +3815,11 @@ function PinsPage({
           <div
             style={{
               fontWeight: 700,
+
               fontSize: 18,
+
               color: C.text,
+
               marginBottom: 8,
             }}
           >
@@ -3390,9 +3978,13 @@ function ProfilePage({
       <h1
         style={{
           fontSize: 28,
+
           fontWeight: 800,
+
           color: C.text,
+
           marginBottom: 24,
+
           letterSpacing: "-0.5px",
         }}
       >
@@ -3405,15 +3997,25 @@ function ProfilePage({
           <div
             style={{
               width: 72,
+
               height: 72,
+
               borderRadius: "50%",
+
               background: `linear-gradient(135deg, ${C.blue}, ${C.cyan})`,
+
               display: "flex",
+
               alignItems: "center",
+
               justifyContent: "center",
+
               fontSize: 28,
+
               fontWeight: 700,
+
               color: "#fff",
+
               flexShrink: 0,
             }}
           >
@@ -3432,6 +4034,7 @@ function ProfilePage({
             {[
               {
                 label: "Uploads",
+
                 val: profileData?.uploadsCount ?? userUploads.length,
               },
 
@@ -3454,11 +4057,17 @@ function ProfilePage({
       <div
         style={{
           display: "flex",
+
           gap: 2,
+
           background: C.bg,
+
           borderRadius: 10,
+
           padding: 4,
+
           marginBottom: 20,
+
           border: `1px solid ${C.border}`,
         }}
       >
@@ -3468,12 +4077,19 @@ function ProfilePage({
             onClick={() => setTab(t)}
             style={{
               flex: 1,
+
               padding: "8px 0",
+
               borderRadius: 7,
+
               border: "none",
+
               cursor: "pointer",
+
               fontSize: 13,
+
               fontWeight: 600,
+
               transition: "all 0.15s",
 
               background: tab === t ? "#fff" : "transparent",
@@ -3500,7 +4116,9 @@ function ProfilePage({
                 <div
                   style={{
                     display: "flex",
+
                     justifyContent: "space-between",
+
                     alignItems: "center",
                   }}
                 >
@@ -3543,7 +4161,9 @@ function ProfilePage({
                 <div
                   style={{
                     display: "flex",
+
                     justifyContent: "space-between",
+
                     alignItems: "center",
                   }}
                 >
@@ -3572,8 +4192,11 @@ function ProfilePage({
             <div
               style={{
                 fontSize: 16,
+
                 fontWeight: 700,
+
                 color: C.text,
+
                 marginBottom: 4,
               }}
             >
@@ -3588,9 +4211,13 @@ function ProfilePage({
                 <label
                   style={{
                     fontSize: 13,
+
                     fontWeight: 600,
+
                     color: C.text,
+
                     display: "block",
+
                     marginBottom: 6,
                   }}
                 >
@@ -3629,9 +4256,13 @@ function ProfilePage({
                 <label
                   style={{
                     fontSize: 13,
+
                     fontWeight: 600,
+
                     color: C.text,
+
                     display: "block",
+
                     marginBottom: 6,
                   }}
                 >
@@ -3676,9 +4307,13 @@ function ProfilePage({
                 <label
                   style={{
                     fontSize: 13,
+
                     fontWeight: 600,
+
                     color: C.text,
+
                     display: "block",
+
                     marginBottom: 6,
                   }}
                 >
@@ -3720,7 +4355,9 @@ function ProfilePage({
               <div
                 style={{
                   display: "flex",
+
                   justifyContent: "flex-end",
+
                   marginTop: 8,
                 }}
               >
@@ -3736,7 +4373,9 @@ function ProfilePage({
             <div
               style={{
                 display: "flex",
+
                 justifyContent: "space-between",
+
                 alignItems: "center",
               }}
             >
@@ -3790,8 +4429,11 @@ function ProfilePage({
             <div
               style={{
                 display: "flex",
+
                 justifyContent: "space-between",
+
                 alignItems: "flex-start",
+
                 gap: 16,
               }}
             >
@@ -3799,8 +4441,11 @@ function ProfilePage({
                 <div
                   style={{
                     fontWeight: 700,
+
                     color: "#DC2626",
+
                     fontSize: 15,
+
                     marginBottom: 4,
                   }}
                 >
@@ -3809,8 +4454,11 @@ function ProfilePage({
                 <div
                   style={{
                     fontSize: 13,
+
                     color: "#7F1D1D",
+
                     lineHeight: 1.5,
+
                     maxWidth: 520,
                   }}
                 >
@@ -4107,8 +4755,11 @@ export default function App() {
     <div
       style={{
         display: "flex",
+
         height: "100%",
+
         background: C.bg,
+
         fontFamily: "Inter, sans-serif",
       }}
     >

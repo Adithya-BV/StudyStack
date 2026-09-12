@@ -96,7 +96,9 @@ async function runTests() {
   console.log("\n4️⃣ Testing Login Authentication & Password Hash...")
 
   const user = db
+
     .prepare("SELECT * FROM users WHERE email = ?")
+
     .get(testEmail) as any
 
   const match = await bcrypt.compare("Password123!", user.password_hash)
@@ -105,7 +107,9 @@ async function runTests() {
 
   const token = jwt.sign(
     { id: user.id, email: user.email, name: user.name },
+
     "studystack_secret_jwt_key_2026_iitr",
+
     {
       expiresIn: "7d",
     },
@@ -120,10 +124,12 @@ async function runTests() {
   console.log("\n5️⃣ Testing Resource Creation & Pinning...")
 
   const newRes = db
+
     .prepare(`
     INSERT INTO resources (title, course_code, type, by, uploader_email, file_path, file_size, date)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `)
+
     .run(
       "Automated Test DSA Notes",
 
@@ -148,11 +154,14 @@ async function runTests() {
 
   db.prepare("INSERT INTO pins (user_email, resource_id) VALUES (?, ?)").run(
     testEmail,
+
     resId,
   )
 
   const pin = db
+
     .prepare("SELECT * FROM pins WHERE user_email = ? AND resource_id = ?")
+
     .get(testEmail, resId)
 
   if (!pin) throw new Error("Pin failed")

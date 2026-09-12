@@ -125,14 +125,19 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
 
   function escapeHtmlText(value: string): string {
     return value
+
       .replace(/&/g, "&amp;")
+
       .replace(/</g, "&lt;")
+
       .replace(/>/g, "&gt;")
   }
 
   function replaceHtmlCommentSlot(
     html: string,
+
     slotName: string,
+
     content: string,
   ): string {
     return html.replace(`<!-- ${slotName} -->`, content)
@@ -199,7 +204,9 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
 
         result = replaceHtmlCommentSlot(
           result,
+
           "figma:title",
+
           escapeHtmlText(title),
         )
 
@@ -216,7 +223,9 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
         if (description) {
           tags.push({
             tag: "meta",
+
             attrs: { name: "description", content: description },
+
             injectTo: "head",
           })
         }
@@ -224,7 +233,9 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
         if (config.robots?.index === false) {
           tags.push({
             tag: "meta",
+
             attrs: { name: "robots", content: "noindex, nofollow" },
+
             injectTo: "head",
           })
         }
@@ -232,7 +243,9 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
         if (favicon) {
           tags.push({
             tag: "link",
+
             attrs: { rel: "icon", href: favicon },
+
             injectTo: "head",
           })
         }
@@ -240,7 +253,9 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
         if (title) {
           tags.push({
             tag: "meta",
+
             attrs: { property: "og:title", content: title },
+
             injectTo: "head",
           })
         }
@@ -248,7 +263,9 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
         if (description) {
           tags.push({
             tag: "meta",
+
             attrs: { property: "og:description", content: description },
+
             injectTo: "head",
           })
         }
@@ -257,19 +274,25 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
           tags.push(
             {
               tag: "meta",
+
               attrs: { property: "og:image", content: socialImage },
+
               injectTo: "head",
             },
 
             {
               tag: "meta",
+
               attrs: { name: "twitter:card", content: "summary_large_image" },
+
               injectTo: "head",
             },
 
             {
               tag: "meta",
+
               attrs: { name: "twitter:image", content: socialImage },
+
               injectTo: "head",
             },
           )
