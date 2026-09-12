@@ -4629,13 +4629,21 @@ export default function App() {
   }, [])
 
   const handleLogout = () => {
-    if (window.confirm("Are you sure you want to log out?")) {
-      api.auth.clearAuth()
+    setShowLogoutConfirm(true)
+  }
 
-      setCurrentUser(null)
+  const confirmLogout = () => {
+    setShowLogoutConfirm(false)
 
-      setPage("login")
-    }
+    api.auth.clearAuth()
+
+    setCurrentUser(null)
+
+    setPage("login")
+  }
+
+  const cancelLogout = () => {
+    setShowLogoutConfirm(false)
   }
 
   const togglePin = async (id: number) => {
