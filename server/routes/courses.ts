@@ -17,7 +17,7 @@ coursesRouter.get("/", async (req: any, res: any) => {
         c.code, 
         c.name, 
         c.dept, 
-        COALESCE(r.cnt, c.resources) as resources
+        COALESCE(r.cnt, 0) as resources
       FROM courses c
       LEFT JOIN (
         SELECT course_code, COUNT(*) as cnt 
@@ -103,6 +103,7 @@ coursesRouter.post("/", authenticateToken, async (req, res) => {
     const info = (
       await pool.query(
         "INSERT INTO courses (code, name, dept, resources) VALUES ($1, $2, $3, 0) RETURNING id",
+
         [cleanCode, name.trim(), dept.trim()],
       )
     ).rows[0]
