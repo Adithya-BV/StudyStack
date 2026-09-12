@@ -1,42 +1,38 @@
-import Database from "better-sqlite3";
-import path from "path";
-import fs from "fs";
+import { Pool } from "pg"
 
-const dbDir = path.resolve(process.cwd(), "data");
-if (!fs.existsSync(dbDir)) {
-  fs.mkdirSync(dbDir, { recursive: true });
-}
+import dotenv from "dotenv"
 
-const dbPath = path.join(dbDir, "studystack.db");
-export const db = new Database(dbPath);
+dotenv.config()
 
-// Enable WAL mode for high concurrency
-db.pragma("journal_mode = WAL");
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+})
 
-export function initDatabase() {
-  db.exec(`
+export async function initDatabase() {
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
       email TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
       department TEXT DEFAULT 'Computer Science',
       year TEXT DEFAULT '2nd Year',
       is_verified INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
     CREATE TABLE IF NOT EXISTS otps (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       email TEXT NOT NULL,
       otp_code TEXT NOT NULL,
       type TEXT NOT NULL,
-      expires_at DATETIME NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      expires_at TIMESTAMP NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
     CREATE TABLE IF NOT EXISTS courses (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       code TEXT UNIQUE NOT NULL,
       name TEXT NOT NULL,
       dept TEXT NOT NULL,
@@ -44,7 +40,7 @@ export function initDatabase() {
     );
 
     CREATE TABLE IF NOT EXISTS resources (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
       course_code TEXT NOT NULL,
       type TEXT NOT NULL,
@@ -53,59 +49,122 @@ export function initDatabase() {
       file_path TEXT,
       file_size TEXT,
       date TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
     CREATE TABLE IF NOT EXISTS pins (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       user_email TEXT NOT NULL,
       resource_id INTEGER NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(user_email, resource_id)
     );
-  `);
+  `)
 
   // Seed default courses if empty
-  const courseCount = db.prepare("SELECT COUNT(*) as count FROM courses").get() as { count: number };
-  if (courseCount.count === 0) {
-    const insertCourse = db.prepare(
-      "INSERT INTO courses (code, name, dept, resources) VALUES (@code, @name, @dept, @resources)"
-    );
+
+  const courseCountRes = await pool.query(
+    "SELECT COUNT(*) as count FROM courses",
+  )
+
+  if (parseInt(courseCountRes.rows[0].count) === 0) {
+    const insertCourse =
+      "INSERT INTO courses (code, name, dept, resources) VALUES ($1, $2, $3, $4)"
 
     const initialCourses = [
-      { code: "CSN-201", name: "Data Structures and Algorithms", dept: "Computer Science", resources: 24 },
-      { code: "MA-201", name: "Mathematics III", dept: "Mathematics", resources: 18 },
-      { code: "EE-301", name: "Signals and Systems", dept: "Electrical Engineering", resources: 31 },
-      { code: "CSN-301", name: "Operating Systems", dept: "Computer Science", resources: 27 },
-      { code: "ME-201", name: "Engineering Mechanics", dept: "Mechanical Engineering", resources: 15 },
-      { code: "CH-101", name: "Engineering Chemistry", dept: "Chemistry", resources: 22 },
-      { code: "CSN-401", name: "Computer Networks", dept: "Computer Science", resources: 19 },
-      { code: "EE-201", name: "Basic Electronics", dept: "Electrical Engineering", resources: 33 },
-    ];
+      ["CSN-201", "Data Structures and Algorithms", "Computer Science", 24],
+
+      ["MA-201", "Mathematics III", "Mathematics", 18],
+
+      ["EE-301", "Signals and Systems", "Electrical Engineering", 31],
+
+      ["CSN-301", "Operating Systems", "Computer Science", 27],
+
+      ["ME-201", "Engineering Mechanics", "Mechanical Engineering", 15],
+
+      ["CH-101", "Engineering Chemistry", "Chemistry", 22],
+
+      ["CSN-401", "Computer Networks", "Computer Science", 19],
+
+      ["EE-201", "Basic Electronics", "Electrical Engineering", 33],
+    ]
 
     for (const c of initialCourses) {
-      insertCourse.run(c);
+      await pool.query(insertCourse, c)
     }
   }
 
   // Seed default resources if empty
-  const resCount = db.prepare("SELECT COUNT(*) as count FROM resources").get() as { count: number };
-  if (resCount.count === 0) {
-    const insertRes = db.prepare(`
+
+  const resCountRes = await pool.query(
+    "SELECT COUNT(*) as count FROM resources",
+  )
+
+  if (parseInt(resCountRes.rows[0].count) === 0) {
+    const insertRes = `
       INSERT INTO resources (title, course_code, type, by, uploader_email, file_path, file_size, date)
-      VALUES (@title, @course_code, @type, @by, @uploader_email, @file_path, @file_size, @date)
-    `);
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `
 
     const initialResources = [
-      { title: "DSA Mid-Sem Notes 2024", course_code: "CSN-201", type: "Notes", by: "Arjun Sharma", uploader_email: "arjun@iitr.ac.in", file_path: null, file_size: "2.4 MB", date: "Aug 28, 2026" },
-      { title: "OS Previous Year Paper 2023", course_code: "CSN-301", type: "PYQ", by: "Priya Verma", uploader_email: "priya@iitr.ac.in", file_path: null, file_size: "1.1 MB", date: "Aug 25, 2026" },
-      { title: "Signals Lab Manual", course_code: "EE-301", type: "Labs", by: "Rahul Gupta", uploader_email: "rahul@iitr.ac.in", file_path: null, file_size: "3.8 MB", date: "Aug 20, 2026" },
-      { title: "Maths III Assignment 2", course_code: "MA-201", type: "Assignments", by: "Neha Singh", uploader_email: "neha@iitr.ac.in", file_path: null, file_size: "0.6 MB", date: "Aug 18, 2026" },
-      { title: "Computer Networks Cheatsheet", course_code: "CSN-401", type: "Notes", by: "Arjun Sharma", uploader_email: "arjun@iitr.ac.in", file_path: null, file_size: "0.9 MB", date: "Sep 1, 2026" },
-    ];
+      [
+        "DSA Mid-Sem Notes 2024",
+        "CSN-201",
+        "Notes",
+        "Arjun Sharma",
+        "arjun@iitr.ac.in",
+        null,
+        "2.4 MB",
+        "Aug 28, 2026",
+      ],
+
+      [
+        "OS Previous Year Paper 2023",
+        "CSN-301",
+        "PYQ",
+        "Priya Verma",
+        "priya@iitr.ac.in",
+        null,
+        "1.1 MB",
+        "Aug 25, 2026",
+      ],
+
+      [
+        "Signals Lab Manual",
+        "EE-301",
+        "Labs",
+        "Rahul Gupta",
+        "rahul@iitr.ac.in",
+        null,
+        "3.8 MB",
+        "Aug 20, 2026",
+      ],
+
+      [
+        "Maths III Assignment 2",
+        "MA-201",
+        "Assignments",
+        "Neha Singh",
+        "neha@iitr.ac.in",
+        null,
+        "0.6 MB",
+        "Aug 18, 2026",
+      ],
+
+      [
+        "Computer Networks Cheatsheet",
+        "CSN-401",
+        "Notes",
+        "Arjun Sharma",
+        "arjun@iitr.ac.in",
+        null,
+        "0.9 MB",
+        "Sep 1, 2026",
+      ],
+    ]
 
     for (const r of initialResources) {
-      insertRes.run(r);
+      await pool.query(insertRes, r)
     }
   }
 }

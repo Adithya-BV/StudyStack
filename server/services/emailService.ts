@@ -1,39 +1,58 @@
-import nodemailer from "nodemailer";
+import nodemailer from "nodemailer"
 
 export function generateOTP(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return Math.floor(100000 + Math.random() * 900000).toString()
 }
 
-export async function sendOTPEmail(toEmail: string, otp: string, type: "signup" | "forgot_password") {
-  const smtpEmail = process.env.SMTP_EMAIL || process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASSWORD || process.env.SMTP_PASS;
+export async function sendOTPEmail(
+  toEmail: string,
+  otp: string,
+  type: "signup" | "forgot_password",
+) {
+  const smtpEmail = process.env.SMTP_EMAIL || process.env.SMTP_USER
 
-  console.log("--------------------------------------------------");
-  console.log(`🔑 [STUDYSTACK OTP CODE] (${type})`);
-  console.log(`Recipient: ${toEmail}`);
-  console.log(`OTP Code:  >>> ${otp} <<<`);
-  console.log("--------------------------------------------------");
+  const smtpPass = process.env.SMTP_PASSWORD || process.env.SMTP_PASS
+
+  console.log("--------------------------------------------------")
+
+  console.log(`🔑 [STUDYSTACK OTP CODE] (${type})`)
+
+  console.log(`Recipient: ${toEmail}`)
+
+  console.log(`OTP Code:  >>> ${otp} <<<`)
+
+  console.log("--------------------------------------------------")
 
   if (!smtpEmail || !smtpPass) {
-    console.log("ℹ️ Note: SMTP_EMAIL / SMTP_PASSWORD not yet set in .env. Using console OTP for local testing.");
-    return true;
+    console.log(
+      "ℹ️ Note: SMTP_EMAIL / SMTP_PASSWORD not yet set in .env. Using console OTP for local testing.",
+    )
+
+    return true
   }
 
   try {
     const transporter = nodemailer.createTransport({
       service: "gmail",
+
       auth: {
         user: smtpEmail,
+
         pass: smtpPass,
       },
-    });
+    })
 
-    const isSignup = type === "signup";
-    const subject = isSignup ? "StudyStack — Verify Your IITR Email" : "StudyStack — Reset Your Password";
-    const title = isSignup ? "Verify Your Account" : "Password Reset Request";
+    const isSignup = type === "signup"
+
+    const subject = isSignup
+      ? "StudyStack — Verify Your IITR Email"
+      : "StudyStack — Reset Your Password"
+
+    const title = isSignup ? "Verify Your Account" : "Password Reset Request"
+
     const desc = isSignup
       ? "Welcome to StudyStack, the academic resource-sharing platform for IIT Roorkee students. Enter the OTP code below to verify your email:"
-      : "You requested to reset your StudyStack password. Use the verification code below to complete the reset:";
+      : "You requested to reset your StudyStack password. Use the verification code below to complete the reset:"
 
     const html = `
       <div style="font-family: Arial, sans-serif; background-color: #F5F8FC; padding: 40px 20px; color: #0F172A;">
@@ -56,19 +75,27 @@ export async function sendOTPEmail(toEmail: string, otp: string, type: "signup" 
           </div>
         </div>
       </div>
-    `;
+    `
 
     await transporter.sendMail({
       from: `"StudyStack IITR" <${smtpEmail}>`,
-      to: toEmail,
-      subject,
-      html,
-    });
 
-    console.log(`✅ Email sent successfully to ${toEmail}`);
-    return true;
+      to: toEmail,
+
+      subject,
+
+      html,
+    })
+
+    console.log(`✅ Email sent successfully to ${toEmail}`)
+
+    return true
   } catch (error) {
-    console.error("⚠️ Failed to send email via SMTP, but OTP is logged in console above:", error);
-    return true; // Still allow testing via console log
+    console.error(
+      "⚠️ Failed to send email via SMTP, but OTP is logged in console above:",
+      error,
+    )
+
+    return true // Still allow testing via console log
   }
 }
