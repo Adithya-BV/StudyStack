@@ -12,31 +12,30 @@ profileRouter.get("/", authenticateToken, async (req: any, res) => {
   try {
     const userEmail = req.user.email
 
-    const user = db
-
-      .prepare(
-        "SELECT id, name, email, department, year, created_at FROM users WHERE email = ?",
+    const user = (
+      await pool.query(
+        "SELECT id, name, email, department, year, created_at FROM users WHERE email = $1",
+        [userEmail],
       )
-
-      .get(userEmail) as any
+    ).rows[0] as any
 
     if (!user) {
       return res.status(404).json({ error: "User not found" })
     }
 
-    const uploads = db
-
-      .prepare(
-        "SELECT * FROM resources WHERE uploader_email = ? ORDER BY id DESC",
+    const uploads = (
+      await pool.query(
+        "SELECT * FROM resources WHERE uploader_email = $1 ORDER BY id DESC",
+        [userEmail],
       )
+    ).rows as any[]
 
-      .all(userEmail) as any[]
-
-    const pinCount = db
-
-      .prepare("SELECT COUNT(*) as count FROM pins WHERE user_email = ?")
-
-      .get(userEmail) as any
+    const pinCount = (
+      await pool.query(
+        "SELECT COUNT(*) as count FROM pins WHERE user_email = $1",
+        [userEmail],
+      )
+    ).rows[0] as any
 
     res.json({
       success: true,
@@ -76,6 +75,7 @@ profileRouter.put("/", authenticateToken, async (req: any, res) => {
 
     await pool.query(
       "UPDATE users SET name = COALESCE($1, name), department = COALESCE($2, department), year = COALESCE($3, year) WHERE email = $4",
+
       [
         name !== undefined ? name.trim() : null,
 

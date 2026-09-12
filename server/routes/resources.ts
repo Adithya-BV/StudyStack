@@ -179,38 +179,31 @@ resourcesRouter.post(
 
       const cleanCourseCode = course.trim().toUpperCase()
 
-      const info = db
+      const info = (
+        await pool.query(
+          `INSERT INTO resources (title, course_code, type, by, uploader_email, file_path, file_size, date)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
 
-        .prepare(`
-        INSERT INTO resources (title, course_code, type, by, uploader_email, file_path, file_size, date)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `)
-
-        .run(
-          title.trim(),
-
-          cleanCourseCode,
-
-          type.trim(),
-
-          req.user.name || "IITR Student",
-
-          req.user.email,
-
-          filePath,
-
-          fileSize,
-
-          today,
+          [
+            title.trim(),
+            cleanCourseCode,
+            type.trim(),
+            req.user.name || "IITR Student",
+            req.user.email,
+            filePath,
+            fileSize,
+            today,
+          ],
         )
+      ).rows[0]
 
       // Check if course already exists in `courses` table
 
-      const existingCourse = db
-
-        .prepare("SELECT * FROM courses WHERE UPPER(code) = ?")
-
-        .get(cleanCourseCode) as any
+      const existingCourse = (
+        await pool.query("SELECT * FROM courses WHERE UPPER(code) = $1", [
+          cleanCourseCode,
+        ])
+      ).rows[0] as any
 
       let courseCreated = false
 
@@ -226,6 +219,7 @@ resourcesRouter.post(
           "General Engineering"(
             await pool.query(
               "INSERT INTO courses (code, name, dept, resources) VALUES ($1, $2, $3, 1)",
+
               [
                 cleanCourseCode,
 
@@ -242,14 +236,13 @@ resourcesRouter.post(
 
         await pool.query(
           "UPDATE courses SET resources = resources + 1 WHERE UPPER(code) = $1",
+
           [cleanCourseCode],
         )
       }
 
       const newResource = (
-        await pool.query("SELECT * FROM resources WHERE id = $1", [
-          info.lastInsertRowid,
-        ])
+        await pool.query("SELECT * FROM resources WHERE id = $1", [info.id])
       ).rows[0] as any
 
       res.status(201).json({
@@ -427,11 +420,12 @@ resourcesRouter.post("/:id/pin", authenticateToken, async (req: any, res) => {
 
     const userEmail = req.user.email
 
-    const existing = db
-
-      .prepare("SELECT * FROM pins WHERE user_email = ? AND resource_id = ?")
-
-      .get(userEmail, resourceId)
+    const existing = (
+      await pool.query(
+        "SELECT * FROM pins WHERE user_email = $1 AND resource_id = $2",
+        [userEmail, resourceId],
+      )
+    ).rows[0]
 
     if (existing) {
       await pool.query(
@@ -475,17 +469,18 @@ resourcesRouter.get("/pinned", authenticateToken, async (req: any, res) => {
   try {
     const userEmail = req.user.email
 
-    const pinned = db
-
-      .prepare(`
+    const pinned = (
+      await pool.query(
+        `
         SELECT r.*, 1 as pinned
         FROM resources r
         JOIN pins p ON p.resource_id = r.id
-        WHERE p.user_email = ?
+        WHERE p.user_email = $1
         ORDER BY p.id DESC
-      `)
-
-      .all(userEmail) as any[]
+      `,
+        [userEmail],
+      )
+    ).rows as any[]
 
     const result = pinned.map((r) => ({
       ...r,
