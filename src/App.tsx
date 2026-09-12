@@ -4647,10 +4647,20 @@ export default function App() {
   }
 
   const togglePin = async (id: number) => {
-    // Optimistically update the UI to eliminate lag
+    const resource = resources.find((r) => r.id === id)
+
+    const currentlyPinned = resource ? resource.pinned : false
+
+    // Optimistically update the UI and show toast to eliminate lag completely
 
     setResources((prev) =>
       prev.map((r) => (r.id === id ? { ...r, pinned: !r.pinned } : r)),
+    )
+
+    show(
+      !currentlyPinned
+        ? "Resource added to pins"
+        : "Resource removed from pins",
     )
 
     try {
@@ -4660,10 +4670,6 @@ export default function App() {
 
       setResources((prev) =>
         prev.map((r) => (r.id === id ? { ...r, pinned: res.pinned } : r)),
-      )
-
-      show(
-        res.message || (res.pinned ? "Resource pinned" : "Resource unpinned"),
       )
     } catch (err: any) {
       // Revert optimistic update on failure
