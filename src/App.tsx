@@ -1940,7 +1940,7 @@ function HomePage({
     : resources
 
   return (
-    <div style={{ padding: "32px 36px", maxWidth: 1100 }}>
+    <div style={{ padding: "32px 36px", maxWidth: 1400, margin: "0 auto" }}>
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <h1
@@ -2265,7 +2265,7 @@ function CoursesPage({
   }
 
   return (
-    <div style={{ padding: "32px 36px", maxWidth: 1100 }}>
+    <div style={{ padding: "32px 36px", maxWidth: 1400, margin: "0 auto" }}>
       <div
         style={{
           display: "flex",
@@ -2794,7 +2794,7 @@ function CourseDetailPage({
     : []
 
   return (
-    <div style={{ padding: "32px 36px", maxWidth: 1000 }}>
+    <div style={{ padding: "32px 36px", maxWidth: 1400, margin: "0 auto" }}>
       <button
         onClick={() => setPage("courses")}
         style={{
@@ -3153,7 +3153,7 @@ function UploadPage({
   }
 
   return (
-    <div style={{ padding: "32px 36px", maxWidth: 680 }}>
+    <div style={{ padding: "32px 36px", maxWidth: 800, margin: "0 auto" }}>
       <h1
         style={{
           fontSize: 28,
@@ -3743,7 +3743,7 @@ function PinsPage({
   )
 
   return (
-    <div style={{ padding: "32px 36px", maxWidth: 900 }}>
+    <div style={{ padding: "32px 36px", maxWidth: 1200, margin: "0 auto" }}>
       <h1
         style={{
           fontSize: 28,
@@ -3974,7 +3974,7 @@ function ProfilePage({
   }
 
   return (
-    <div style={{ padding: "32px 36px", maxWidth: 800 }}>
+    <div style={{ padding: "32px 36px", maxWidth: 1400, margin: "0 auto" }}>
       <h1
         style={{
           fontSize: 28,
@@ -4591,6 +4591,8 @@ export default function App() {
   const [emailForOtp, setEmailForOtp] = useState("")
 
   const [currentUser, setCurrentUser] = useState<any>(null)
+
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const { toast, show } = useToast()
 
