@@ -364,3 +364,5 @@ function figmaMakeKitPlugin(options: { storiesGlob: string | string[] }): Plugin
     },
   }
 }
+
+// triggered restart
