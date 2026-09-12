@@ -117,9 +117,7 @@ coursesRouter.post("/", authenticateToken, async (req, res) => {
       )
 
     const newCourse = (
-      await pool.query("SELECT * FROM courses WHERE id = $1", [
-        info.lastInsertRowid,
-      ])
+      await pool.query("SELECT * FROM courses WHERE id = $1", [info.id])
     ).rows[0]
 
     res.status(201).json({ success: true, course: newCourse })
