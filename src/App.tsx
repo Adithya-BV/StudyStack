@@ -342,7 +342,7 @@ const Icon = {
 
 // ── Toast ────────────────────────────────────────────────────────────────────
 
-function Toast({ msg, type }: { msg: string type: "success" | "error" }) {
+function Toast({ msg, type }: { msg: string; type: "success" | "error" }) {
   return (
     <div
       style={{
@@ -412,9 +412,9 @@ function Sidebar({
 
   onLogout: () => void
 
-  onDeleteResource?: (id: number) => void
+  onDeleteResource?: (id: number) => Promise<boolean> | void
 }) {
-  const navItems: { label: string icon: keyof typeof Icon target: Page }[] = [
+  const navItems: { label: string; icon: keyof typeof Icon; target: Page }[] = [
     { label: "Home", icon: "Home", target: "home" },
 
     { label: "My Courses", icon: "Book", target: "courses" },
@@ -805,7 +805,7 @@ function Card({
 
 // ── Badge ─────────────────────────────────────────────────────────────────────
 
-const typeColors: Record<string, { bg: string text: string }> = {
+const typeColors: Record<string, { bg: string; text: string }> = {
   Notes: { bg: "#EFF6FF", text: "#1D4ED8" },
 
   PYQ: { bg: "#FFF7ED", text: "#C2410C" },
@@ -2033,7 +2033,7 @@ function HomePage({
 
   onUnenroll: (id: number) => void
 
-  onDeleteResource?: (id: number) => void
+  onDeleteResource?: (id: number) => Promise<boolean> | void
 }) {
   const [search, setSearch] = useState("")
 
@@ -2972,7 +2972,7 @@ function CourseDetailPage({
 
   user: any
 
-  onDeleteResource?: (id: number) => void
+  onDeleteResource?: (id: number) => Promise<boolean> | void
 }) {
   const [activeTab, setActiveTab] = useState<string | null>(null)
 
@@ -4131,6 +4131,7 @@ function ProfilePage({
   onToast,
 
   onUserUpdated,
+  onDeleteResource,
 }: {
   resources: Resource[]
 
@@ -4141,6 +4142,7 @@ function ProfilePage({
   onToast: (msg: string, type?: "success" | "error") => void
 
   onUserUpdated: (u: any) => void
+  onDeleteResource?: (id: number) => Promise<boolean> | void
 }) {
   const [tab, setTab] = useState<"uploads" | "pins" | "settings">("uploads")
 
@@ -4403,7 +4405,39 @@ function ProfilePage({
                       {r.course} · {r.type} · {r.date}
                     </div>
                   </div>
-                  <TypeBadge type={r.type} />
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <TypeBadge type={r.type} />
+                      {onDeleteResource && (
+                        <button
+                          onClick={async () => {
+                            const success = await onDeleteResource(r.id)
+                            if (success) {
+                              setProfileData((prev: any) => {
+                                if (!prev) return prev
+                                return {
+                                  ...prev,
+                                  uploads: prev.uploads.filter((u: any) => u.id !== r.id)
+                                }
+                              })
+                            }
+                          }}
+                          style={{
+                            background: "#FEE2E2",
+                            color: "#DC2626",
+                            border: "none",
+                            borderRadius: 8,
+                            padding: "6px 12px",
+                            fontSize: 12,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </div>
                 </div>
               </Card>
             ))
@@ -4940,16 +4974,16 @@ export default function App() {
 
   const handleDeleteResource = async (id: number) => {
     if (!window.confirm("Are you sure you want to delete this resource?"))
-      return
+      return false
 
     try {
       await api.resources.delete(id)
-
       setResources((prev) => prev.filter((r) => r.id !== id))
-
       show("Resource deleted successfully")
+      return true
     } catch (err: any) {
       show(err.message || "Failed to delete resource", "error")
+      return false
     }
   }
 

@@ -287,7 +287,7 @@ export const api = {
   // Resources
 
   resources: {
-    getAll: async (params?: { q?: string course?: string type?: string }) => {
+    getAll: async (params?: { q?: string; course?: string; type?: string }) => {
       const query = new URLSearchParams()
 
       if (params?.q) query.append("q", params.q)
