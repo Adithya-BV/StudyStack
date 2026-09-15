@@ -36,6 +36,28 @@ coursesRouter.get("/", async (req: any, res: any) => {
   }
 })
 
+// GET enrolled courses
+
+coursesRouter.get(
+  "/enrolled",
+  authenticateToken,
+  async (req: any, res: any) => {
+    try {
+      const enrolled = (
+        await pool.query(
+          "SELECT course_id FROM user_courses WHERE user_email = $1",
+
+          [req.user.email],
+        )
+      ).rows.map((r) => r.course_id)
+
+      res.json({ success: true, enrolled })
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to fetch enrolled courses" })
+    }
+  },
+)
+
 // GET course by ID or code
 
 coursesRouter.get("/:idOrCode", async (req, res) => {
@@ -128,33 +150,13 @@ coursesRouter.post("/", authenticateToken, async (req, res) => {
   }
 })
 
-// GET enrolled courses
-
-coursesRouter.get(
-  "/enrolled",
-  authenticateToken,
-  async (req: any, res: any) => {
-    try {
-      const enrolled = (
-        await pool.query(
-          "SELECT course_id FROM user_courses WHERE user_email = $1",
-
-          [req.user.email],
-        )
-      ).rows.map((r) => r.course_id)
-
-      res.json({ success: true, enrolled })
-    } catch (error: any) {
-      res.status(500).json({ error: "Failed to fetch enrolled courses" })
-    }
-  },
-)
-
 // POST enroll in course
 
 coursesRouter.post(
   "/:id/enroll",
+
   authenticateToken,
+
   async (req: any, res: any) => {
     try {
       await pool.query(
@@ -174,7 +176,9 @@ coursesRouter.post(
 
 coursesRouter.delete(
   "/:id/enroll",
+
   authenticateToken,
+
   async (req: any, res: any) => {
     try {
       await pool.query(

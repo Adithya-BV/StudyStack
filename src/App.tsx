@@ -1962,6 +1962,12 @@ function HomePage({
   user,
 
   setSelectedCourse,
+
+  enrolledCourseIds,
+
+  onEnroll,
+
+  onUnenroll,
 }: {
   setPage: (p: Page) => void
 
@@ -1976,6 +1982,12 @@ function HomePage({
   user: any
 
   setSelectedCourse: (c: Course) => void
+
+  enrolledCourseIds: number[]
+
+  onEnroll: (id: number) => void
+
+  onUnenroll: (id: number) => void
 }) {
   const [search, setSearch] = useState("")
 
@@ -2079,8 +2091,65 @@ function HomePage({
               {c.resources} Resources
             </span>
             <div style={{ display: "flex", gap: 8 }}>
+              {enrolledCourseIds.includes(c.id) ? (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+
+                    onUnenroll(c.id)
+                  }}
+                  style={{
+                    background: "#FEE2E2",
+
+                    color: "#DC2626",
+
+                    border: "none",
+
+                    borderRadius: 8,
+
+                    padding: "6px 14px",
+
+                    fontSize: 12,
+
+                    fontWeight: 600,
+
+                    cursor: "pointer",
+                  }}
+                >
+                  Remove
+                </button>
+              ) : (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+
+                    onEnroll(c.id)
+                  }}
+                  style={{
+                    background: "#EFF6FF",
+
+                    color: C.blue,
+
+                    border: "none",
+
+                    borderRadius: 8,
+
+                    padding: "6px 14px",
+
+                    fontSize: 12,
+
+                    fontWeight: 600,
+
+                    cursor: "pointer",
+                  }}
+                >
+                  + Add
+                </button>
+              )}
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation()
+
                   setSelectedCourse(c)
 
                   setPage("course-detail")
@@ -4715,6 +4784,8 @@ export default function App() {
 
   const [courses, setCourses] = useState<Course[]>([])
 
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState<number[]>([])
+
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
 
   const [emailForOtp, setEmailForOtp] = useState("")
@@ -4729,15 +4800,20 @@ export default function App() {
 
   const loadData = async () => {
     try {
-      const [fetchedCourses, fetchedResources] = await Promise.all([
-        api.courses.getAll().catch(() => []),
+      const [fetchedCourses, fetchedResources, fetchedEnrolled] =
+        await Promise.all([
+          api.courses.getAll().catch(() => []),
 
-        api.resources.getAll().catch(() => []),
-      ])
+          api.resources.getAll().catch(() => []),
+
+          api.courses.getEnrolled().catch(() => []),
+        ])
 
       if (fetchedCourses) setCourses(fetchedCourses)
 
       if (fetchedResources) setResources(fetchedResources)
+
+      if (fetchedEnrolled) setEnrolledCourseIds(fetchedEnrolled)
     } catch {
       // Fallback if offline
     }
@@ -4831,19 +4907,33 @@ export default function App() {
 
       setCourses((prev) => [newCourse, ...prev])
 
+      setEnrolledCourseIds((prev) => [...prev, newCourse.id])
+
       show("Course added successfully!")
     } catch (err: any) {
       show(err.message || "Failed to add course", "error")
     }
   }
 
+  const enrollCourse = async (id: number) => {
+    try {
+      await api.courses.enroll(id)
+
+      setEnrolledCourseIds((prev) => [...prev, id])
+
+      show("Added to My Courses")
+    } catch (err: any) {
+      show(err.message, "error")
+    }
+  }
+
   const removeCourse = async (id: number) => {
     try {
-      await api.courses.delete(id)
+      await api.courses.unenroll(id)
 
-      setCourses((prev) => prev.filter((c) => c.id !== id))
+      setEnrolledCourseIds((prev) => prev.filter((eid) => eid !== id))
 
-      show("Course removed.")
+      show("Removed from My Courses")
     } catch (err: any) {
       show(err.message || "Failed to remove course", "error")
     }

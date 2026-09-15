@@ -239,6 +239,36 @@ export const api = {
       return data.course
     },
 
+    getEnrolled: async () => {
+      const res = await fetch(`${API_BASE}/courses/enrolled`, {
+        headers: getHeaders(),
+      })
+
+      const data = await res.json()
+
+      return data.enrolled || []
+    },
+
+    enroll: async (id: number) => {
+      const res = await fetch(`${API_BASE}/courses/${id}/enroll`, {
+        method: "POST",
+
+        headers: getHeaders(),
+      })
+
+      return res.json()
+    },
+
+    unenroll: async (id: number) => {
+      const res = await fetch(`${API_BASE}/courses/${id}/enroll`, {
+        method: "DELETE",
+
+        headers: getHeaders(),
+      })
+
+      return res.json()
+    },
+
     delete: async (id: number) => {
       const res = await fetch(`${API_BASE}/courses/${id}`, {
         method: "DELETE",
