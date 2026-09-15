@@ -1950,33 +1950,49 @@ function ForgotPasswordPage({
 
 function HomePage({
   setPage,
+
   resources,
+
   onPin,
+
   onToast,
+
   courses,
+
   user,
+
   setSelectedCourse,
 }: {
   setPage: (p: Page) => void
+
   resources: Resource[]
+
   onPin: (id: number) => void
+
   onToast: (msg: string, type?: "success" | "error") => void
+
   courses: Course[]
+
   user: any
+
   setSelectedCourse: (c: Course) => void
 }) {
   const [search, setSearch] = useState("")
+
   const [recentCourseIds, setRecentCourseIds] = useState<number[]>([])
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem("studyStack_recentCourses")
+
       if (saved) setRecentCourseIds(JSON.parse(saved))
     } catch (e) {}
   }, [])
 
   const recentlyViewed = recentCourseIds
+
     .map((id) => courses.find((c) => c.id === id))
+
     .filter(Boolean) as Course[]
 
   const filteredCourses = search
@@ -1999,7 +2015,9 @@ function HomePage({
     <div
       style={{
         display: "grid",
+
         gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+
         gap: 14,
       }}
     >
@@ -2008,17 +2026,24 @@ function HomePage({
           <div
             style={{
               display: "flex",
+
               justifyContent: "space-between",
+
               marginBottom: 10,
             }}
           >
             <span
               style={{
                 background: "#EFF6FF",
+
                 color: C.blue,
+
                 fontSize: 12,
+
                 fontWeight: 700,
+
                 padding: "3px 8px",
+
                 borderRadius: 6,
               }}
             >
@@ -2028,8 +2053,11 @@ function HomePage({
           <div
             style={{
               fontWeight: 700,
+
               fontSize: 15,
+
               color: C.text,
+
               marginBottom: 4,
             }}
           >
@@ -2041,7 +2069,9 @@ function HomePage({
           <div
             style={{
               display: "flex",
+
               justifyContent: "space-between",
+
               alignItems: "center",
             }}
           >
@@ -2052,16 +2082,24 @@ function HomePage({
               <button
                 onClick={() => {
                   setSelectedCourse(c)
+
                   setPage("course-detail")
                 }}
                 style={{
                   background: C.blue,
+
                   color: "#fff",
+
                   border: "none",
+
                   borderRadius: 8,
+
                   padding: "6px 14px",
+
                   fontSize: 12,
+
                   fontWeight: 600,
+
                   cursor: "pointer",
                 }}
               >
@@ -2081,9 +2119,13 @@ function HomePage({
         <h1
           style={{
             fontSize: 28,
+
             fontWeight: 800,
+
             color: C.text,
+
             marginBottom: 4,
+
             letterSpacing: "-0.5px",
           }}
         >
@@ -2099,9 +2141,13 @@ function HomePage({
         <div
           style={{
             position: "absolute",
+
             left: 16,
+
             top: "50%",
+
             transform: "translateY(-50%)",
+
             color: C.muted,
           }}
         >
@@ -2113,15 +2159,25 @@ function HomePage({
           placeholder="Search courses, notes, PYQs, assignments..."
           style={{
             width: "100%",
+
             padding: "14px 14px 14px 48px",
+
             border: `1.5px solid ${C.border}`,
+
             borderRadius: 12,
+
             fontSize: 15,
+
             color: C.text,
+
             background: "#fff",
+
             outline: "none",
+
             boxSizing: "border-box",
+
             fontFamily: "Inter, sans-serif",
+
             boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
           }}
         />
@@ -2134,8 +2190,11 @@ function HomePage({
               <h2
                 style={{
                   fontSize: 18,
+
                   fontWeight: 700,
+
                   color: C.text,
+
                   marginBottom: 16,
                 }}
               >
@@ -2150,23 +2209,35 @@ function HomePage({
               <h2
                 style={{
                   fontSize: 18,
+
                   fontWeight: 700,
+
                   color: C.text,
+
                   marginBottom: 16,
                 }}
               >
                 Resources ({filteredResources.length})
               </h2>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 10 }}
+              >
                 {filteredResources.map((r) => (
-                  <ResourceCard key={r.id} r={r} onPin={onPin} onToast={onToast} />
+                  <ResourceCard
+                    key={r.id}
+                    r={r}
+                    onPin={onPin}
+                    onToast={onToast}
+                  />
                 ))}
               </div>
             </div>
           )}
 
           {filteredCourses.length === 0 && filteredResources.length === 0 && (
-            <div style={{ textAlign: "center", padding: "40px 0", color: C.muted }}>
+            <div
+              style={{ textAlign: "center", padding: "40px 0", color: C.muted }}
+            >
               No courses or resources match your search.
             </div>
           )}
@@ -2178,8 +2249,11 @@ function HomePage({
               <h2
                 style={{
                   fontSize: 18,
+
                   fontWeight: 700,
+
                   color: C.text,
+
                   marginBottom: 16,
                 }}
               >
@@ -2193,8 +2267,11 @@ function HomePage({
             <h2
               style={{
                 fontSize: 18,
+
                 fontWeight: 700,
+
                 color: C.text,
+
                 marginBottom: 16,
               }}
             >
@@ -2204,8 +2281,11 @@ function HomePage({
               <div
                 style={{
                   textAlign: "center",
+
                   padding: "40px 0",
+
                   color: C.muted,
+
                   fontSize: 14,
                 }}
               >
@@ -2214,9 +2294,13 @@ function HomePage({
                   onClick={() => setPage("courses")}
                   style={{
                     background: "none",
+
                     border: "none",
+
                     color: C.blue,
+
                     fontWeight: 600,
+
                     cursor: "pointer",
                   }}
                 >
@@ -2234,7 +2318,8 @@ function HomePage({
 }
 
 // -------------------------------------
-// function CoursesPage({
+
+function CoursesPage({
   setPage,
 
   courses,
@@ -4692,10 +4777,14 @@ export default function App() {
 
   const handleViewCourse = (c: Course) => {
     setSelectedCourse(c)
+
     try {
       const saved = localStorage.getItem("studyStack_recentCourses")
+
       let arr = saved ? JSON.parse(saved) : []
+
       arr = [c.id, ...arr.filter((id: number) => id !== c.id)].slice(0, 3)
+
       localStorage.setItem("studyStack_recentCourses", JSON.stringify(arr))
     } catch (e) {}
   }
