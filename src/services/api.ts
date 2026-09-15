@@ -352,10 +352,23 @@ export const api = {
 
       const data = await res.json()
 
-      if (!res.ok)
-        throw new Error(data.error || "Failed to fetch pinned resources")
+      if (!res.ok) throw new Error(data.error || "Failed to fetch pinned")
 
       return data.resources
+    },
+
+    delete: async (id: number) => {
+      const res = await fetch(`${API_BASE}/resources/${id}`, {
+        method: "DELETE",
+
+        headers: getHeaders(),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) throw new Error(data.error || "Failed to delete resource")
+
+      return data
     },
   },
 

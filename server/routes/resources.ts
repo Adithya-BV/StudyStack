@@ -186,12 +186,19 @@ resourcesRouter.post(
 
           [
             title.trim(),
+
             cleanCourseCode,
+
             type.trim(),
+
             req.user.name || "IITR Student",
+
             req.user.email,
+
             filePath,
+
             fileSize,
+
             today,
           ],
         )
@@ -423,6 +430,7 @@ resourcesRouter.post("/:id/pin", authenticateToken, async (req: any, res) => {
     const existing = (
       await pool.query(
         "SELECT * FROM pins WHERE user_email = $1 AND resource_id = $2",
+
         [userEmail, resourceId],
       )
     ).rows[0]
@@ -478,6 +486,7 @@ resourcesRouter.get("/pinned", authenticateToken, async (req: any, res) => {
         WHERE p.user_email = $1
         ORDER BY p.id DESC
       `,
+
         [userEmail],
       )
     ).rows as any[]

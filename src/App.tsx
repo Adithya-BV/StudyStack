@@ -56,6 +56,8 @@ type Resource = {
   size: string
 
   pinned?: boolean
+
+  uploader_email?: string
 }
 
 type Page = "login" | "signup" | "otp" | "forgot" | "home" | "courses" | "course-detail" | "upload" | "pins" | "profile"
@@ -409,6 +411,8 @@ function Sidebar({
   setPage: (p: Page) => void
 
   onLogout: () => void
+
+  onDeleteResource?: (id: number) => void
 }) {
   const navItems: { label: string icon: keyof typeof Icon target: Page }[] = [
     { label: "Home", icon: "Home", target: "home" },
@@ -845,12 +849,20 @@ function ResourceCard({
   onPin,
 
   onToast,
+
+  user,
+
+  onDelete,
 }: {
   r: Resource
 
   onPin: (id: number) => void
 
   onToast: (msg: string, type?: "success" | "error") => void
+
+  user?: any
+
+  onDelete?: (id: number) => void
 }) {
   const handleDownload = () => {
     window.open(api.resources.getDownloadUrl(r.id), "_blank")
@@ -947,6 +959,36 @@ function ResourceCard({
         >
           <Icon.Download /> Download
         </button>
+        {user && user.email === r.uploader_email && onDelete && (
+          <button
+            onClick={() => onDelete(r.id)}
+            style={{
+              display: "flex",
+
+              alignItems: "center",
+
+              gap: 5,
+
+              padding: "7px 12px",
+
+              background: "#FEE2E2",
+
+              color: "#DC2626",
+
+              border: "none",
+
+              borderRadius: 8,
+
+              fontSize: 12,
+
+              fontWeight: 600,
+
+              cursor: "pointer",
+            }}
+          >
+            Delete
+          </button>
+        )}
         <button
           onClick={() => onPin(r.id)}
           style={{
@@ -1968,6 +2010,8 @@ function HomePage({
   onEnroll,
 
   onUnenroll,
+
+  onDeleteResource,
 }: {
   setPage: (p: Page) => void
 
@@ -1988,6 +2032,8 @@ function HomePage({
   onEnroll: (id: number) => void
 
   onUnenroll: (id: number) => void
+
+  onDeleteResource?: (id: number) => void
 }) {
   const [search, setSearch] = useState("")
 
@@ -2293,6 +2339,8 @@ function HomePage({
               >
                 {filteredResources.map((r) => (
                   <ResourceCard
+                    user={user}
+                    onDelete={onDeleteResource}
                     key={r.id}
                     r={r}
                     onPin={onPin}
@@ -2907,6 +2955,10 @@ function CourseDetailPage({
   onToast,
 
   course,
+
+  user,
+
+  onDeleteResource,
 }: {
   setPage: (p: Page) => void
 
@@ -2917,6 +2969,10 @@ function CourseDetailPage({
   onToast: (msg: string, type?: "success" | "error") => void
 
   course: Course | null
+
+  user: any
+
+  onDeleteResource?: (id: number) => void
 }) {
   const [activeTab, setActiveTab] = useState<string | null>(null)
 
@@ -3167,6 +3223,8 @@ function CourseDetailPage({
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {filtered.map((r) => (
                 <ResourceCard
+                  user={user}
+                  onDelete={onDeleteResource}
                   key={r.id}
                   r={r}
                   onPin={onPin}
@@ -3923,6 +3981,10 @@ function PinsPage({
   onToast,
 
   setPage,
+
+  user,
+
+  onDeleteResource,
 }: {
   resources: Resource[]
 
@@ -3931,6 +3993,10 @@ function PinsPage({
   onToast: (msg: string, type?: "success" | "error") => void
 
   setPage: (p: Page) => void
+
+  user: any
+
+  onDeleteResource: (id: number) => void
 }) {
   const pinned = resources.filter((r) => r.pinned)
 
@@ -4031,7 +4097,14 @@ function PinsPage({
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {filtered.map((r) => (
-            <ResourceCard key={r.id} r={r} onPin={onPin} onToast={onToast} />
+            <ResourceCard
+              user={user}
+              onDelete={onDeleteResource}
+              key={r.id}
+              r={r}
+              onPin={onPin}
+              onToast={onToast}
+            />
           ))}
           {filtered.length === 0 && (
             <div
@@ -4865,6 +4938,21 @@ export default function App() {
     } catch (e) {}
   }
 
+  const handleDeleteResource = async (id: number) => {
+    if (!window.confirm("Are you sure you want to delete this resource?"))
+      return
+
+    try {
+      await api.resources.delete(id)
+
+      setResources((prev) => prev.filter((r) => r.id !== id))
+
+      show("Resource deleted successfully")
+    } catch (err: any) {
+      show(err.message || "Failed to delete resource", "error")
+    }
+  }
+
   const togglePin = async (id: number) => {
     const resource = resources.find((r) => r.id === id)
 
@@ -5040,6 +5128,7 @@ export default function App() {
             enrolledCourseIds={enrolledCourseIds}
             onEnroll={enrollCourse}
             onUnenroll={removeCourse}
+            onDeleteResource={handleDeleteResource}
           />
         )}
         {page === "courses" && (
@@ -5058,6 +5147,8 @@ export default function App() {
             onPin={togglePin}
             onToast={show}
             course={selectedCourse}
+            user={currentUser}
+            onDeleteResource={handleDeleteResource}
           />
         )}
         {page === "upload" && (
@@ -5068,6 +5159,8 @@ export default function App() {
             resources={resources}
             onPin={togglePin}
             onToast={show}
+            user={currentUser}
+            onDeleteResource={handleDeleteResource}
             setPage={setPage}
           />
         )}
