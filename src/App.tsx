@@ -413,7 +413,7 @@ function Sidebar({
   const navItems: { label: string icon: keyof typeof Icon target: Page }[] = [
     { label: "Home", icon: "Home", target: "home" },
 
-    { label: "All Courses", icon: "Book", target: "courses" },
+    { label: "My Courses", icon: "Book", target: "courses" },
 
     { label: "My Pins", icon: "Bookmark", target: "pins" },
 
@@ -1724,6 +1724,7 @@ function ForgotPasswordPage({
     if (!isValidIITREmail(email)) {
       onToast(
         "Only IIT Roorkee (*.iitr.ac.in) email addresses are allowed",
+
         "error",
       )
 
@@ -1855,8 +1856,11 @@ function ForgotPasswordPage({
           <div
             style={{
               display: "flex",
+
               flexDirection: "column",
+
               gap: 16,
+
               marginBottom: 24,
             }}
           >
@@ -1876,8 +1880,11 @@ function ForgotPasswordPage({
           <div
             style={{
               display: "flex",
+
               flexDirection: "column",
+
               gap: 16,
+
               marginBottom: 24,
             }}
           >
@@ -1897,8 +1904,11 @@ function ForgotPasswordPage({
           <div
             style={{
               display: "flex",
+
               flexDirection: "column",
+
               gap: 16,
+
               marginBottom: 24,
             }}
           >
@@ -2329,7 +2339,7 @@ function CoursesPage({
               letterSpacing: "-0.5px",
             }}
           >
-            All Courses
+            My Courses
           </h1>
           <p
             style={{
@@ -2342,7 +2352,7 @@ function CoursesPage({
               marginBottom: 0,
             }}
           >
-            All academic courses and resources in StudyStack.
+            Your academic courses and resources.
           </p>
         </div>
         <button
@@ -2597,7 +2607,7 @@ function CoursesPage({
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search all courses..."
+          placeholder="Search my courses..."
           style={{
             width: "100%",
 
