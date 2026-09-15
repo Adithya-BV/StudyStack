@@ -1950,36 +1950,30 @@ function ForgotPasswordPage({
 
 function HomePage({
   setPage,
-
   resources,
-
   onPin,
-
   onToast,
-
   courses,
-
   user,
-
   setSelectedCourse,
 }: {
   setPage: (p: Page) => void
-
   resources: Resource[]
-
   onPin: (id: number) => void
-
   onToast: (msg: string, type?: "success" | "error") => void
-
   courses: Course[]
-
   user: any
-
   setSelectedCourse: (c: Course) => void
 }) {
   const [search, setSearch] = useState("")
 
-  const recent = courses.slice(0, 3)
+  const filteredCourses = search
+    ? courses.filter(
+        (c) =>
+          c.name.toLowerCase().includes(search.toLowerCase()) ||
+          c.code.toLowerCase().includes(search.toLowerCase()),
+      )
+    : courses
 
   const filteredResources = search
     ? resources.filter(
@@ -1989,6 +1983,85 @@ function HomePage({
       )
     : resources
 
+  const renderCourseGrid = (courseList: Course[]) => (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+        gap: 14,
+      }}
+    >
+      {courseList.map((c) => (
+        <Card key={c.id}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginBottom: 10,
+            }}
+          >
+            <span
+              style={{
+                background: "#EFF6FF",
+                color: C.blue,
+                fontSize: 12,
+                fontWeight: 700,
+                padding: "3px 8px",
+                borderRadius: 6,
+              }}
+            >
+              {c.code}
+            </span>
+          </div>
+          <div
+            style={{
+              fontWeight: 700,
+              fontSize: 15,
+              color: C.text,
+              marginBottom: 4,
+            }}
+          >
+            {c.name}
+          </div>
+          <div style={{ fontSize: 12, color: C.muted, marginBottom: 16 }}>
+            {c.dept}
+          </div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <span style={{ fontSize: 13, fontWeight: 600, color: C.muted }}>
+              {c.resources} Resources
+            </span>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                onClick={() => {
+                  setSelectedCourse(c)
+                  setPage("course-detail")
+                }}
+                style={{
+                  background: C.blue,
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "6px 14px",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                View
+              </button>
+            </div>
+          </div>
+        </Card>
+      ))}
+    </div>
+  )
+
   return (
     <div style={{ padding: "32px 36px", maxWidth: 1400, margin: "0 auto" }}>
       {/* Header */}
@@ -1996,13 +2069,9 @@ function HomePage({
         <h1
           style={{
             fontSize: 28,
-
             fontWeight: 800,
-
             color: C.text,
-
             marginBottom: 4,
-
             letterSpacing: "-0.5px",
           }}
         >
@@ -2018,13 +2087,9 @@ function HomePage({
         <div
           style={{
             position: "absolute",
-
             left: 16,
-
             top: "50%",
-
             transform: "translateY(-50%)",
-
             color: C.muted,
           }}
         >
@@ -2036,242 +2101,110 @@ function HomePage({
           placeholder="Search courses, notes, PYQs, assignments..."
           style={{
             width: "100%",
-
             padding: "14px 14px 14px 48px",
-
             border: `1.5px solid ${C.border}`,
-
             borderRadius: 12,
-
             fontSize: 15,
-
             color: C.text,
-
             background: "#fff",
-
             outline: "none",
-
             boxSizing: "border-box",
-
             fontFamily: "Inter, sans-serif",
-
             boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
           }}
         />
       </div>
 
-      {/* Recently Accessed Courses */}
-      <div style={{ marginBottom: 36 }}>
-        <div
-          style={{
-            display: "flex",
-
-            justifyContent: "space-between",
-
-            alignItems: "center",
-
-            marginBottom: 16,
-          }}
-        >
-          <h2 style={{ fontSize: 18, fontWeight: 700, color: C.text }}>
-            Featured Courses
-          </h2>
-          <button
-            onClick={() => setPage("courses")}
-            style={{
-              background: "none",
-
-              border: "none",
-
-              color: C.blue,
-
-              fontSize: 13,
-
-              fontWeight: 600,
-
-              cursor: "pointer",
-
-              display: "flex",
-
-              alignItems: "center",
-
-              gap: 4,
-            }}
-          >
-            View all <Icon.ChevronRight />
-          </button>
-        </div>
-        {recent.length === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-
-              padding: "40px 0",
-
-              color: C.muted,
-
-              fontSize: 14,
-            }}
-          >
-            No courses added yet.{" "}
-            <button
-              onClick={() => setPage("courses")}
-              style={{
-                background: "none",
-
-                border: "none",
-
-                color: C.blue,
-
-                fontWeight: 600,
-
-                cursor: "pointer",
-              }}
-            >
-              Add your first course →
-            </button>
-          </div>
-        ) : (
-          <div
-            style={{
-              display: "grid",
-
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-
-              gap: 14,
-            }}
-          >
-            {recent.map((c) => (
-              <Card key={c.id} style={{ cursor: "pointer" }}>
-                <div
-                  style={{
-                    display: "flex",
-
-                    justifyContent: "space-between",
-
-                    alignItems: "flex-start",
-
-                    marginBottom: 8,
-                  }}
-                >
-                  <span
-                    style={{
-                      background: "#EFF6FF",
-
-                      color: C.blue,
-
-                      fontSize: 12,
-
-                      fontWeight: 700,
-
-                      padding: "3px 8px",
-
-                      borderRadius: 6,
-                    }}
-                  >
-                    {c.code}
-                  </span>
-                  <span style={{ fontSize: 12, color: C.muted }}>
-                    {c.dept.split(" ")[0]}
-                  </span>
-                </div>
-                <div
-                  style={{
-                    fontWeight: 700,
-
-                    fontSize: 15,
-
-                    color: C.text,
-
-                    marginBottom: 14,
-                  }}
-                >
-                  {c.name}
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-
-                    justifyContent: "space-between",
-
-                    alignItems: "center",
-                  }}
-                >
-                  <span
-                    style={{ fontSize: 13, fontWeight: 600, color: C.muted }}
-                  >
-                    {c.resources} Resources
-                  </span>
-                  <button
-                    onClick={() => {
-                      setSelectedCourse(c)
-
-                      setPage("course-detail")
-                    }}
-                    style={{
-                      background: C.blue,
-
-                      color: "#fff",
-
-                      border: "none",
-
-                      borderRadius: 7,
-
-                      padding: "6px 12px",
-
-                      fontSize: 12,
-
-                      fontWeight: 600,
-
-                      cursor: "pointer",
-                    }}
-                  >
-                    View
-                  </button>
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Recently Added */}
-      <div>
-        <h2
-          style={{
-            fontSize: 18,
-
-            fontWeight: 700,
-
-            color: C.text,
-
-            marginBottom: 16,
-          }}
-        >
-          {search
-            ? `Search Results (${filteredResources.length})`
-            : "Recently Added"}
-        </h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {filteredResources.slice(0, 5).map((r) => (
-            <ResourceCard key={r.id} r={r} onPin={onPin} onToast={onToast} />
-          ))}
-          {filteredResources.length === 0 && (
-            <div
-              style={{ textAlign: "center", padding: "40px 0", color: C.muted }}
-            >
-              No resources match your search.
+      {search ? (
+        <>
+          {filteredCourses.length > 0 && (
+            <div style={{ marginBottom: 36 }}>
+              <h2
+                style={{
+                  fontSize: 18,
+                  fontWeight: 700,
+                  color: C.text,
+                  marginBottom: 16,
+                }}
+              >
+                Courses ({filteredCourses.length})
+              </h2>
+              {renderCourseGrid(filteredCourses)}
             </div>
           )}
+
+          {filteredResources.length > 0 && (
+            <div>
+              <h2
+                style={{
+                  fontSize: 18,
+                  fontWeight: 700,
+                  color: C.text,
+                  marginBottom: 16,
+                }}
+              >
+                Resources ({filteredResources.length})
+              </h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {filteredResources.map((r) => (
+                  <ResourceCard key={r.id} r={r} onPin={onPin} onToast={onToast} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {filteredCourses.length === 0 && filteredResources.length === 0 && (
+            <div style={{ textAlign: "center", padding: "40px 0", color: C.muted }}>
+              No courses or resources match your search.
+            </div>
+          )}
+        </>
+      ) : (
+        <div style={{ marginBottom: 36 }}>
+          <h2
+            style={{
+              fontSize: 18,
+              fontWeight: 700,
+              color: C.text,
+              marginBottom: 16,
+            }}
+          >
+            All Courses
+          </h2>
+          {courses.length === 0 ? (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "40px 0",
+                color: C.muted,
+                fontSize: 14,
+              }}
+            >
+              No courses added yet.{" "}
+              <button
+                onClick={() => setPage("courses")}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: C.blue,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Add your first course →
+              </button>
+            </div>
+          ) : (
+            renderCourseGrid(courses)
+          )}
         </div>
-      </div>
+      )}
     </div>
   )
 }
 
-// ── Courses Page ──────────────────────────────────────────────────────────────
-
-function CoursesPage({
+// -------------------------------------
+// function CoursesPage({
   setPage,
 
   courses,
