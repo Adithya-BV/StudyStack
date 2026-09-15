@@ -108,6 +108,14 @@ coursesRouter.post("/", authenticateToken, async (req, res) => {
       )
     ).rows[0]
 
+    // Automatically enroll creator
+
+    await pool.query(
+      "INSERT INTO user_courses (user_email, course_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+
+      [req.user.email, info.id],
+    )
+
     const newCourse = (
       await pool.query("SELECT * FROM courses WHERE id = $1", [info.id])
     ).rows[0]
@@ -120,7 +128,69 @@ coursesRouter.post("/", authenticateToken, async (req, res) => {
   }
 })
 
-// DELETE course
+// GET enrolled courses
+
+coursesRouter.get(
+  "/enrolled",
+  authenticateToken,
+  async (req: any, res: any) => {
+    try {
+      const enrolled = (
+        await pool.query(
+          "SELECT course_id FROM user_courses WHERE user_email = $1",
+
+          [req.user.email],
+        )
+      ).rows.map((r) => r.course_id)
+
+      res.json({ success: true, enrolled })
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to fetch enrolled courses" })
+    }
+  },
+)
+
+// POST enroll in course
+
+coursesRouter.post(
+  "/:id/enroll",
+  authenticateToken,
+  async (req: any, res: any) => {
+    try {
+      await pool.query(
+        "INSERT INTO user_courses (user_email, course_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+
+        [req.user.email, req.params.id],
+      )
+
+      res.json({ success: true })
+    } catch (e: any) {
+      res.status(500).json({ error: "Failed to enroll" })
+    }
+  },
+)
+
+// DELETE unenroll from course
+
+coursesRouter.delete(
+  "/:id/enroll",
+  authenticateToken,
+  async (req: any, res: any) => {
+    try {
+      await pool.query(
+        "DELETE FROM user_courses WHERE user_email = $1 AND course_id = $2",
+
+        [req.user.email, req.params.id],
+      )
+
+      res.json({ success: true })
+    } catch (e: any) {
+      res.status(500).json({ error: "Failed to unenroll" })
+    }
+  },
+)
+
+// DELETE course (Global - Admins only ideally)
 
 coursesRouter.delete("/:id", authenticateToken, async (req, res) => {
   try {

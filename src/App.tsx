@@ -4947,12 +4947,15 @@ export default function App() {
             courses={courses}
             user={currentUser}
             setSelectedCourse={handleViewCourse}
+            enrolledCourseIds={enrolledCourseIds}
+            onEnroll={enrollCourse}
+            onUnenroll={removeCourse}
           />
         )}
         {page === "courses" && (
           <CoursesPage
             setPage={setPage}
-            courses={courses}
+            courses={courses.filter((c) => enrolledCourseIds.includes(c.id))}
             onAdd={addCourse}
             onRemove={removeCourse}
             setSelectedCourse={handleViewCourse}
