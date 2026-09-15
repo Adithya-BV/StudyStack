@@ -172,6 +172,7 @@ authRouter.post("/verify-otp", async (req, res) => {
     const record = (
       await pool.query(
         "SELECT * FROM otps WHERE email = $1 AND otp_code = $2 AND type = 'signup' AND expires_at > NOW() ORDER BY id DESC LIMIT 1",
+
         [normalizedEmail, otp.trim()],
       )
     ).rows[0] as any
@@ -428,6 +429,38 @@ authRouter.post("/forgot-password", async (req, res) => {
 
 // ── Reset Password ───────────────────────────────────────────────────────────
 
+// Verify Reset OTP
+
+authRouter.post("/verify-reset-otp", async (req, res) => {
+  try {
+    const { email, otp } = req.body
+
+    if (!email || !otp) {
+      return res.status(400).json({ error: "Email and OTP are required" })
+    }
+
+    const normalizedEmail = email.trim().toLowerCase()
+
+    const record = (
+      await pool.query(
+        "SELECT * FROM otps WHERE email = $1 AND otp_code = $2 AND type = 'forgot_password' AND expires_at > NOW() ORDER BY id DESC LIMIT 1",
+
+        [normalizedEmail, otp.trim()],
+      )
+    ).rows[0] as any
+
+    if (!record) {
+      return res.status(400).json({ error: "Invalid or expired OTP code" })
+    }
+
+    res.json({ success: true, message: "OTP verified" })
+  } catch (error: any) {
+    console.error("Verify reset OTP error:", error)
+
+    res.status(500).json({ error: "Failed to verify OTP" })
+  }
+})
+
 authRouter.post("/reset-password", async (req, res) => {
   try {
     const { email, otp, newPassword } = req.body
@@ -445,6 +478,7 @@ authRouter.post("/reset-password", async (req, res) => {
     const record = (
       await pool.query(
         "SELECT * FROM otps WHERE email = $1 AND otp_code = $2 AND type = 'forgot_password' AND expires_at > NOW() ORDER BY id DESC LIMIT 1",
+
         [normalizedEmail, otp.trim()],
       )
     ).rows[0] as any

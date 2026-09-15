@@ -1704,7 +1704,7 @@ function ForgotPasswordPage({
 
   onToast: (msg: string, type?: "success" | "error") => void
 }) {
-  const [step, setStep] = useState<"email" | "reset">("email")
+  const [step, setStep] = useState<"email" | "otp" | "password">("email")
 
   const [email, setEmail] = useState("")
 
@@ -1724,7 +1724,6 @@ function ForgotPasswordPage({
     if (!isValidIITREmail(email)) {
       onToast(
         "Only IIT Roorkee (*.iitr.ac.in) email addresses are allowed",
-
         "error",
       )
 
@@ -1736,9 +1735,9 @@ function ForgotPasswordPage({
     try {
       await api.auth.forgotPassword(email)
 
-      onToast("Reset OTP sent! (Check terminal console)")
+      onToast("Reset OTP sent! (Check your email)")
 
-      setStep("reset")
+      setStep("otp")
     } catch (err: any) {
       onToast(err.message || "Failed to send reset OTP", "error")
     } finally {
@@ -1746,9 +1745,29 @@ function ForgotPasswordPage({
     }
   }
 
+  const handleVerifyOtp = async () => {
+    if (!otp) {
+      onToast("Please enter the OTP", "error")
+
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      await api.auth.verifyResetOtp(email, otp)
+
+      setStep("password")
+    } catch (err: any) {
+      onToast(err.message || "Invalid OTP", "error")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleReset = async () => {
-    if (!otp || !newPw) {
-      onToast("Please enter OTP and new password", "error")
+    if (!newPw) {
+      onToast("Please enter a new password", "error")
 
       return
     }
@@ -1766,6 +1785,20 @@ function ForgotPasswordPage({
     } finally {
       setLoading(false)
     }
+  }
+
+  let title = "Forgot password?"
+
+  let desc = "Enter your IITR email to receive an OTP."
+
+  if (step === "otp") {
+    title = "Enter OTP"
+
+    desc = "Enter the 6-digit OTP sent to your email."
+  } else if (step === "password") {
+    title = "New Password"
+
+    desc = "Choose a strong new password."
   }
 
   return (
@@ -1812,23 +1845,18 @@ function ForgotPasswordPage({
             marginBottom: 6,
           }}
         >
-          {step === "email" ? "Forgot password?" : "Reset password"}
+          {title}
         </div>
         <div style={{ color: C.muted, fontSize: 13, marginBottom: 24 }}>
-          {step === "email"
-            ? "Enter your IITR email to receive a recovery code."
-            : "Enter the OTP received and choose a new password."}
+          {desc}
         </div>
 
-        {step === "email" ? (
+        {step === "email" && (
           <div
             style={{
               display: "flex",
-
               flexDirection: "column",
-
               gap: 16,
-
               marginBottom: 24,
             }}
           >
@@ -1839,18 +1867,17 @@ function ForgotPasswordPage({
               onChange={setEmail}
             />
             <Btn onClick={handleSendOtp} fullWidth disabled={loading}>
-              {loading ? "Sending..." : "Send Reset Code"}
+              {loading ? "Sending..." : "Send OTP"}
             </Btn>
           </div>
-        ) : (
+        )}
+
+        {step === "otp" && (
           <div
             style={{
               display: "flex",
-
               flexDirection: "column",
-
               gap: 16,
-
               marginBottom: 24,
             }}
           >
@@ -1860,6 +1887,21 @@ function ForgotPasswordPage({
               value={otp}
               onChange={setOtp}
             />
+            <Btn onClick={handleVerifyOtp} fullWidth disabled={loading}>
+              {loading ? "Verifying..." : "Verify OTP"}
+            </Btn>
+          </div>
+        )}
+
+        {step === "password" && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 16,
+              marginBottom: 24,
+            }}
+          >
             <Input
               label="New Password"
               type="password"
@@ -1895,8 +1937,6 @@ function ForgotPasswordPage({
     </div>
   )
 }
-
-// ── Home Dashboard ────────────────────────────────────────────────────────────
 
 function HomePage({
   setPage,
@@ -2922,13 +2962,21 @@ function CourseDetailPage({
                 <div
                   style={{
                     position: "absolute",
+
                     top: 20,
+
                     right: 20,
+
                     fontSize: 11,
+
                     fontWeight: 700,
+
                     color: C.blue,
+
                     background: "#EFF6FF",
+
                     padding: "4px 8px",
+
                     borderRadius: 6,
                   }}
                 >
