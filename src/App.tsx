@@ -5209,6 +5209,7 @@ export default function App() {
 
               api.auth.setUser(u)
             }}
+            onDeleteResource={handleDeleteResource}
           />
         )}
       </main>
