@@ -513,8 +513,7 @@ function Sidebar({
       >
         {navItems.map(({ label, icon, target }) => {
           const active =
-            page === target ||
-            (target === "courses" && page === "course-detail")
+            page === target || (page === "course-detail" && target === previousCoursePage)
 
           const IconComp = Icon[icon] as () => React.ReactElement
 
@@ -2138,13 +2137,7 @@ function HomePage({
             </span>
             <div style={{ display: "flex", gap: 8 }}>
               <button
-                onClick={(e) => {
-                  e.stopPropagation()
-
-                  setSelectedCourse(c)
-
-                  setPage("course-detail")
-                }}
+                onClick={(e) => { e.stopPropagation(); setSelectedCourse(c); previousCoursePage = "home"; setPage("course-detail") }}
                 style={{
                   background: C.blue,
 
@@ -2353,7 +2346,7 @@ function HomePage({
               >
                 No courses added yet.{" "}
                 <button
-                  onClick={() => setPage("courses")}
+                  onClick={() => setPage(previousCoursePage)}
                   style={{
                     background: "none",
 
@@ -2647,11 +2640,7 @@ function CoursesPage({
                 {c.resources} Resources
               </span>
               <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setSelectedCourse(c)
-                  setPage("course-detail")
-                }}
+                onClick={(e) => { e.stopPropagation(); setSelectedCourse(c); previousCoursePage = "home"; setPage("course-detail") }}
                 style={{
                   background: C.blue,
                   color: "#fff",
@@ -2785,7 +2774,7 @@ function CourseDetailPage({
   return (
     <div style={{ padding: "32px 36px", maxWidth: 1400, margin: "0 auto" }}>
       <button
-        onClick={() => setPage("courses")}
+        onClick={() => setPage(previousCoursePage)}
         style={{
           background: "none",
 
@@ -2808,7 +2797,7 @@ function CourseDetailPage({
           gap: 4,
         }}
       >
-        ← Back to Courses
+        ← Back to {previousCoursePage === "home" ? "Home" : "Courses"}
       </button>
 
       <Card style={{ marginBottom: 28 }}>
@@ -3858,7 +3847,7 @@ function PinsPage({
           <div style={{ color: C.muted, fontSize: 14, marginBottom: 24 }}>
             Pin useful resources and they'll appear here.
           </div>
-          <Btn onClick={() => setPage("courses")}>Explore Courses</Btn>
+          <Btn onClick={() => setPage(previousCoursePage)}>Explore Courses</Btn>
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -4649,6 +4638,8 @@ function ProfilePage({
 }
 
 // ── App Root ──────────────────────────────────────────────────────────────────
+
+export let previousCoursePage: Page = "courses"
 
 export default function App() {
   const [page, setPage] = useState<Page>("login")
