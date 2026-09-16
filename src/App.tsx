@@ -2640,7 +2640,7 @@ function CoursesPage({
                 {c.resources} Resources
               </span>
               <button
-                onClick={(e) => { e.stopPropagation(); setSelectedCourse(c); previousCoursePage = "home"; setPage("course-detail") }}
+                onClick={(e) => { e.stopPropagation(); setSelectedCourse(c); previousCoursePage = "courses"; setPage("course-detail") }}
                 style={{
                   background: C.blue,
                   color: "#fff",
