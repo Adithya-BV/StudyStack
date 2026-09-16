@@ -1618,6 +1618,7 @@ function OtpPage({
       }}
     >
       <div
+        className="animate-step"
         style={{
           width: "100%",
 
@@ -1850,6 +1851,7 @@ function ForgotPasswordPage({
       }}
     >
       <div
+        className="animate-step"
         style={{
           width: "100%",
 
