@@ -1310,21 +1310,16 @@ function SignupPage({
       return
     }
 
-    setLoading(true)
-
-    try {
-      await api.auth.signup(name.trim(), email, pw, branch)
-
-      setEmailForOtp(email)
-
-      onToast("OTP generated! (Check terminal console if SMTP not configured)")
-
-      onNext()
-    } catch (err: any) {
+    // Optimistic UI Progression
+    setEmailForOtp(email)
+    onNext()
+    
+    api.auth.signup(name.trim(), email, pw, branch).then(() => {
+      onToast("OTP sent to your email")
+    }).catch((err: any) => {
+      onBack() // Revert on failure
       onToast(err.message || "Failed to create account", "error")
-    } finally {
-      setLoading(false)
-    }
+    })
   }
 
   return (
@@ -1772,19 +1767,14 @@ function ForgotPasswordPage({
       return
     }
 
-    setLoading(true)
-
-    try {
-      await api.auth.forgotPassword(email)
-
+    // Optimistic UI Progression
+    setStep("otp")
+    api.auth.forgotPassword(email).then(() => {
       onToast("Reset OTP sent! (Check your email)")
-
-      setStep("otp")
-    } catch (err: any) {
+    }).catch((err: any) => {
+      setStep("email") // Revert on failure
       onToast(err.message || "Failed to send reset OTP", "error")
-    } finally {
-      setLoading(false)
-    }
+    })
   }
 
   const handleVerifyOtp = async () => {
