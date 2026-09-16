@@ -4742,12 +4742,17 @@ export default function App() {
     if (!window.confirm("Are you sure you want to delete this resource?"))
       return false
 
+    const resourceToDelete = resources.find(r => r.id === id)
+    // Optimistic UI update
+    setResources((prev) => prev.filter((r) => r.id !== id))
+    show("Resource deleted successfully")
+
     try {
       await api.resources.delete(id)
-      setResources((prev) => prev.filter((r) => r.id !== id))
-      show("Resource deleted successfully")
       return true
     } catch (err: any) {
+      // Revert
+      if (resourceToDelete) setResources((prev) => [resourceToDelete, ...prev])
       show(err.message || "Failed to delete resource", "error")
       return false
     }
@@ -4804,25 +4809,27 @@ export default function App() {
   }
 
   const enrollCourse = async (id: number) => {
+    // Optimistic UI update to eliminate click latency completely
+    setEnrolledCourseIds((prev) => [...prev, id])
+    show("Added to My Courses")
     try {
       await api.courses.enroll(id)
-
-      setEnrolledCourseIds((prev) => [...prev, id])
-
-      show("Added to My Courses")
     } catch (err: any) {
+      // Revert if failed
+      setEnrolledCourseIds((prev) => prev.filter((eid) => eid !== id))
       show(err.message, "error")
     }
   }
 
   const removeCourse = async (id: number) => {
+    // Optimistic UI update
+    setEnrolledCourseIds((prev) => prev.filter((eid) => eid !== id))
+    show("Removed from My Courses")
     try {
       await api.courses.unenroll(id)
-
-      setEnrolledCourseIds((prev) => prev.filter((eid) => eid !== id))
-
-      show("Removed from My Courses")
     } catch (err: any) {
+      // Revert if failed
+      setEnrolledCourseIds((prev) => [...prev, id])
       show(err.message || "Failed to remove course", "error")
     }
   }
