@@ -141,7 +141,7 @@ authRouter.post("/signup", async (req, res) => {
       ],
     )
 
-    await sendOTPEmail(normalizedEmail, otp, "signup")
+    sendOTPEmail(normalizedEmail, otp, "signup").catch(console.error)
 
     res.json({
       success: true,
@@ -247,7 +247,7 @@ authRouter.post("/resend-otp", async (req, res) => {
       ],
     )
 
-    await sendOTPEmail(normalizedEmail, otp, type as any)
+    sendOTPEmail(normalizedEmail, otp, type as any).catch(console.error)
 
     res.json({ success: true, message: "A new OTP has been sent" })
   } catch (error: any) {
@@ -314,7 +314,7 @@ authRouter.post("/login", async (req, res) => {
         ],
       )
 
-      await sendOTPEmail(normalizedEmail, otp, "signup")
+      sendOTPEmail(normalizedEmail, otp, "signup").catch(console.error)
 
       return res.status(403).json({
         error: "Account not verified yet. We have sent an OTP to your email.",
@@ -407,7 +407,7 @@ authRouter.post("/forgot-password", async (req, res) => {
       ],
     )
 
-    await sendOTPEmail(normalizedEmail, otp, "forgot_password")
+    sendOTPEmail(normalizedEmail, otp, "forgot_password").catch(console.error)
 
     res.json({
       success: true,
