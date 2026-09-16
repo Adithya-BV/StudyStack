@@ -4659,11 +4659,13 @@ export default function App() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const { toast, show } = useToast()
+  const [appLoading, setAppLoading] = useState(true)
 
   // Load data from backend
 
   const loadData = async () => {
     try {
+      setAppLoading(true)
       const [fetchedCourses, fetchedResources, fetchedEnrolled] =
         await Promise.all([
           api.courses.getAll().catch(() => []),
@@ -4680,21 +4682,23 @@ export default function App() {
       if (fetchedEnrolled) setEnrolledCourseIds(fetchedEnrolled)
     } catch {
       // Fallback if offline
+    } finally {
+      setAppLoading(false)
     }
   }
 
   useEffect(() => {
     const user = api.auth.getUser()
-
     const token = api.auth.getToken()
 
     if (user && token) {
       setCurrentUser(user)
-
       setPage("home")
+      loadData()
+    } else {
+      setAppLoading(false)
+      loadData() // try fetching global data anyway if needed, though APIs might reject
     }
-
-    loadData()
   }, [])
 
   const handleLogout = () => {
@@ -4914,7 +4918,16 @@ export default function App() {
     >
       <Sidebar page={page} setPage={setPage} onLogout={handleLogout} />
       <main style={{ flex: 1, overflow: "auto", height: "100%" }}>
-        {page === "home" && (
+        {appLoading ? (
+          <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%", color: C.muted, gap: 16 }}>
+            <div style={{ transform: "scale(1.5)", display: "flex" }}>
+              <Icon.Book />
+            </div>
+            <div style={{ fontWeight: 600, fontSize: 16 }}>Loading StudyStack...</div>
+          </div>
+        ) : (
+          <>
+            {page === "home" && (
           <HomePage
             setPage={setPage}
             resources={resources}
@@ -4976,6 +4989,8 @@ export default function App() {
             }}
             onDeleteResource={handleDeleteResource}
           />
+        )}
+          </>
         )}
       </main>
       {showLogoutConfirm && (
