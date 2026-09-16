@@ -2137,61 +2137,6 @@ function HomePage({
               {c.resources} Resources
             </span>
             <div style={{ display: "flex", gap: 8 }}>
-              {enrolledCourseIds.includes(c.id) ? (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-
-                    onUnenroll(c.id)
-                  }}
-                  style={{
-                    background: "#FEE2E2",
-
-                    color: "#DC2626",
-
-                    border: "none",
-
-                    borderRadius: 8,
-
-                    padding: "6px 14px",
-
-                    fontSize: 12,
-
-                    fontWeight: 600,
-
-                    cursor: "pointer",
-                  }}
-                >
-                  Remove
-                </button>
-              ) : (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-
-                    onEnroll(c.id)
-                  }}
-                  style={{
-                    background: "#EFF6FF",
-
-                    color: C.blue,
-
-                    border: "none",
-
-                    borderRadius: 8,
-
-                    padding: "6px 14px",
-
-                    fontSize: 12,
-
-                    fontWeight: 600,
-
-                    cursor: "pointer",
-                  }}
-                >
-                  + Add
-                </button>
-              )}
               <button
                 onClick={(e) => {
                   e.stopPropagation()
@@ -2438,44 +2383,33 @@ function HomePage({
 
 function CoursesPage({
   setPage,
-
-  courses,
-
-  onAdd,
-
-  onRemove,
-
+  enrolledCourses,
+  availableCourses,
+  onEnroll,
+  onUnenroll,
   setSelectedCourse,
 }: {
   setPage: (p: Page) => void
-
-  courses: Course[]
-
-  onAdd: (code: string, name: string, dept: string) => void
-
-  onRemove: (id: number) => void
-
+  enrolledCourses: Course[]
+  availableCourses: Course[]
+  onEnroll: (id: number) => void
+  onUnenroll: (id: number) => void
   setSelectedCourse: (c: Course) => void
 }) {
   const [search, setSearch] = useState("")
-
   const [showForm, setShowForm] = useState(false)
+  const [selectedCourseId, setSelectedCourseId] = useState<number | "">("")
 
-  const [form, setForm] = useState({ code: "", name: "", dept: "" })
-
-  const filtered = courses.filter(
+  const filtered = enrolledCourses.filter(
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
       c.code.toLowerCase().includes(search.toLowerCase()),
   )
 
-  const handleAdd = () => {
-    if (!form.code.trim() || !form.name.trim()) return
-
-    onAdd(form.code.trim(), form.name.trim(), form.dept.trim() || "Engineering")
-
-    setForm({ code: "", name: "", dept: "" })
-
+  const handleEnroll = () => {
+    if (!selectedCourseId) return
+    onEnroll(Number(selectedCourseId))
+    setSelectedCourseId("")
     setShowForm(false)
   }
 
@@ -2484,11 +2418,8 @@ function CoursesPage({
       <div
         style={{
           display: "flex",
-
           justifyContent: "space-between",
-
           alignItems: "flex-start",
-
           marginBottom: 4,
         }}
       >
@@ -2496,11 +2427,8 @@ function CoursesPage({
           <h1
             style={{
               fontSize: 28,
-
               fontWeight: 800,
-
               color: C.text,
-
               letterSpacing: "-0.5px",
             }}
           >
@@ -2509,11 +2437,8 @@ function CoursesPage({
           <p
             style={{
               color: C.muted,
-
               fontSize: 14,
-
               marginTop: 4,
-
               marginBottom: 0,
             }}
           >
@@ -2524,27 +2449,16 @@ function CoursesPage({
           onClick={() => setShowForm(!showForm)}
           style={{
             display: "flex",
-
             alignItems: "center",
-
             gap: 7,
-
             background: C.blue,
-
             color: "#fff",
-
             border: "none",
-
             borderRadius: 10,
-
             padding: "10px 18px",
-
             fontSize: 14,
-
             fontWeight: 600,
-
             cursor: "pointer",
-
             marginTop: 4,
           }}
         >
@@ -2552,221 +2466,92 @@ function CoursesPage({
         </button>
       </div>
 
-      {/* Add form */}
       {showForm && (
         <Card style={{ marginTop: 20, marginBottom: 8 }}>
           <div
             style={{
               fontSize: 15,
-
               fontWeight: 700,
-
               color: C.text,
-
               marginBottom: 16,
             }}
           >
-            Add New Course
+            Enroll in a Course
           </div>
-          <div
-            style={{
-              display: "grid",
-
-              gridTemplateColumns: "1fr 1fr",
-
-              gap: 12,
-
-              marginBottom: 12,
-            }}
-          >
-            <div>
+          <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+            <div style={{ flex: 1 }}>
               <label
                 style={{
                   fontSize: 12,
-
                   fontWeight: 600,
-
                   color: C.muted,
-
                   display: "block",
-
                   marginBottom: 5,
                 }}
               >
-                Course Code *
+                Select Course *
               </label>
-              <input
-                value={form.code}
-                onChange={(e) => setForm({ ...form, code: e.target.value })}
-                placeholder="e.g. CSN-201"
+              <select
+                value={selectedCourseId}
+                onChange={(e) => setSelectedCourseId(e.target.value === "" ? "" : Number(e.target.value))}
                 style={{
                   width: "100%",
-
                   padding: "9px 12px",
-
                   border: `1.5px solid ${C.border}`,
-
                   borderRadius: 8,
-
                   fontSize: 14,
-
                   color: C.text,
-
-                  outline: "none",
-
-                  boxSizing: "border-box",
-
+                  backgroundColor: "#fff",
                   fontFamily: "Inter, sans-serif",
-                }}
-              />
-            </div>
-            <div>
-              <label
-                style={{
-                  fontSize: 12,
-
-                  fontWeight: 600,
-
-                  color: C.muted,
-
-                  display: "block",
-
-                  marginBottom: 5,
                 }}
               >
-                Department
-              </label>
-              <input
-                value={form.dept}
-                onChange={(e) => setForm({ ...form, dept: e.target.value })}
-                placeholder="e.g. Computer Science"
-                style={{
-                  width: "100%",
-
-                  padding: "9px 12px",
-
-                  border: `1.5px solid ${C.border}`,
-
-                  borderRadius: 8,
-
-                  fontSize: 14,
-
-                  color: C.text,
-
-                  outline: "none",
-
-                  boxSizing: "border-box",
-
-                  fontFamily: "Inter, sans-serif",
-                }}
-              />
-            </div>
-            <div style={{ gridColumn: "1 / -1" }}>
-              <label
-                style={{
-                  fontSize: 12,
-
-                  fontWeight: 600,
-
-                  color: C.muted,
-
-                  display: "block",
-
-                  marginBottom: 5,
-                }}
-              >
-                Course Name *
-              </label>
-              <input
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="e.g. Data Structures and Algorithms"
-                style={{
-                  width: "100%",
-
-                  padding: "9px 12px",
-
-                  border: `1.5px solid ${C.border}`,
-
-                  borderRadius: 8,
-
-                  fontSize: 14,
-
-                  color: C.text,
-
-                  outline: "none",
-
-                  boxSizing: "border-box",
-
-                  fontFamily: "Inter, sans-serif",
-                }}
-              />
+                <option value="">-- Choose a course --</option>
+                {availableCourses.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.code} - {c.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
-          <div style={{ display: "flex", gap: 10 }}>
-            <button
-              onClick={handleAdd}
-              style={{
-                background: C.blue,
-
-                color: "#fff",
-
-                border: "none",
-
-                borderRadius: 8,
-
-                padding: "9px 20px",
-
-                fontSize: 13,
-
-                fontWeight: 600,
-
-                cursor: "pointer",
-              }}
-            >
-              Add Course
-            </button>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
             <button
               onClick={() => setShowForm(false)}
               style={{
-                background: "transparent",
-
+                background: "#f1f5f9",
                 color: C.muted,
-
-                border: `1px solid ${C.border}`,
-
+                border: "none",
                 borderRadius: 8,
-
                 padding: "9px 20px",
-
                 fontSize: 13,
-
                 fontWeight: 600,
-
                 cursor: "pointer",
               }}
             >
               Cancel
             </button>
+            <button
+              onClick={handleEnroll}
+              disabled={!selectedCourseId}
+              style={{
+                background: selectedCourseId ? C.blue : "#cbd5e1",
+                color: "#fff",
+                border: "none",
+                borderRadius: 8,
+                padding: "9px 20px",
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: selectedCourseId ? "pointer" : "not-allowed",
+              }}
+            >
+              Enroll
+            </button>
           </div>
         </Card>
       )}
 
-      {/* Search */}
-      <div style={{ position: "relative", margin: "20px 0 24px" }}>
-        <div
-          style={{
-            position: "absolute",
-
-            left: 12,
-
-            top: "50%",
-
-            transform: "translateY(-50%)",
-
-            color: C.muted,
-          }}
-        >
+      <div style={{ marginTop: 24, position: "relative", marginBottom: 30 }}>
+        <div style={{ position: "absolute", left: 16, top: 14, color: C.muted, display: "flex" }}>
           <Icon.Search />
         </div>
         <input
@@ -2775,175 +2560,156 @@ function CoursesPage({
           placeholder="Search my courses..."
           style={{
             width: "100%",
-
-            padding: "10px 12px 10px 40px",
-
-            border: `1.5px solid ${C.border}`,
-
-            borderRadius: 10,
-
-            fontSize: 14,
-
-            color: C.text,
-
+            padding: "13px 16px 13px 44px",
             background: "#fff",
-
+            border: "1px solid #E2E8F0",
+            borderRadius: 14,
+            fontSize: 15,
+            color: C.text,
             outline: "none",
-
-            boxSizing: "border-box",
-
+            boxShadow: "0 2px 8px rgba(0,0,0,0.02)",
             fontFamily: "Inter, sans-serif",
+            transition: "all 0.2s ease",
           }}
         />
       </div>
 
-      {filtered.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "60px 0" }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>📚</div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+          gap: 16,
+        }}
+      >
+        {filtered.map((c) => (
+          <Card key={c.id}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                marginBottom: 12,
+              }}
+            >
+              <span
+                style={{
+                  background: "#F1F5F9",
+                  color: C.text,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  padding: "4px 10px",
+                  borderRadius: 6,
+                }}
+              >
+                {c.code}
+              </span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onUnenroll(c.id)
+                }}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "#ef4444",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                }}
+              >
+                Remove
+              </button>
+            </div>
+            <div
+              style={{
+                fontWeight: 700,
+                fontSize: 17,
+                color: C.text,
+                marginBottom: 6,
+              }}
+            >
+              {c.name}
+            </div>
+            <div style={{ fontSize: 13, color: C.muted, marginBottom: 20 }}>
+              {c.dept}
+            </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <span style={{ fontSize: 13, fontWeight: 600, color: C.muted }}>
+                {c.resources} Resources
+              </span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setSelectedCourse(c)
+                  setPage("course-detail")
+                }}
+                style={{
+                  background: C.blue,
+                  color: "#fff",
+                  padding: "6px 14px",
+                  border: "none",
+                  borderRadius: 8,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                View
+              </button>
+            </div>
+          </Card>
+        ))}
+        {filtered.length === 0 && (
           <div
             style={{
-              fontWeight: 700,
-
-              fontSize: 16,
-
-              color: C.text,
-
-              marginBottom: 6,
+              gridColumn: "1 / -1",
+              textAlign: "center",
+              padding: "60px 0",
             }}
           >
-            No courses found
+            <div
+              style={{
+                background: "#F8FAFC",
+                width: 64,
+                height: 64,
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 16px",
+              }}
+            >
+              <Icon.Book />
+            </div>
+            <h3
+              style={{
+                color: C.text,
+                fontSize: 18,
+                fontWeight: 700,
+                marginBottom: 8,
+              }}
+            >
+              No courses found
+            </h3>
+            <p style={{ color: C.muted, fontSize: 14 }}>
+              Click "Add Course" to add your first course.
+            </p>
           </div>
-          <div style={{ color: C.muted, fontSize: 14 }}>
-            Click "Add Course" to add your first course.
-          </div>
-        </div>
-      ) : (
-        <div
-          style={{
-            display: "grid",
-
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-
-            gap: 16,
-          }}
-        >
-          {filtered.map((c) => (
-            <Card key={c.id}>
-              <div
-                style={{
-                  display: "flex",
-
-                  justifyContent: "space-between",
-
-                  marginBottom: 10,
-                }}
-              >
-                <span
-                  style={{
-                    background: "#EFF6FF",
-
-                    color: C.blue,
-
-                    fontSize: 12,
-
-                    fontWeight: 700,
-
-                    padding: "3px 8px",
-
-                    borderRadius: 6,
-                  }}
-                >
-                  {c.code}
-                </span>
-              </div>
-              <div
-                style={{
-                  fontWeight: 700,
-
-                  fontSize: 15,
-
-                  color: C.text,
-
-                  marginBottom: 4,
-                }}
-              >
-                {c.name}
-              </div>
-              <div style={{ fontSize: 12, color: C.muted, marginBottom: 16 }}>
-                {c.dept}
-              </div>
-              <div
-                style={{
-                  display: "flex",
-
-                  justifyContent: "space-between",
-
-                  alignItems: "center",
-                }}
-              >
-                <span style={{ fontSize: 13, fontWeight: 600, color: C.muted }}>
-                  {c.resources} Resources
-                </span>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button
-                    onClick={() => {
-                      setSelectedCourse(c)
-
-                      setPage("course-detail")
-                    }}
-                    style={{
-                      background: C.blue,
-
-                      color: "#fff",
-
-                      border: "none",
-
-                      borderRadius: 8,
-
-                      padding: "7px 14px",
-
-                      fontSize: 12,
-
-                      fontWeight: 600,
-
-                      cursor: "pointer",
-                    }}
-                  >
-                    View
-                  </button>
-                  <button
-                    onClick={() => onRemove(c.id)}
-                    style={{
-                      background: "#FEF2F2",
-
-                      color: "#ef4444",
-
-                      border: "1px solid #FECACA",
-
-                      borderRadius: 8,
-
-                      padding: "7px 14px",
-
-                      fontSize: 12,
-
-                      fontWeight: 600,
-
-                      cursor: "pointer",
-                    }}
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
 
-// ── Course Detail Page ────────────────────────────────────────────────────────
 
 function CourseDetailPage({
   setPage,
@@ -5168,9 +4934,10 @@ export default function App() {
         {page === "courses" && (
           <CoursesPage
             setPage={setPage}
-            courses={courses.filter((c) => enrolledCourseIds.includes(c.id))}
-            onAdd={addCourse}
-            onRemove={removeCourse}
+            enrolledCourses={courses.filter((c) => enrolledCourseIds.includes(c.id))}
+            availableCourses={courses.filter((c) => !enrolledCourseIds.includes(c.id))}
+            onEnroll={enrollCourse}
+            onUnenroll={removeCourse}
             setSelectedCourse={handleViewCourse}
           />
         )}
