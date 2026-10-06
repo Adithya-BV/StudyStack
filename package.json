@@ -22,7 +22,9 @@
     "pdf-lib": "^1.17.1",
     "pg": "^8.23.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tsx": "^4.23.13",
+    "typescript": "^5.7.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",
@@ -40,8 +42,6 @@
     "concurrently": "^10.0.5",
     "oxfmt": "^0.2.0",
     "tailwindcss": "^4.0.0",
-    "tsx": "^4.23.13",
-    "typescript": "^5.7.0",
     "vite": "^8.0.5"
   }
 }
