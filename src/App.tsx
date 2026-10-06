@@ -5052,6 +5052,16 @@ export default function App() {
 
     setResources((prev) => prev.filter((r) => r.id !== id))
 
+    if (resourceToDelete) {
+      setCourses((prev) =>
+        prev.map((c) =>
+          c.code.toUpperCase() === resourceToDelete.course.toUpperCase()
+            ? { ...c, resources: Math.max(0, c.resources - 1) }
+            : c,
+        ),
+      )
+    }
+
     show("Resource deleted successfully")
 
     try {
@@ -5061,7 +5071,17 @@ export default function App() {
     } catch (err: any) {
       // Revert
 
-      if (resourceToDelete) setResources((prev) => [resourceToDelete, ...prev])
+      if (resourceToDelete) {
+        setResources((prev) => [resourceToDelete, ...prev])
+
+        setCourses((prev) =>
+          prev.map((c) =>
+            c.code.toUpperCase() === resourceToDelete.course.toUpperCase()
+              ? { ...c, resources: c.resources + 1 }
+              : c,
+          ),
+        )
+      }
 
       show(err.message || "Failed to delete resource", "error")
 
