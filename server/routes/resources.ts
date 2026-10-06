@@ -550,7 +550,7 @@ resourcesRouter.get("/:id/view", async (req, res) => {
 
     // Dynamic PDF generator fallback
 
-    const { PDFDocument, rgb, StandardFonts } = require("pdf-lib")
+    
 
     const pdfDoc = await PDFDocument.create()
 
