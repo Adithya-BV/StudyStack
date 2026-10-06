@@ -285,18 +285,22 @@ resourcesRouter.get("/:id/download", async (req, res) => {
       const cleanTitle = resource.title.replace(/[/\\?%*:|"<>]/g, "_").trim()
 
       const downloadFilename = cleanTitle
+
         .toLowerCase()
+
         .endsWith(ext.toLowerCase())
         ? cleanTitle
         : `${cleanTitle}${ext}`
 
       res.setHeader(
         "Content-Disposition",
+
         `attachment; filename="${downloadFilename}"`,
       )
 
       res.setHeader(
         "Content-Type",
+
         ext.toLowerCase() === ".pdf"
           ? "application/pdf"
           : "application/octet-stream",
@@ -513,6 +517,74 @@ resourcesRouter.get("/pinned", authenticateToken, async (req: any, res) => {
   }
 })
 
+resourcesRouter.get("/:id/view", async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const resource = (
+      await pool.query("SELECT * FROM resources WHERE id = $1", [Number(id)])
+    ).rows[0] as any
+
+    if (!resource) return res.status(404).json({ error: "Resource not found" })
+
+    if (resource.file_data) {
+      const ext = resource.file_path ? path.extname(resource.file_path) : ".pdf"
+
+      const cleanTitle = resource.title.replace(/[/\\?%*:|"<>]/g, "_").trim()
+
+      const filename = cleanTitle.toLowerCase().endsWith(ext.toLowerCase())
+        ? cleanTitle
+        : `${cleanTitle}${ext}`
+
+      res.setHeader("Content-Disposition", `inline; filename="${filename}"`)
+
+      res.setHeader(
+        "Content-Type",
+        ext.toLowerCase() === ".pdf"
+          ? "application/pdf"
+          : "application/octet-stream",
+      )
+
+      return res.send(resource.file_data)
+    }
+
+    // Dynamic PDF generator fallback
+
+    const { PDFDocument, rgb, StandardFonts } = require("pdf-lib")
+
+    const pdfDoc = await PDFDocument.create()
+
+    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+
+    const page = pdfDoc.addPage([595.28, 841.89])
+
+    const { width, height } = page.getSize()
+
+    page.drawText(`No file attached to ${resource.title}`, {
+      x: 50,
+      y: height - 100,
+      size: 24,
+      font: fontBold,
+      color: rgb(0, 0.53, 0.71),
+    })
+
+    const pdfBytes = await pdfDoc.save()
+
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="${resource.title}.pdf"`,
+    )
+
+    res.setHeader("Content-Type", "application/pdf")
+
+    res.send(Buffer.from(pdfBytes))
+  } catch (error: any) {
+    console.error("View error:", error)
+
+    res.status(500).json({ error: error.message || "View failed" })
+  }
+})
+
 resourcesRouter.delete("/:id", authenticateToken, async (req: any, res) => {
   try {
     const resourceId = Number(req.params.id)
@@ -529,7 +601,9 @@ resourcesRouter.delete("/:id", authenticateToken, async (req: any, res) => {
 
     if (resource.uploader_email !== userEmail) {
       return res
+
         .status(403)
+
         .json({ error: "Unauthorized to delete this resource" })
     }
 
@@ -539,13 +613,16 @@ resourcesRouter.delete("/:id", authenticateToken, async (req: any, res) => {
 
     await pool.query(
       "UPDATE courses SET resources = GREATEST(0, resources - 1) WHERE code = $1",
+
       [resource.course_code],
     )
 
     res.json({ success: true })
   } catch (error: any) {
     res
+
       .status(500)
+
       .json({ error: error.message || "Failed to delete resource" })
   }
 })

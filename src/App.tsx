@@ -935,15 +935,25 @@ function ResourceCard({
           onClick={() => window.open(api.resources.getViewUrl(r.id), "_blank")}
           style={{
             display: "flex",
+
             alignItems: "center",
+
             gap: 5,
+
             padding: "7px 12px",
+
             background: "#EFF6FF",
+
             color: C.blue,
+
             border: "none",
+
             borderRadius: 8,
+
             fontSize: 12,
+
             fontWeight: 600,
+
             cursor: "pointer",
           }}
         >
@@ -1336,10 +1346,13 @@ function SignupPage({
     onNext()
 
     api.auth
+
       .signup(name.trim(), email, pw, branch)
+
       .then(() => {
         onToast("OTP sent to your email")
       })
+
       .catch((err: any) => {
         onBack() // Revert on failure
 
@@ -1798,10 +1811,13 @@ function ForgotPasswordPage({
     setStep("otp")
 
     api.auth
+
       .forgotPassword(email)
+
       .then(() => {
         onToast("Reset OTP sent! (Check your email)")
       })
+
       .catch((err: any) => {
         setStep("email") // Revert on failure
 
@@ -2162,8 +2178,11 @@ function HomePage({
               <button
                 onClick={(e) => {
                   e.stopPropagation()
+
                   setSelectedCourse(c)
+
                   previousCoursePage = "home"
+
                   setPage("course-detail")
                 }}
                 style={{
@@ -2642,9 +2661,13 @@ function CoursesPage({
         <div
           style={{
             position: "absolute",
+
             left: 16,
+
             top: 14,
+
             color: C.muted,
+
             display: "flex",
           }}
         >
@@ -2779,8 +2802,11 @@ function CoursesPage({
               <button
                 onClick={(e) => {
                   e.stopPropagation()
+
                   setSelectedCourse(c)
+
                   previousCoursePage = "courses"
+
                   setPage("course-detail")
                 }}
                 style={{
@@ -5123,11 +5149,17 @@ export default function App() {
           <div
             style={{
               display: "flex",
+
               flexDirection: "column",
+
               justifyContent: "center",
+
               alignItems: "center",
+
               height: "100%",
+
               color: C.muted,
+
               gap: 16,
             }}
           >
