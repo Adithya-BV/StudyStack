@@ -33,7 +33,7 @@ export function authenticateToken(req: any, res: any, next: any) {
 
   jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
     if (err) {
-      return res.status(403).json({ error: "Invalid or expired token" })
+      return res.status(403).json({ error: "Your session has expired. Please logout and login again." })
     }
 
     req.user = user
