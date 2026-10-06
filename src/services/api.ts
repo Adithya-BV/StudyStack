@@ -2,6 +2,25 @@
 
 const API_BASE = "/api"
 
+function checkSessionExpiry(data: any) {
+  if (
+    data &&
+    data.error === "Your session has expired. Please logout and login again."
+  ) {
+    if (
+      window.confirm(
+        "Your session has expired. Please click OK to logout and login again.",
+      )
+    ) {
+      localStorage.removeItem("studystack_token")
+
+      localStorage.removeItem("studystack_user")
+
+      window.location.reload()
+    }
+  }
+}
+
 function getHeaders(isMultipart = false): HeadersInit {
   const headers: Record<string, string> = {}
 
@@ -65,6 +84,8 @@ export const api = {
 
       const data = await res.json()
 
+      checkSessionExpiry(data)
+
       if (!res.ok) throw new Error(data.error || "Signup failed")
 
       return data
@@ -80,6 +101,8 @@ export const api = {
       })
 
       const data = await res.json()
+
+      checkSessionExpiry(data)
 
       if (!res.ok) throw new Error(data.error || "OTP verification failed")
 
@@ -101,6 +124,8 @@ export const api = {
 
       const data = await res.json()
 
+      checkSessionExpiry(data)
+
       if (!res.ok) throw new Error(data.error || "Failed to resend OTP")
 
       return data
@@ -116,6 +141,8 @@ export const api = {
       })
 
       const data = await res.json()
+
+      checkSessionExpiry(data)
 
       if (!res.ok) {
         const err: any = new Error(data.error || "Login failed")
@@ -145,6 +172,8 @@ export const api = {
 
       const data = await res.json()
 
+      checkSessionExpiry(data)
+
       if (!res.ok)
         throw new Error(data.error || "Password reset request failed")
 
@@ -162,6 +191,8 @@ export const api = {
 
       const data = await res.json()
 
+      checkSessionExpiry(data)
+
       if (!res.ok) throw new Error(data.error || "Failed to verify OTP")
 
       return data
@@ -178,6 +209,8 @@ export const api = {
 
       const data = await res.json()
 
+      checkSessionExpiry(data)
+
       if (!res.ok) throw new Error(data.error || "Reset password failed")
 
       return data
@@ -189,6 +222,8 @@ export const api = {
       })
 
       const data = await res.json()
+
+      checkSessionExpiry(data)
 
       if (!res.ok) throw new Error(data.error || "Failed to fetch user")
 
@@ -206,6 +241,8 @@ export const api = {
 
       const data = await res.json()
 
+      checkSessionExpiry(data)
+
       if (!res.ok) throw new Error(data.error || "Failed to fetch courses")
 
       return data.courses
@@ -217,6 +254,8 @@ export const api = {
       })
 
       const data = await res.json()
+
+      checkSessionExpiry(data)
 
       if (!res.ok) throw new Error(data.error || "Failed to fetch course")
 
@@ -233,6 +272,8 @@ export const api = {
       })
 
       const data = await res.json()
+
+      checkSessionExpiry(data)
 
       if (!res.ok) throw new Error(data.error || "Failed to create course")
 
@@ -278,6 +319,8 @@ export const api = {
 
       const data = await res.json()
 
+      checkSessionExpiry(data)
+
       if (!res.ok) throw new Error(data.error || "Failed to delete course")
 
       return data
@@ -302,6 +345,8 @@ export const api = {
 
       const data = await res.json()
 
+      checkSessionExpiry(data)
+
       if (!res.ok) throw new Error(data.error || "Failed to fetch resources")
 
       return data.resources
@@ -317,6 +362,8 @@ export const api = {
       })
 
       const data = await res.json()
+
+      checkSessionExpiry(data)
 
       if (!res.ok) throw new Error(data.error || "Failed to upload resource")
 
@@ -342,6 +389,8 @@ export const api = {
 
       const data = await res.json()
 
+      checkSessionExpiry(data)
+
       if (!res.ok) throw new Error(data.error || "Failed to toggle pin")
 
       return data
@@ -353,6 +402,8 @@ export const api = {
       })
 
       const data = await res.json()
+
+      checkSessionExpiry(data)
 
       if (!res.ok) throw new Error(data.error || "Failed to fetch pinned")
 
@@ -367,6 +418,8 @@ export const api = {
       })
 
       const data = await res.json()
+
+      checkSessionExpiry(data)
 
       if (!res.ok) throw new Error(data.error || "Failed to delete resource")
 
@@ -383,6 +436,8 @@ export const api = {
       })
 
       const data = await res.json()
+
+      checkSessionExpiry(data)
 
       if (!res.ok) throw new Error(data.error || "Failed to fetch profile")
 
@@ -406,6 +461,8 @@ export const api = {
 
       const data = await res.json()
 
+      checkSessionExpiry(data)
+
       if (!res.ok) throw new Error(data.error || "Failed to update profile")
 
       return data.user
@@ -419,6 +476,8 @@ export const api = {
       })
 
       const data = await res.json()
+
+      checkSessionExpiry(data)
 
       if (!res.ok) throw new Error(data.error || "Failed to delete account")
 

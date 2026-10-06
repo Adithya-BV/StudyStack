@@ -540,6 +540,7 @@ resourcesRouter.get("/:id/view", async (req, res) => {
 
       res.setHeader(
         "Content-Type",
+
         ext.toLowerCase() === ".pdf"
           ? "application/pdf"
           : "application/octet-stream",
@@ -549,8 +550,6 @@ resourcesRouter.get("/:id/view", async (req, res) => {
     }
 
     // Dynamic PDF generator fallback
-
-    
 
     const pdfDoc = await PDFDocument.create()
 
@@ -562,9 +561,13 @@ resourcesRouter.get("/:id/view", async (req, res) => {
 
     page.drawText(`No file attached to ${resource.title}`, {
       x: 50,
+
       y: height - 100,
+
       size: 24,
+
       font: fontBold,
+
       color: rgb(0, 0.53, 0.71),
     })
 
@@ -572,6 +575,7 @@ resourcesRouter.get("/:id/view", async (req, res) => {
 
     res.setHeader(
       "Content-Disposition",
+
       `inline; filename="${resource.title}.pdf"`,
     )
 
