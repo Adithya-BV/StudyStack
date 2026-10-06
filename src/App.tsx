@@ -104,6 +104,24 @@ const IITR_BRANCHES = [
 // ── Icons ────────────────────────────────────────────────────────────────────
 
 const Icon = {
+  Trash2: () => (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="3 6 5 6 21 6"></polyline>
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+      <line x1="10" y1="11" x2="10" y2="17"></line>
+      <line x1="14" y1="11" x2="14" y2="17"></line>
+    </svg>
+  ),
+
   Home: () => (
     <svg
       width="18"
@@ -5456,6 +5474,139 @@ export default function App() {
                 }}
               >
                 Yes, log out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirmPromise && (
+        <div
+          style={{
+            position: "fixed",
+
+            top: 0,
+
+            left: 0,
+
+            right: 0,
+
+            bottom: 0,
+
+            background: "rgba(15, 23, 42, 0.4)",
+
+            backdropFilter: "blur(4px)",
+
+            display: "flex",
+
+            alignItems: "center",
+
+            justifyContent: "center",
+
+            zIndex: 9999,
+          }}
+        >
+          <div
+            style={{
+              width: 400,
+
+              textAlign: "center",
+
+              padding: "32px 24px",
+
+              animation: "popIn 0.2s ease-out",
+
+              background: "#fff",
+
+              borderRadius: 12,
+
+              boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+            }}
+          >
+            <div
+              style={{
+                width: 48,
+
+                height: 48,
+
+                borderRadius: "50%",
+
+                background: "#FEE2E2",
+
+                color: "#DC2626",
+
+                display: "flex",
+
+                alignItems: "center",
+
+                justifyContent: "center",
+
+                margin: "0 auto 16px",
+              }}
+            >
+              <Icon.Trash2 />
+            </div>
+            <h3 style={{ marginTop: 0, fontSize: 20, color: "#0F172A" }}>
+              Delete Resource?
+            </h3>
+            <p
+              style={{
+                color: "#64748B",
+
+                fontSize: 14,
+
+                marginBottom: 28,
+
+                lineHeight: 1.5,
+              }}
+            >
+              Are you sure you want to delete this resource? This action cannot
+              be undone.
+            </p>
+            <div style={{ display: "flex", gap: 12 }}>
+              <button
+                onClick={() => deleteConfirmPromise.resolve(false)}
+                style={{
+                  flex: 1,
+
+                  padding: "10px 16px",
+
+                  background: "#F1F5F9",
+
+                  color: "#475569",
+
+                  border: "none",
+
+                  borderRadius: 8,
+
+                  fontWeight: 600,
+
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => deleteConfirmPromise.resolve(true)}
+                style={{
+                  flex: 1,
+
+                  padding: "10px 16px",
+
+                  background: "#EF4444",
+
+                  color: "#fff",
+
+                  border: "none",
+
+                  borderRadius: 8,
+
+                  fontWeight: 600,
+
+                  cursor: "pointer",
+                }}
+              >
+                Yes, delete
               </button>
             </div>
           </div>
