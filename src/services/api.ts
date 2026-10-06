@@ -3,21 +3,8 @@
 const API_BASE = "/api"
 
 function checkSessionExpiry(data: any) {
-  if (
-    data &&
-    data.error === "Your session has expired. Please logout and login again."
-  ) {
-    if (
-      window.confirm(
-        "Your session has expired. Please click OK to logout and login again.",
-      )
-    ) {
-      localStorage.removeItem("studystack_token")
-
-      localStorage.removeItem("studystack_user")
-
-      window.location.reload()
-    }
+  if (data && data.error === "Your session has expired. Please logout and login again.") {
+    window.dispatchEvent(new Event("session-expired"))
   }
 }
 

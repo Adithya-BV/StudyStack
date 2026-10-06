@@ -4862,6 +4862,8 @@ export default function App() {
 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
+  const [showSessionExpired, setShowSessionExpired] = useState(false)
+
   const { toast, show } = useToast()
 
   const [appLoading, setAppLoading] = useState(true)
@@ -4909,6 +4911,14 @@ export default function App() {
 
       loadData() // try fetching global data anyway if needed, though APIs might reject
     }
+  }, [])
+
+  useEffect(() => {
+    const handler = () => setShowSessionExpired(true)
+
+    window.addEventListener("session-expired", handler)
+
+    return () => window.removeEventListener("session-expired", handler)
   }, [])
 
   const handleLogout = () => {
