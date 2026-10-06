@@ -4926,6 +4926,10 @@ export default function App() {
 
   const [showSessionExpired, setShowSessionExpired] = useState(false)
 
+  const [deleteConfirmPromise, setDeleteConfirmPromise] = useState<{
+    resolve: (val: boolean) => void
+  } | null>(null)
+
   const { toast, show } = useToast()
 
   const [appLoading, setAppLoading] = useState(true)
@@ -5016,8 +5020,13 @@ export default function App() {
   }
 
   const handleDeleteResource = async (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this resource?"))
-      return false
+    const confirmed = await new Promise<boolean>((resolve) => {
+      setDeleteConfirmPromise({ resolve })
+    })
+
+    setDeleteConfirmPromise(null)
+
+    if (!confirmed) return false
 
     const resourceToDelete = resources.find((r) => r.id === id)
 
