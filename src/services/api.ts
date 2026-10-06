@@ -330,6 +330,7 @@ export const api = {
     },
 
     getDownloadUrl: (id: number) => `${API_BASE}/resources/${id}/download`,
+    getViewUrl: (id: number) => `${API_BASE}/resources/${id}/view`,
 
     togglePin: async (id: number) => {
       const res = await fetch(`${API_BASE}/resources/${id}/pin`, {

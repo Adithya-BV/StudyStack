@@ -932,6 +932,24 @@ function ResourceCard({
       </div>
       <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
         <button
+          onClick={() => window.open(api.resources.getViewUrl(r.id), "_blank")}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 5,
+            padding: "7px 12px",
+            background: "#EFF6FF",
+            color: C.blue,
+            border: "none",
+            borderRadius: 8,
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          <Icon.Eye /> View
+        </button>
+        <button
           onClick={handleDownload}
           style={{
             display: "flex",
