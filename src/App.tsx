@@ -513,7 +513,8 @@ function Sidebar({
       >
         {navItems.map(({ label, icon, target }) => {
           const active =
-            page === target || (page === "course-detail" && target === previousCoursePage)
+            page === target ||
+            (page === "course-detail" && target === previousCoursePage)
 
           const IconComp = Icon[icon] as () => React.ReactElement
 
@@ -1311,15 +1312,21 @@ function SignupPage({
     }
 
     // Optimistic UI Progression
+
     setEmailForOtp(email)
+
     onNext()
-    
-    api.auth.signup(name.trim(), email, pw, branch).then(() => {
-      onToast("OTP sent to your email")
-    }).catch((err: any) => {
-      onBack() // Revert on failure
-      onToast(err.message || "Failed to create account", "error")
-    })
+
+    api.auth
+      .signup(name.trim(), email, pw, branch)
+      .then(() => {
+        onToast("OTP sent to your email")
+      })
+      .catch((err: any) => {
+        onBack() // Revert on failure
+
+        onToast(err.message || "Failed to create account", "error")
+      })
   }
 
   return (
@@ -1769,13 +1776,19 @@ function ForgotPasswordPage({
     }
 
     // Optimistic UI Progression
+
     setStep("otp")
-    api.auth.forgotPassword(email).then(() => {
-      onToast("Reset OTP sent! (Check your email)")
-    }).catch((err: any) => {
-      setStep("email") // Revert on failure
-      onToast(err.message || "Failed to send reset OTP", "error")
-    })
+
+    api.auth
+      .forgotPassword(email)
+      .then(() => {
+        onToast("Reset OTP sent! (Check your email)")
+      })
+      .catch((err: any) => {
+        setStep("email") // Revert on failure
+
+        onToast(err.message || "Failed to send reset OTP", "error")
+      })
   }
 
   const handleVerifyOtp = async () => {
@@ -2129,7 +2142,12 @@ function HomePage({
             </span>
             <div style={{ display: "flex", gap: 8 }}>
               <button
-                onClick={(e) => { e.stopPropagation(); setSelectedCourse(c); previousCoursePage = "home"; setPage("course-detail") }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setSelectedCourse(c)
+                  previousCoursePage = "home"
+                  setPage("course-detail")
+                }}
                 style={{
                   background: C.blue,
 
@@ -2368,21 +2386,33 @@ function HomePage({
 
 function CoursesPage({
   setPage,
+
   enrolledCourses,
+
   availableCourses,
+
   onEnroll,
+
   onUnenroll,
+
   setSelectedCourse,
 }: {
   setPage: (p: Page) => void
+
   enrolledCourses: Course[]
+
   availableCourses: Course[]
+
   onEnroll: (id: number) => void
+
   onUnenroll: (id: number) => void
+
   setSelectedCourse: (c: Course) => void
 }) {
   const [search, setSearch] = useState("")
+
   const [showForm, setShowForm] = useState(false)
+
   const [selectedCourseId, setSelectedCourseId] = useState<number | "">("")
 
   const filtered = enrolledCourses.filter(
@@ -2393,8 +2423,11 @@ function CoursesPage({
 
   const handleEnroll = () => {
     if (!selectedCourseId) return
+
     onEnroll(Number(selectedCourseId))
+
     setSelectedCourseId("")
+
     setShowForm(false)
   }
 
@@ -2403,8 +2436,11 @@ function CoursesPage({
       <div
         style={{
           display: "flex",
+
           justifyContent: "space-between",
+
           alignItems: "flex-start",
+
           marginBottom: 4,
         }}
       >
@@ -2412,8 +2448,11 @@ function CoursesPage({
           <h1
             style={{
               fontSize: 28,
+
               fontWeight: 800,
+
               color: C.text,
+
               letterSpacing: "-0.5px",
             }}
           >
@@ -2422,8 +2461,11 @@ function CoursesPage({
           <p
             style={{
               color: C.muted,
+
               fontSize: 14,
+
               marginTop: 4,
+
               marginBottom: 0,
             }}
           >
@@ -2434,16 +2476,27 @@ function CoursesPage({
           onClick={() => setShowForm(!showForm)}
           style={{
             display: "flex",
+
             alignItems: "center",
+
             gap: 7,
+
             background: C.blue,
+
             color: "#fff",
+
             border: "none",
+
             borderRadius: 10,
+
             padding: "10px 18px",
+
             fontSize: 14,
+
             fontWeight: 600,
+
             cursor: "pointer",
+
             marginTop: 4,
           }}
         >
@@ -2456,8 +2509,11 @@ function CoursesPage({
           <div
             style={{
               fontSize: 15,
+
               fontWeight: 700,
+
               color: C.text,
+
               marginBottom: 16,
             }}
           >
@@ -2468,9 +2524,13 @@ function CoursesPage({
               <label
                 style={{
                   fontSize: 12,
+
                   fontWeight: 600,
+
                   color: C.muted,
+
                   display: "block",
+
                   marginBottom: 5,
                 }}
               >
@@ -2478,15 +2538,26 @@ function CoursesPage({
               </label>
               <select
                 value={selectedCourseId}
-                onChange={(e) => setSelectedCourseId(e.target.value === "" ? "" : Number(e.target.value))}
+                onChange={(e) =>
+                  setSelectedCourseId(
+                    e.target.value === "" ? "" : Number(e.target.value),
+                  )
+                }
                 style={{
                   width: "100%",
+
                   padding: "9px 12px",
+
                   border: `1.5px solid ${C.border}`,
+
                   borderRadius: 8,
+
                   fontSize: 14,
+
                   color: C.text,
+
                   backgroundColor: "#fff",
+
                   fontFamily: "Inter, sans-serif",
                 }}
               >
@@ -2504,12 +2575,19 @@ function CoursesPage({
               onClick={() => setShowForm(false)}
               style={{
                 background: "#f1f5f9",
+
                 color: C.muted,
+
                 border: "none",
+
                 borderRadius: 8,
+
                 padding: "9px 20px",
+
                 fontSize: 13,
+
                 fontWeight: 600,
+
                 cursor: "pointer",
               }}
             >
@@ -2520,12 +2598,19 @@ function CoursesPage({
               disabled={!selectedCourseId}
               style={{
                 background: selectedCourseId ? C.blue : "#cbd5e1",
+
                 color: "#fff",
+
                 border: "none",
+
                 borderRadius: 8,
+
                 padding: "9px 20px",
+
                 fontSize: 13,
+
                 fontWeight: 600,
+
                 cursor: selectedCourseId ? "pointer" : "not-allowed",
               }}
             >
@@ -2536,7 +2621,15 @@ function CoursesPage({
       )}
 
       <div style={{ marginTop: 24, position: "relative", marginBottom: 30 }}>
-        <div style={{ position: "absolute", left: 16, top: 14, color: C.muted, display: "flex" }}>
+        <div
+          style={{
+            position: "absolute",
+            left: 16,
+            top: 14,
+            color: C.muted,
+            display: "flex",
+          }}
+        >
           <Icon.Search />
         </div>
         <input
@@ -2545,15 +2638,25 @@ function CoursesPage({
           placeholder="Search my courses..."
           style={{
             width: "100%",
+
             padding: "13px 16px 13px 44px",
+
             background: "#fff",
+
             border: "1px solid #E2E8F0",
+
             borderRadius: 14,
+
             fontSize: 15,
+
             color: C.text,
+
             outline: "none",
+
             boxShadow: "0 2px 8px rgba(0,0,0,0.02)",
+
             fontFamily: "Inter, sans-serif",
+
             transition: "all 0.2s ease",
           }}
         />
@@ -2562,7 +2665,9 @@ function CoursesPage({
       <div
         style={{
           display: "grid",
+
           gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+
           gap: 16,
         }}
       >
@@ -2571,18 +2676,26 @@ function CoursesPage({
             <div
               style={{
                 display: "flex",
+
                 justifyContent: "space-between",
+
                 alignItems: "flex-start",
+
                 marginBottom: 12,
               }}
             >
               <span
                 style={{
                   background: "#F1F5F9",
+
                   color: C.text,
+
                   fontSize: 13,
+
                   fontWeight: 700,
+
                   padding: "4px 10px",
+
                   borderRadius: 6,
                 }}
               >
@@ -2591,17 +2704,26 @@ function CoursesPage({
               <button
                 onClick={(e) => {
                   e.stopPropagation()
+
                   onUnenroll(c.id)
                 }}
                 style={{
                   background: "transparent",
+
                   border: "none",
+
                   color: "#ef4444",
+
                   fontSize: 13,
+
                   fontWeight: 600,
+
                   cursor: "pointer",
+
                   display: "flex",
+
                   alignItems: "center",
+
                   gap: 4,
                 }}
               >
@@ -2611,8 +2733,11 @@ function CoursesPage({
             <div
               style={{
                 fontWeight: 700,
+
                 fontSize: 17,
+
                 color: C.text,
+
                 marginBottom: 6,
               }}
             >
@@ -2624,7 +2749,9 @@ function CoursesPage({
             <div
               style={{
                 display: "flex",
+
                 justifyContent: "space-between",
+
                 alignItems: "center",
               }}
             >
@@ -2632,15 +2759,27 @@ function CoursesPage({
                 {c.resources} Resources
               </span>
               <button
-                onClick={(e) => { e.stopPropagation(); setSelectedCourse(c); previousCoursePage = "courses"; setPage("course-detail") }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setSelectedCourse(c)
+                  previousCoursePage = "courses"
+                  setPage("course-detail")
+                }}
                 style={{
                   background: C.blue,
+
                   color: "#fff",
+
                   padding: "6px 14px",
+
                   border: "none",
+
                   borderRadius: 8,
+
                   fontSize: 12,
+
                   fontWeight: 600,
+
                   cursor: "pointer",
                 }}
               >
@@ -2653,19 +2792,28 @@ function CoursesPage({
           <div
             style={{
               gridColumn: "1 / -1",
+
               textAlign: "center",
+
               padding: "60px 0",
             }}
           >
             <div
               style={{
                 background: "#F8FAFC",
+
                 width: 64,
+
                 height: 64,
+
                 borderRadius: "50%",
+
                 display: "flex",
+
                 alignItems: "center",
+
                 justifyContent: "center",
+
                 margin: "0 auto 16px",
               }}
             >
@@ -2674,8 +2822,11 @@ function CoursesPage({
             <h3
               style={{
                 color: C.text,
+
                 fontSize: 18,
+
                 fontWeight: 700,
+
                 marginBottom: 8,
               }}
             >
@@ -2690,7 +2841,6 @@ function CoursesPage({
     </div>
   )
 }
-
 
 function CourseDetailPage({
   setPage,
@@ -3878,6 +4028,7 @@ function ProfilePage({
   onToast,
 
   onUserUpdated,
+
   onDeleteResource,
 }: {
   resources: Resource[]
@@ -3889,6 +4040,7 @@ function ProfilePage({
   onToast: (msg: string, type?: "success" | "error") => void
 
   onUserUpdated: (u: any) => void
+
   onDeleteResource?: (id: number) => Promise<boolean> | void
 }) {
   const [tab, setTab] = useState<"uploads" | "pins" | "settings">("uploads")
@@ -4152,39 +4304,55 @@ function ProfilePage({
                       {r.course} · {r.type} · {r.date}
                     </div>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <TypeBadge type={r.type} />
-                      {onDeleteResource && (
-                        <button
-                          onClick={async () => {
-                            const success = await onDeleteResource(r.id)
-                            if (success) {
-                              setProfileData((prev: any) => {
-                                if (!prev) return prev
-                                return {
-                                  ...prev,
-                                  uploads: prev.uploads.filter((u: any) => u.id !== r.id)
-                                }
-                              })
-                            }
-                          }}
-                          style={{
-                            background: "#FEE2E2",
-                            color: "#DC2626",
-                            border: "none",
-                            borderRadius: 8,
-                            padding: "6px 12px",
-                            fontSize: 12,
-                            fontWeight: 600,
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                          }}
-                        >
-                          Delete
-                        </button>
-                      )}
-                    </div>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 12 }}
+                  >
+                    <TypeBadge type={r.type} />
+                    {onDeleteResource && (
+                      <button
+                        onClick={async () => {
+                          const success = await onDeleteResource(r.id)
+
+                          if (success) {
+                            setProfileData((prev: any) => {
+                              if (!prev) return prev
+
+                              return {
+                                ...prev,
+
+                                uploads: prev.uploads.filter(
+                                  (u: any) => u.id !== r.id,
+                                ),
+                              }
+                            })
+                          }
+                        }}
+                        style={{
+                          background: "#FEE2E2",
+
+                          color: "#DC2626",
+
+                          border: "none",
+
+                          borderRadius: 8,
+
+                          padding: "6px 12px",
+
+                          fontSize: 12,
+
+                          fontWeight: 600,
+
+                          cursor: "pointer",
+
+                          display: "flex",
+
+                          alignItems: "center",
+                        }}
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
                 </div>
               </Card>
             ))
@@ -4651,6 +4819,7 @@ export default function App() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const { toast, show } = useToast()
+
   const [appLoading, setAppLoading] = useState(true)
 
   // Load data from backend
@@ -4658,6 +4827,7 @@ export default function App() {
   const loadData = async () => {
     try {
       setAppLoading(true)
+
       const [fetchedCourses, fetchedResources, fetchedEnrolled] =
         await Promise.all([
           api.courses.getAll().catch(() => []),
@@ -4681,14 +4851,18 @@ export default function App() {
 
   useEffect(() => {
     const user = api.auth.getUser()
+
     const token = api.auth.getToken()
 
     if (user && token) {
       setCurrentUser(user)
+
       setPage("home")
+
       loadData()
     } else {
       setAppLoading(false)
+
       loadData() // try fetching global data anyway if needed, though APIs might reject
     }
   }, [])
@@ -4729,18 +4903,25 @@ export default function App() {
     if (!window.confirm("Are you sure you want to delete this resource?"))
       return false
 
-    const resourceToDelete = resources.find(r => r.id === id)
+    const resourceToDelete = resources.find((r) => r.id === id)
+
     // Optimistic UI update
+
     setResources((prev) => prev.filter((r) => r.id !== id))
+
     show("Resource deleted successfully")
 
     try {
       await api.resources.delete(id)
+
       return true
     } catch (err: any) {
       // Revert
+
       if (resourceToDelete) setResources((prev) => [resourceToDelete, ...prev])
+
       show(err.message || "Failed to delete resource", "error")
+
       return false
     }
   }
@@ -4797,26 +4978,36 @@ export default function App() {
 
   const enrollCourse = async (id: number) => {
     // Optimistic UI update to eliminate click latency completely
+
     setEnrolledCourseIds((prev) => [...prev, id])
+
     show("Added to My Courses")
+
     try {
       await api.courses.enroll(id)
     } catch (err: any) {
       // Revert if failed
+
       setEnrolledCourseIds((prev) => prev.filter((eid) => eid !== id))
+
       show(err.message, "error")
     }
   }
 
   const removeCourse = async (id: number) => {
     // Optimistic UI update
+
     setEnrolledCourseIds((prev) => prev.filter((eid) => eid !== id))
+
     show("Removed from My Courses")
+
     try {
       await api.courses.unenroll(id)
     } catch (err: any) {
       // Revert if failed
+
       setEnrolledCourseIds((prev) => [...prev, id])
+
       show(err.message || "Failed to remove course", "error")
     }
   }
@@ -4911,77 +5102,97 @@ export default function App() {
       <Sidebar page={page} setPage={setPage} onLogout={handleLogout} />
       <main style={{ flex: 1, overflow: "auto", height: "100%" }}>
         {appLoading ? (
-          <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%", color: C.muted, gap: 16 }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
+              color: C.muted,
+              gap: 16,
+            }}
+          >
             <div style={{ transform: "scale(1.5)", display: "flex" }}>
               <Icon.Book />
             </div>
-            <div style={{ fontWeight: 600, fontSize: 16 }}>Loading StudyStack...</div>
+            <div style={{ fontWeight: 600, fontSize: 16 }}>
+              Loading StudyStack...
+            </div>
           </div>
         ) : (
           <>
             {page === "home" && (
-          <HomePage
-            setPage={setPage}
-            resources={resources}
-            onPin={togglePin}
-            onToast={show}
-            courses={courses}
-            user={currentUser}
-            setSelectedCourse={handleViewCourse}
-            enrolledCourseIds={enrolledCourseIds}
-            onEnroll={enrollCourse}
-            onUnenroll={removeCourse}
-            onDeleteResource={handleDeleteResource}
-          />
-        )}
-        {page === "courses" && (
-          <CoursesPage
-            setPage={setPage}
-            enrolledCourses={courses.filter((c) => enrolledCourseIds.includes(c.id))}
-            availableCourses={courses.filter((c) => !enrolledCourseIds.includes(c.id))}
-            onEnroll={enrollCourse}
-            onUnenroll={removeCourse}
-            setSelectedCourse={handleViewCourse}
-          />
-        )}
-        {page === "course-detail" && (
-          <CourseDetailPage
-            setPage={setPage}
-            resources={resources}
-            onPin={togglePin}
-            onToast={show}
-            course={selectedCourse}
-            user={currentUser}
-            onDeleteResource={handleDeleteResource}
-          />
-        )}
-        {page === "upload" && (
-          <UploadPage onToast={show} courses={courses} onUploaded={loadData} />
-        )}
-        {page === "pins" && (
-          <PinsPage
-            resources={resources}
-            onPin={togglePin}
-            onToast={show}
-            user={currentUser}
-            onDeleteResource={handleDeleteResource}
-            setPage={setPage}
-          />
-        )}
-        {page === "profile" && (
-          <ProfilePage
-            resources={resources}
-            user={currentUser}
-            onLogout={handleLogout}
-            onToast={show}
-            onUserUpdated={(u) => {
-              setCurrentUser(u)
+              <HomePage
+                setPage={setPage}
+                resources={resources}
+                onPin={togglePin}
+                onToast={show}
+                courses={courses}
+                user={currentUser}
+                setSelectedCourse={handleViewCourse}
+                enrolledCourseIds={enrolledCourseIds}
+                onEnroll={enrollCourse}
+                onUnenroll={removeCourse}
+                onDeleteResource={handleDeleteResource}
+              />
+            )}
+            {page === "courses" && (
+              <CoursesPage
+                setPage={setPage}
+                enrolledCourses={courses.filter((c) =>
+                  enrolledCourseIds.includes(c.id),
+                )}
+                availableCourses={courses.filter(
+                  (c) => !enrolledCourseIds.includes(c.id),
+                )}
+                onEnroll={enrollCourse}
+                onUnenroll={removeCourse}
+                setSelectedCourse={handleViewCourse}
+              />
+            )}
+            {page === "course-detail" && (
+              <CourseDetailPage
+                setPage={setPage}
+                resources={resources}
+                onPin={togglePin}
+                onToast={show}
+                course={selectedCourse}
+                user={currentUser}
+                onDeleteResource={handleDeleteResource}
+              />
+            )}
+            {page === "upload" && (
+              <UploadPage
+                onToast={show}
+                courses={courses}
+                onUploaded={loadData}
+              />
+            )}
+            {page === "pins" && (
+              <PinsPage
+                resources={resources}
+                onPin={togglePin}
+                onToast={show}
+                user={currentUser}
+                onDeleteResource={handleDeleteResource}
+                setPage={setPage}
+              />
+            )}
+            {page === "profile" && (
+              <ProfilePage
+                resources={resources}
+                user={currentUser}
+                onLogout={handleLogout}
+                onToast={show}
+                onUserUpdated={(u) => {
+                  setCurrentUser(u)
 
-              api.auth.setUser(u)
-            }}
-            onDeleteResource={handleDeleteResource}
-          />
-        )}
+                  api.auth.setUser(u)
+                }}
+                onDeleteResource={handleDeleteResource}
+              />
+            )}
           </>
         )}
       </main>

@@ -20,30 +20,12 @@ const JWT_SECRET = process.env.JWT_SECRET || "studystack_secret_jwt_key_2026"
 
 // File storage setup
 
-const uploadDir = path.resolve(process.cwd(), "uploads")
-
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true })
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir)
-  },
-
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9)
-
-    const ext = path.extname(file.originalname)
-
-    cb(null, `${uniqueSuffix}${ext}`)
-  },
-})
+const storage = multer.memoryStorage()
 
 const upload = multer({
   storage,
 
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+  limits: { fileSize: 15 * 1024 * 1024 }, // 50MB
 })
 
 // Optional auth helper to check if user has pinned a resource
@@ -156,10 +138,14 @@ resourcesRouter.post(
 
       let filePath: string | null = null
 
+      let fileData: Buffer | null = null
+
       let fileSize = "1.0 MB"
 
       if (req.file) {
-        filePath = req.file.filename
+        filePath = req.file.originalname
+
+        fileData = req.file.buffer
 
         const bytes = req.file.size
 
@@ -181,8 +167,10 @@ resourcesRouter.post(
 
       const info = (
         await pool.query(
-          `INSERT INTO resources (title, course_code, type, by, uploader_email, file_path, file_size, date)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+          `INSERT INTO resources (title, course_code, type, by, uploader_email, file_path, file_size, date, file_data)
+
+
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
 
           [
             title.trim(),
@@ -200,6 +188,8 @@ resourcesRouter.post(
             fileSize,
 
             today,
+
+            fileData,
           ],
         )
       ).rows[0]
@@ -289,27 +279,31 @@ resourcesRouter.get("/:id/download", async (req, res) => {
       return res.status(404).json({ error: "Resource not found" })
     }
 
-    if (resource.file_path) {
-      const fullPath = path.join(uploadDir, resource.file_path)
+    if (resource.file_data) {
+      const ext = resource.file_path ? path.extname(resource.file_path) : ".pdf"
 
-      if (fs.existsSync(fullPath)) {
-        const ext = path.extname(resource.file_path) || ""
+      const cleanTitle = resource.title.replace(/[/\\?%*:|"<>]/g, "_").trim()
 
-        const cleanTitle = resource.title.replace(/[/\\?%*:|"<>]/g, "_").trim()
+      const downloadFilename = cleanTitle
+        .toLowerCase()
+        .endsWith(ext.toLowerCase())
+        ? cleanTitle
+        : `${cleanTitle}${ext}`
 
-        const downloadFilename = cleanTitle
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${downloadFilename}"`,
+      )
 
-          .toLowerCase()
+      res.setHeader(
+        "Content-Type",
+        ext.toLowerCase() === ".pdf"
+          ? "application/pdf"
+          : "application/octet-stream",
+      )
 
-          .endsWith(ext.toLowerCase())
-          ? cleanTitle
-          : `${cleanTitle}${ext}`
-
-        return res.download(fullPath, downloadFilename)
-      }
+      return res.send(resource.file_data)
     }
-
-    // Dynamic PDF generator fallback for any resources without a disk file
 
     const pdfDoc = await PDFDocument.create()
 
@@ -480,11 +474,23 @@ resourcesRouter.get("/pinned", authenticateToken, async (req: any, res) => {
     const pinned = (
       await pool.query(
         `
+
+
         SELECT r.*, 1 as pinned
+
+
         FROM resources r
+
+
         JOIN pins p ON p.resource_id = r.id
+
+
         WHERE p.user_email = $1
+
+
         ORDER BY p.id DESC
+
+
       `,
 
         [userEmail],
@@ -504,5 +510,42 @@ resourcesRouter.get("/pinned", authenticateToken, async (req: any, res) => {
       .status(500)
 
       .json({ error: error.message || "Failed to fetch pinned resources" })
+  }
+})
+
+resourcesRouter.delete("/:id", authenticateToken, async (req: any, res) => {
+  try {
+    const resourceId = Number(req.params.id)
+
+    const userEmail = req.user.email
+
+    const resource = (
+      await pool.query("SELECT * FROM resources WHERE id = $1", [resourceId])
+    ).rows[0] as any
+
+    if (!resource) {
+      return res.status(404).json({ error: "Resource not found" })
+    }
+
+    if (resource.uploader_email !== userEmail) {
+      return res
+        .status(403)
+        .json({ error: "Unauthorized to delete this resource" })
+    }
+
+    await pool.query("DELETE FROM resources WHERE id = $1", [resourceId])
+
+    await pool.query("DELETE FROM pins WHERE resource_id = $1", [resourceId])
+
+    await pool.query(
+      "UPDATE courses SET resources = GREATEST(0, resources - 1) WHERE code = $1",
+      [resource.course_code],
+    )
+
+    res.json({ success: true })
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to delete resource" })
   }
 })
