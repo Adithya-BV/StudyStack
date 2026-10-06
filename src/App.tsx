@@ -4352,6 +4352,68 @@ function ProfilePage({
                     style={{ display: "flex", alignItems: "center", gap: 12 }}
                   >
                     <TypeBadge type={r.type} />
+                    <button
+                      onClick={() =>
+                        window.open(api.resources.getViewUrl(r.id), "_blank")
+                      }
+                      style={{
+                        background: "#EFF6FF",
+
+                        color: C.blue,
+
+                        border: "none",
+
+                        borderRadius: 8,
+
+                        padding: "6px 12px",
+
+                        fontSize: 12,
+
+                        fontWeight: 600,
+
+                        cursor: "pointer",
+
+                        display: "flex",
+
+                        alignItems: "center",
+                      }}
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() => {
+                        window.open(
+                          api.resources.getDownloadUrl(r.id),
+
+                          "_blank",
+                        )
+
+                        onToast(`Downloading ${r.title}...`)
+                      }}
+                      style={{
+                        background: C.blue,
+
+                        color: "#fff",
+
+                        border: "none",
+
+                        borderRadius: 8,
+
+                        padding: "6px 12px",
+
+                        fontSize: 12,
+
+                        fontWeight: 600,
+
+                        cursor: "pointer",
+
+                        display: "flex",
+
+                        alignItems: "center",
+                      }}
+                    >
+                      Download
+                    </button>
                     {onDeleteResource && (
                       <button
                         onClick={async () => {

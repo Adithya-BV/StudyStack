@@ -3,7 +3,10 @@
 const API_BASE = "/api"
 
 function checkSessionExpiry(data: any) {
-  if (data && data.error === "Your session has expired. Please logout and login again.") {
+  if (
+    data &&
+    data.error === "Your session has expired. Please logout and login again."
+  ) {
     window.dispatchEvent(new Event("session-expired"))
   }
 }
