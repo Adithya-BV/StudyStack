@@ -3313,6 +3313,13 @@ function UploadPage({
 
   const [success, setSuccess] = useState(false)
 
+  const coursesSortedByCode = [...courses].sort((a, b) =>
+    a.code.localeCompare(b.code),
+  )
+  const coursesSortedByName = [...courses].sort((a, b) =>
+    a.name.localeCompare(b.name),
+  )
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
 
@@ -3354,12 +3361,19 @@ function UploadPage({
       finalCourseDept = newCourseDept.trim()
     } else {
       if (!course) {
-        onToast("Please select a course", "error")
+        onToast("Please select a course code and name", "error")
 
         return
       }
 
       finalCourseCode = course.trim().toUpperCase()
+      const foundCourse = courses.find(
+        (c) => c.code.toUpperCase() === finalCourseCode,
+      )
+      if (foundCourse) {
+        finalCourseName = foundCourse.name
+        finalCourseDept = foundCourse.dept
+      }
     }
 
     if (!title.trim() || !resType) {
@@ -3563,110 +3577,182 @@ function UploadPage({
           marginBottom: 24,
         }}
       >
-        <div>
+        {!isNewCourse ? (
+          <>
+            <div>
+              <div
+                style={{
+                  display: "flex",
+
+                  justifyContent: "space-between",
+
+                  alignItems: "center",
+
+                  marginBottom: 6,
+                }}
+              >
+                <label style={{ fontSize: 13, fontWeight: 600, color: C.text }}>
+                  Course Code *
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsNewCourse(true)
+
+                    setCourse("")
+                  }}
+                  style={{
+                    background: "none",
+
+                    border: "none",
+
+                    color: C.blue,
+
+                    fontSize: 12,
+
+                    fontWeight: 600,
+
+                    cursor: "pointer",
+
+                    padding: "2px 4px",
+                  }}
+                >
+                  + Course not in list?
+                </button>
+              </div>
+
+              <select
+                value={course}
+                onChange={(e) => {
+                  if (e.target.value === "__NEW__") {
+                    setIsNewCourse(true)
+
+                    setCourse("")
+                  } else {
+                    setCourse(e.target.value)
+                  }
+                }}
+                style={{
+                  width: "100%",
+
+                  padding: "11px 14px",
+
+                  border: `1.5px solid ${C.border}`,
+
+                  borderRadius: 10,
+
+                  fontSize: 14,
+
+                  color: course ? C.text : C.muted,
+
+                  background: "#fff",
+
+                  fontFamily: "Inter, sans-serif",
+
+                  cursor: "pointer",
+
+                  boxSizing: "border-box",
+                }}
+              >
+                <option value="">Select course code</option>
+                {coursesSortedByCode.map((c) => (
+                  <option key={c.id} value={c.code} style={{ color: C.text }}>
+                    {c.code}
+                  </option>
+                ))}
+                <option value="__NEW__" style={{ color: C.blue, fontWeight: 600 }}>
+                  ✨ + Add New Course (Course not in list)
+                </option>
+              </select>
+            </div>
+
+            <div>
+              <label
+                style={{
+                  fontSize: 13,
+
+                  fontWeight: 600,
+
+                  color: C.text,
+
+                  display: "block",
+
+                  marginBottom: 6,
+                }}
+              >
+                Course Name *
+              </label>
+
+              <select
+                value={course}
+                onChange={(e) => {
+                  if (e.target.value === "__NEW__") {
+                    setIsNewCourse(true)
+
+                    setCourse("")
+                  } else {
+                    setCourse(e.target.value)
+                  }
+                }}
+                style={{
+                  width: "100%",
+
+                  padding: "11px 14px",
+
+                  border: `1.5px solid ${C.border}`,
+
+                  borderRadius: 10,
+
+                  fontSize: 14,
+
+                  color: course ? C.text : C.muted,
+
+                  background: "#fff",
+
+                  fontFamily: "Inter, sans-serif",
+
+                  cursor: "pointer",
+
+                  boxSizing: "border-box",
+                }}
+              >
+                <option value="">Select course name</option>
+                {coursesSortedByName.map((c) => (
+                  <option key={c.id} value={c.code} style={{ color: C.text }}>
+                    {c.name}
+                  </option>
+                ))}
+                <option value="__NEW__" style={{ color: C.blue, fontWeight: 600 }}>
+                  ✨ + Add New Course (Course not in list)
+                </option>
+              </select>
+            </div>
+          </>
+        ) : (
           <div
             style={{
+              background: "#F8FAFC",
+
+              border: `1.5px solid ${C.blue}`,
+
+              borderRadius: 12,
+
+              padding: "16px",
+
               display: "flex",
 
-              justifyContent: "space-between",
+              flexDirection: "column",
 
-              alignItems: "center",
-
-              marginBottom: 6,
+              gap: 14,
             }}
           >
-            <label style={{ fontSize: 13, fontWeight: 600, color: C.text }}>
-              Course *
-            </label>
-            <button
-              type="button"
-              onClick={() => {
-                const next = !isNewCourse
-
-                setIsNewCourse(next)
-
-                if (next) setCourse("")
-              }}
-              style={{
-                background: "none",
-
-                border: "none",
-
-                color: C.blue,
-
-                fontSize: 12,
-
-                fontWeight: 600,
-
-                cursor: "pointer",
-
-                padding: "2px 4px",
-              }}
-            >
-              {isNewCourse
-                ? "← Choose from existing courses"
-                : "+ Course not in list?"}
-            </button>
-          </div>
-
-          {!isNewCourse ? (
-            <select
-              value={course}
-              onChange={(e) => {
-                if (e.target.value === "__NEW__") {
-                  setIsNewCourse(true)
-
-                  setCourse("")
-                } else {
-                  setCourse(e.target.value)
-                }
-              }}
-              style={{
-                width: "100%",
-
-                padding: "11px 14px",
-
-                border: `1.5px solid ${C.border}`,
-
-                borderRadius: 10,
-
-                fontSize: 14,
-
-                color: C.text,
-
-                background: "#fff",
-
-                fontFamily: "Inter, sans-serif",
-
-                cursor: "pointer",
-              }}
-            >
-              <option value="">Select a course</option>
-              {courses.map((c) => (
-                <option key={c.id} value={c.code}>
-                  {c.code} — {c.name}
-                </option>
-              ))}
-              <option value="__NEW__">
-                ➕ + Add New Course (Course not in list)
-              </option>
-            </select>
-          ) : (
             <div
               style={{
-                background: "#F8FAFC",
-
-                border: `1.5px solid ${C.blue}`,
-
-                borderRadius: 12,
-
-                padding: "16px",
-
                 display: "flex",
 
-                flexDirection: "column",
+                justifyContent: "space-between",
 
-                gap: 12,
+                alignItems: "center",
               }}
             >
               <div
@@ -3684,163 +3770,179 @@ function UploadPage({
                   color: C.blue,
                 }}
               >
-                <span>✨</span> Course doesn't exist yet? It will be created
-                automatically and added to all courses!
+                <span>ℹ️</span> Add New Course
               </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsNewCourse(false)
 
-              <div
+                  setNewCourseCode("")
+
+                  setNewCourseName("")
+                }}
                 style={{
-                  display: "grid",
+                  background: "none",
 
-                  gridTemplateColumns: "1fr 1fr",
+                  border: "none",
 
-                  gap: 12,
+                  color: C.blue,
+
+                  fontSize: 12,
+
+                  fontWeight: 600,
+
+                  cursor: "pointer",
+
+                  padding: "2px 4px",
                 }}
               >
-                <div>
-                  <label
-                    style={{
-                      fontSize: 12,
-
-                      fontWeight: 600,
-
-                      color: C.text,
-
-                      display: "block",
-
-                      marginBottom: 4,
-                    }}
-                  >
-                    Course Code *
-                  </label>
-                  <input
-                    value={newCourseCode}
-                    onChange={(e) =>
-                      setNewCourseCode(e.target.value.toUpperCase())
-                    }
-                    placeholder="e.g. CSN-301 or ECE-202"
-                    style={{
-                      width: "100%",
-
-                      padding: "9px 12px",
-
-                      border: `1.5px solid ${C.border}`,
-
-                      borderRadius: 8,
-
-                      fontSize: 13,
-
-                      color: C.text,
-
-                      background: "#fff",
-
-                      outline: "none",
-
-                      boxSizing: "border-box",
-
-                      fontFamily: "Inter, sans-serif",
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label
-                    style={{
-                      fontSize: 12,
-
-                      fontWeight: 600,
-
-                      color: C.text,
-
-                      display: "block",
-
-                      marginBottom: 4,
-                    }}
-                  >
-                    Department / Branch
-                  </label>
-                  <select
-                    value={newCourseDept}
-                    onChange={(e) => setNewCourseDept(e.target.value)}
-                    style={{
-                      width: "100%",
-
-                      padding: "9px 12px",
-
-                      border: `1.5px solid ${C.border}`,
-
-                      borderRadius: 8,
-
-                      fontSize: 13,
-
-                      color: C.text,
-
-                      background: "#fff",
-
-                      outline: "none",
-
-                      boxSizing: "border-box",
-
-                      fontFamily: "Inter, sans-serif",
-
-                      cursor: "pointer",
-                    }}
-                  >
-                    {IITR_BRANCHES.map((b) => (
-                      <option key={b} value={b}>
-                        {b}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div style={{ gridColumn: "1 / -1" }}>
-                  <label
-                    style={{
-                      fontSize: 12,
-
-                      fontWeight: 600,
-
-                      color: C.text,
-
-                      display: "block",
-
-                      marginBottom: 4,
-                    }}
-                  >
-                    Course Name *
-                  </label>
-                  <input
-                    value={newCourseName}
-                    onChange={(e) => setNewCourseName(e.target.value)}
-                    placeholder="e.g. Operating Systems or Signals and Systems"
-                    style={{
-                      width: "100%",
-
-                      padding: "9px 12px",
-
-                      border: `1.5px solid ${C.border}`,
-
-                      borderRadius: 8,
-
-                      fontSize: 13,
-
-                      color: C.text,
-
-                      background: "#fff",
-
-                      outline: "none",
-
-                      boxSizing: "border-box",
-
-                      fontFamily: "Inter, sans-serif",
-                    }}
-                  />
-                </div>
-              </div>
+                ← Choose from existing courses
+              </button>
             </div>
-          )}
-        </div>
+
+            <div>
+              <label
+                style={{
+                  fontSize: 13,
+
+                  fontWeight: 600,
+
+                  color: C.text,
+
+                  display: "block",
+
+                  marginBottom: 6,
+                }}
+              >
+                Course Code *
+              </label>
+              <input
+                value={newCourseCode}
+                onChange={(e) =>
+                  setNewCourseCode(e.target.value.toUpperCase())
+                }
+                placeholder="e.g. CSN-301 or ECE-202"
+                style={{
+                  width: "100%",
+
+                  padding: "11px 14px",
+
+                  border: `1.5px solid ${C.border}`,
+
+                  borderRadius: 10,
+
+                  fontSize: 14,
+
+                  color: C.text,
+
+                  background: "#fff",
+
+                  outline: "none",
+
+                  boxSizing: "border-box",
+
+                  fontFamily: "Inter, sans-serif",
+                }}
+              />
+            </div>
+
+            <div>
+              <label
+                style={{
+                  fontSize: 13,
+
+                  fontWeight: 600,
+
+                  color: C.text,
+
+                  display: "block",
+
+                  marginBottom: 6,
+                }}
+              >
+                Course Name *
+              </label>
+              <input
+                value={newCourseName}
+                onChange={(e) => setNewCourseName(e.target.value)}
+                placeholder="e.g. Operating Systems or Signals and Systems"
+                style={{
+                  width: "100%",
+
+                  padding: "11px 14px",
+
+                  border: `1.5px solid ${C.border}`,
+
+                  borderRadius: 10,
+
+                  fontSize: 14,
+
+                  color: C.text,
+
+                  background: "#fff",
+
+                  outline: "none",
+
+                  boxSizing: "border-box",
+
+                  fontFamily: "Inter, sans-serif",
+                }}
+              />
+            </div>
+
+            <div>
+              <label
+                style={{
+                  fontSize: 13,
+
+                  fontWeight: 600,
+
+                  color: C.text,
+
+                  display: "block",
+
+                  marginBottom: 6,
+                }}
+              >
+                Department / Branch
+              </label>
+              <select
+                value={newCourseDept}
+                onChange={(e) => setNewCourseDept(e.target.value)}
+                style={{
+                  width: "100%",
+
+                  padding: "11px 14px",
+
+                  border: `1.5px solid ${C.border}`,
+
+                  borderRadius: 10,
+
+                  fontSize: 14,
+
+                  color: C.text,
+
+                  background: "#fff",
+
+                  outline: "none",
+
+                  boxSizing: "border-box",
+
+                  fontFamily: "Inter, sans-serif",
+
+                  cursor: "pointer",
+                }}
+              >
+                {IITR_BRANCHES.map((b) => (
+                  <option key={b} value={b}>
+                    {b}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
         <div>
           <label
             style={{
