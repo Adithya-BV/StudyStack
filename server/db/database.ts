@@ -80,21 +80,11 @@ export async function initDatabase() {
       "INSERT INTO courses (code, name, dept, resources) VALUES ($1, $2, $3, $4)"
 
     const initialCourses = [
-      ["CSN-201", "Data Structures and Algorithms", "Computer Science", 24],
-
-      ["MA-201", "Mathematics III", "Mathematics", 18],
-
-      ["EE-301", "Signals and Systems", "Electrical Engineering", 31],
-
-      ["CSN-301", "Operating Systems", "Computer Science", 27],
-
-      ["ME-201", "Engineering Mechanics", "Mechanical Engineering", 15],
-
-      ["CH-101", "Engineering Chemistry", "Chemistry", 22],
-
-      ["CSN-401", "Computer Networks", "Computer Science", 19],
-
-      ["EE-201", "Basic Electronics", "Electrical Engineering", 33],
+      ["ECT-102", "Design of Passive Microwave Components", "Electronics & Communication Engineering", 0],
+      ["ECC-351", "Fundamentals of AI/ML", "Electronics & Communication Engineering", 0],
+      ["ECC-301", "Digital Signal Processing", "Electronics & Communication Engineering", 1],
+      ["ECC-305", "Digital Electronics and Linear IC Lab", "Electronics & Communication Engineering", 0],
+      ["ECC-303", "Microwave Engineering", "Electronics & Communication Engineering", 0],
     ]
 
     for (const c of initialCourses) {
