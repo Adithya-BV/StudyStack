@@ -1136,6 +1136,16 @@ function LoginPage({
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      const target = e.target as HTMLElement
+      if (target.tagName !== "BUTTON") {
+        e.preventDefault()
+        handleLogin()
+      }
+    }
+  }
+
   return (
     <div style={{ minHeight: "100%", display: "flex", background: C.bg }}>
       {/* Left panel */}
@@ -1191,7 +1201,7 @@ function LoginPage({
           padding: 48,
         }}
       >
-        <div style={{ width: "100%", maxWidth: 400 }}>
+        <div style={{ width: "100%", maxWidth: 400 }} onKeyDown={handleKeyDown}>
           <div
             style={{
               fontSize: 28,
@@ -1384,6 +1394,16 @@ function SignupPage({
       })
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      const target = e.target as HTMLElement
+      if (target.tagName !== "BUTTON" && target.tagName !== "SELECT") {
+        e.preventDefault()
+        handleSubmit()
+      }
+    }
+  }
+
   return (
     <div
       style={{
@@ -1401,6 +1421,7 @@ function SignupPage({
       }}
     >
       <div
+        onKeyDown={handleKeyDown}
         style={{
           width: "100%",
 
@@ -1666,6 +1687,16 @@ function OtpPage({
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      const target = e.target as HTMLElement
+      if (target.tagName !== "BUTTON") {
+        e.preventDefault()
+        handleVerify()
+      }
+    }
+  }
+
   return (
     <div
       style={{
@@ -1684,6 +1715,7 @@ function OtpPage({
     >
       <div
         className="animate-step"
+        onKeyDown={handleKeyDown}
         style={{
           width: "100%",
 
@@ -1894,6 +1926,18 @@ function ForgotPasswordPage({
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      const target = e.target as HTMLElement
+      if (target.tagName !== "BUTTON") {
+        e.preventDefault()
+        if (step === "email") handleSendOtp()
+        else if (step === "otp") handleVerifyOtp()
+        else if (step === "password") handleReset()
+      }
+    }
+  }
+
   let title = "Forgot password?"
 
   let desc = "Enter your IITR email to receive an OTP."
@@ -1926,6 +1970,7 @@ function ForgotPasswordPage({
     >
       <div
         className="animate-step"
+        onKeyDown={handleKeyDown}
         style={{
           width: "100%",
 
