@@ -1318,7 +1318,7 @@ function SignupPage({
 }) {
   const [name, setName] = useState("")
 
-  const [branch, setBranch] = useState("Computer Science & Engineering")
+  const [branch, setBranch] = useState("")
 
   const [email, setEmail] = useState("")
 
@@ -1331,6 +1331,12 @@ function SignupPage({
   const handleSubmit = async () => {
     if (!name.trim()) {
       onToast("Student name cannot be empty", "error")
+
+      return
+    }
+
+    if (!branch) {
+      onToast("Please select your branch / department", "error")
 
       return
     }
@@ -1510,7 +1516,7 @@ function SignupPage({
 
                 fontSize: 14,
 
-                color: C.text,
+                color: branch ? C.text : C.muted,
 
                 background: "#fff",
 
@@ -1523,8 +1529,11 @@ function SignupPage({
                 boxSizing: "border-box",
               }}
             >
+              <option value="" disabled>
+                Select Branch / Department
+              </option>
               {IITR_BRANCHES.map((b) => (
-                <option key={b} value={b}>
+                <option key={b} value={b} style={{ color: C.text }}>
                   {b}
                 </option>
               ))}

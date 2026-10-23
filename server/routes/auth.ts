@@ -54,6 +54,10 @@ authRouter.post("/signup", async (req, res) => {
       return res.status(400).json({ error: "Student name cannot be empty" })
     }
 
+    if (!branch || !branch.trim()) {
+      return res.status(400).json({ error: "Please select your branch / department" })
+    }
+
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required" })
     }
@@ -92,8 +96,7 @@ authRouter.post("/signup", async (req, res) => {
 
     const password_hash = await bcrypt.hash(password, salt)
 
-    const studentBranch =
-      (branch && branch.trim()) || "Electronics & Communication"
+    const studentBranch = branch.trim()
 
     if (existing) {
       await pool.query(
