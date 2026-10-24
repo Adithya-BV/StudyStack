@@ -104,6 +104,40 @@ const IITR_BRANCHES = [
 // ── Icons ────────────────────────────────────────────────────────────────────
 
 const Icon = {
+  Flag: () => (
+    <svg
+      width="14"
+      height="14"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"
+      />
+    </svg>
+  ),
+
+  CheckCircle: () => (
+    <svg
+      width="14"
+      height="14"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
+    </svg>
+  ),
+
   Trash2: () => (
     <svg
       width="24"
@@ -859,6 +893,254 @@ function TypeBadge({ type }: { type: string }) {
   )
 }
 
+// ── Report Modal ──
+
+function ReportModal({
+  resource,
+  onClose,
+  onToast,
+}: {
+  resource: Resource | null
+  onClose: () => void
+  onToast: (msg: string, type?: "success" | "error") => void
+}) {
+  const [reason, setReason] = useState("Missing or blurry pages")
+  const [details, setDetails] = useState("")
+  const [submitting, setSubmitting] = useState(false)
+
+  if (!resource) return null
+
+  const reasons = [
+    "Missing or blurry pages",
+    "Wrong course or title",
+    "Incorrect solutions / formulas",
+    "Duplicate or outdated resource",
+    "Other discrepancy",
+  ]
+
+  const handleSubmit = async () => {
+    if (!reason) {
+      onToast("Please select a reason", "error")
+      return
+    }
+    setSubmitting(true)
+    try {
+      await api.resources.report(resource.id, reason, details)
+      onToast(
+        "Feedback sent to the uploader! Thank you for helping keep StudyStack accurate.",
+        "success",
+      )
+      onClose()
+    } catch (err: any) {
+      onToast(err.message || "Failed to submit feedback", "error")
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        backgroundColor: "rgba(15, 23, 42, 0.45)",
+        backdropFilter: "blur(4px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 9999,
+        padding: 20,
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 16,
+          padding: 28,
+          maxWidth: 480,
+          width: "100%",
+          boxShadow:
+            "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+          border: `1px solid ${C.border}`,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            marginBottom: 12,
+          }}
+        >
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 10,
+              background: "#FFFBEB",
+              color: "#D97706",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <Icon.Flag />
+          </div>
+          <div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: C.text }}>
+              Report an Issue / Discrepancy
+            </div>
+            <div style={{ fontSize: 13, color: C.muted }}>
+              Constructive feedback will be sent directly to the uploader.
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            background: "#F8FAFC",
+            border: `1px solid ${C.border}`,
+            borderRadius: 10,
+            padding: "10px 14px",
+            fontSize: 13,
+            color: C.text,
+            margin: "16px 0",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <span style={{ fontWeight: 600, color: C.blue }}>Resource:</span>
+          <span
+            style={{
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {resource.title}
+          </span>
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <label
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: C.text,
+              display: "block",
+              marginBottom: 8,
+            }}
+          >
+            What issue did you spot? *
+          </label>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {reasons.map((r) => (
+              <label
+                key={r}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  fontSize: 13,
+                  color: C.text,
+                  padding: "8px 12px",
+                  borderRadius: 8,
+                  border: `1.5px solid ${reason === r ? C.blue : C.border}`,
+                  background: reason === r ? "#EFF6FF" : "#fff",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                }}
+              >
+                <input
+                  type="radio"
+                  name="reportReason"
+                  checked={reason === r}
+                  onChange={() => setReason(r)}
+                  style={{ accentColor: C.blue }}
+                />
+                <span style={{ fontWeight: reason === r ? 600 : 400 }}>{r}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 20 }}>
+          <label
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: C.text,
+              display: "block",
+              marginBottom: 6,
+            }}
+          >
+            Additional details (optional)
+          </label>
+          <textarea
+            value={details}
+            onChange={(e) => setDetails(e.target.value)}
+            placeholder="e.g. Question 3 formula on page 8 has a typo, or pages 14-16 are cut off..."
+            rows={3}
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              border: `1.5px solid ${C.border}`,
+              borderRadius: 8,
+              fontSize: 13,
+              color: C.text,
+              fontFamily: "Inter, sans-serif",
+              outline: "none",
+              boxSizing: "border-box",
+              resize: "none",
+            }}
+          />
+        </div>
+
+        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+          <button
+            onClick={onClose}
+            disabled={submitting}
+            style={{
+              padding: "9px 16px",
+              borderRadius: 8,
+              border: `1px solid ${C.border}`,
+              background: "#fff",
+              color: C.text,
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={submitting}
+            style={{
+              padding: "9px 18px",
+              borderRadius: 8,
+              border: "none",
+              background: "#D97706",
+              color: "#fff",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: submitting ? "not-allowed" : "pointer",
+              opacity: submitting ? 0.7 : 1,
+            }}
+          >
+            {submitting ? "Sending..." : "Send Feedback"}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Resource Card ─────────────────────────────────────────────────────────────
 
 function ResourceCard({
@@ -871,6 +1153,8 @@ function ResourceCard({
   user,
 
   onDelete,
+
+  onReport,
 }: {
   r: Resource
 
@@ -881,6 +1165,8 @@ function ResourceCard({
   user?: any
 
   onDelete?: (id: number) => void
+
+  onReport?: (r: Resource) => void
 }) {
   const handleDownload = () => {
     window.open(api.resources.getDownloadUrl(r.id), "_blank")
@@ -1033,6 +1319,37 @@ function ResourceCard({
             }}
           >
             Delete
+          </button>
+        )}
+        {onReport && (!user || !r.uploader_email || user.email !== r.uploader_email) && (
+          <button
+            onClick={() => onReport(r)}
+            title="Report an issue or discrepancy"
+            style={{
+              display: "flex",
+
+              alignItems: "center",
+
+              gap: 4,
+
+              padding: "7px 10px",
+
+              background: "#FFFBEB",
+
+              color: "#D97706",
+
+              border: "1px solid #FDE68A",
+
+              borderRadius: 8,
+
+              fontSize: 12,
+
+              fontWeight: 600,
+
+              cursor: "pointer",
+            }}
+          >
+            <Icon.Flag /> Report
           </button>
         )}
         <button
@@ -2122,6 +2439,8 @@ function HomePage({
   onUnenroll,
 
   onDeleteResource,
+
+  onReport,
 }: {
   setPage: (p: Page) => void
 
@@ -2144,6 +2463,8 @@ function HomePage({
   onUnenroll: (id: number) => void
 
   onDeleteResource?: (id: number) => Promise<boolean> | void
+
+  onReport?: (r: Resource) => void
 }) {
   const [search, setSearch] = useState("")
 
@@ -2398,6 +2719,7 @@ function HomePage({
                   <ResourceCard
                     user={user}
                     onDelete={onDeleteResource}
+                    onReport={onReport}
                     key={r.id}
                     r={r}
                     onPin={onPin}
@@ -2972,6 +3294,8 @@ function CourseDetailPage({
   user,
 
   onDeleteResource,
+
+  onReport,
 }: {
   setPage: (p: Page) => void
 
@@ -2986,6 +3310,8 @@ function CourseDetailPage({
   user: any
 
   onDeleteResource?: (id: number) => Promise<boolean> | void
+
+  onReport?: (r: Resource) => void
 }) {
   const [activeTab, setActiveTab] = useState<string | null>(null)
 
@@ -3238,6 +3564,7 @@ function CourseDetailPage({
                 <ResourceCard
                   user={user}
                   onDelete={onDeleteResource}
+                  onReport={onReport}
                   key={r.id}
                   r={r}
                   onPin={onPin}
@@ -4100,6 +4427,8 @@ function PinsPage({
   user,
 
   onDeleteResource,
+
+  onReport,
 }: {
   resources: Resource[]
 
@@ -4112,6 +4441,8 @@ function PinsPage({
   user: any
 
   onDeleteResource: (id: number) => void
+
+  onReport?: (r: Resource) => void
 }) {
   const pinned = resources.filter((r) => r.pinned)
 
@@ -4215,6 +4546,7 @@ function PinsPage({
             <ResourceCard
               user={user}
               onDelete={onDeleteResource}
+              onReport={onReport}
               key={r.id}
               r={r}
               onPin={onPin}
@@ -4261,7 +4593,7 @@ function ProfilePage({
 
   onDeleteResource?: (id: number) => Promise<boolean> | void
 }) {
-  const [tab, setTab] = useState<"uploads" | "pins" | "settings">("uploads")
+  const [tab, setTab] = useState<"uploads" | "pins" | "feedback" | "settings">("uploads")
 
   const [profileData, setProfileData] = useState<any>(null)
 
@@ -4314,6 +4646,24 @@ function ProfilePage({
 
   const userUploads =
     profileData?.uploads || resources.filter((r) => r.by === displayName)
+
+  const reports = profileData?.reports || []
+  const pendingReportsCount = reports.filter((rp: any) => rp.status === "pending").length
+
+  const handleResolveReport = async (reportId: number) => {
+    try {
+      await api.profile.resolveReport(reportId)
+      onToast("Feedback marked as resolved!", "success")
+      setProfileData((prev: any) => ({
+        ...prev,
+        reports: (prev?.reports || []).map((rp: any) =>
+          rp.id === reportId ? { ...rp, status: "resolved" } : rp,
+        ),
+      }))
+    } catch (err: any) {
+      onToast(err.message || "Failed to resolve report", "error")
+    }
+  }
 
   const handleSaveProfile = async () => {
     if (!editName.trim()) {
@@ -4461,7 +4811,7 @@ function ProfilePage({
           border: `1px solid ${C.border}`,
         }}
       >
-        {(["uploads", "pins", "settings"] as const).map((t) => (
+        {(["uploads", "pins", "feedback", "settings"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -4489,11 +4839,31 @@ function ProfilePage({
               boxShadow: tab === t ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
             }}
           >
-            {t === "uploads"
-              ? "My Uploads"
-              : t === "pins"
-                ? "My Pins"
-                : "Account Settings"}
+            {t === "uploads" ? (
+              "My Uploads"
+            ) : t === "pins" ? (
+              "My Pins"
+            ) : t === "feedback" ? (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                Feedback
+                {pendingReportsCount > 0 && (
+                  <span
+                    style={{
+                      background: "#EF4444",
+                      color: "#fff",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      padding: "1px 6px",
+                      borderRadius: 10,
+                    }}
+                  >
+                    {pendingReportsCount}
+                  </span>
+                )}
+              </span>
+            ) : (
+              "Account Settings"
+            )}
           </button>
         ))}
       </div>
@@ -4681,6 +5051,164 @@ function ProfilePage({
                 </div>
               </Card>
             ))
+          )}
+        </div>
+      )}
+
+      {tab === "feedback" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {reports.length > 0 ? (
+            reports.map((rp: any) => (
+              <Card key={rp.id} style={{ padding: "16px 20px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    gap: 12,
+                    marginBottom: 8,
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontWeight: 600,
+                        fontSize: 14,
+                        color: C.text,
+                        marginBottom: 6,
+                      }}
+                    >
+                      {rp.resource_title}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 8,
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 600,
+                          padding: "2px 8px",
+                          borderRadius: 6,
+                          background: "#FEF3C7",
+                          color: "#92400E",
+                        }}
+                      >
+                        {rp.reason}
+                      </span>
+                      <span style={{ fontSize: 12, color: C.muted }}>
+                        {new Date(rp.created_at).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 600,
+                          padding: "2px 8px",
+                          borderRadius: 6,
+                          background:
+                            rp.status === "resolved" ? "#DCFCE7" : "#FEE2E2",
+                          color:
+                            rp.status === "resolved" ? "#166534" : "#991B1B",
+                        }}
+                      >
+                        {rp.status === "resolved" ? "✓ Resolved" : "● Needs Review"}
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                    <button
+                      onClick={() =>
+                        window.open(
+                          api.resources.getViewUrl(rp.resource_id),
+                          "_blank",
+                        )
+                      }
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                        padding: "6px 12px",
+                        background: "#EFF6FF",
+                        color: C.blue,
+                        border: "none",
+                        borderRadius: 6,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      <Icon.Eye /> View File
+                    </button>
+                    {rp.status !== "resolved" && (
+                      <button
+                        onClick={() => handleResolveReport(rp.id)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 4,
+                          padding: "6px 12px",
+                          background: "#F0FDF4",
+                          color: "#16A34A",
+                          border: "1px solid #BBF7D0",
+                          borderRadius: 6,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                      >
+                        <Icon.CheckCircle /> Mark as Resolved
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {rp.details && (
+                  <div
+                    style={{
+                      background: "#F8FAFC",
+                      borderRadius: 8,
+                      padding: "8px 12px",
+                      fontSize: 13,
+                      color: "#475569",
+                      marginTop: 8,
+                      border: `1px solid ${C.border}`,
+                    }}
+                  >
+                    <b>Note:</b> {rp.details}
+                  </div>
+                )}
+              </Card>
+            ))
+          ) : (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "60px 0",
+                color: C.muted,
+              }}
+            >
+              <div style={{ fontSize: 36, marginBottom: 12 }}>🎉</div>
+              <div
+                style={{
+                  fontWeight: 700,
+                  color: C.text,
+                  fontSize: 16,
+                  marginBottom: 6,
+                }}
+              >
+                No reported issues
+              </div>
+              <div style={{ fontSize: 13 }}>
+                Classmates haven't reported any issues with your uploads. Everything looks great!
+              </div>
+            </div>
           )}
         </div>
       )}
@@ -5104,6 +5632,8 @@ export default function App() {
     resolve: (val: boolean) => void
   } | null>(null)
 
+  const [reportingResource, setReportingResource] = useState<Resource | null>(null)
+
   const { toast, show } = useToast()
 
   const [appLoading, setAppLoading] = useState(true)
@@ -5460,6 +5990,7 @@ export default function App() {
                 onEnroll={enrollCourse}
                 onUnenroll={removeCourse}
                 onDeleteResource={handleDeleteResource}
+                onReport={setReportingResource}
               />
             )}
             {page === "courses" && (
@@ -5485,6 +6016,7 @@ export default function App() {
                 course={selectedCourse}
                 user={currentUser}
                 onDeleteResource={handleDeleteResource}
+                onReport={setReportingResource}
               />
             )}
             {page === "upload" && (
@@ -5502,6 +6034,7 @@ export default function App() {
                 user={currentUser}
                 onDeleteResource={handleDeleteResource}
                 setPage={setPage}
+                onReport={setReportingResource}
               />
             )}
             {page === "profile" && (
@@ -5521,6 +6054,14 @@ export default function App() {
           </>
         )}
       </main>
+      {reportingResource && (
+        <ReportModal
+          resource={reportingResource}
+          onClose={() => setReportingResource(null)}
+          onToast={show}
+        />
+      )}
+
       {showLogoutConfirm && (
         <div
           style={{

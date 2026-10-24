@@ -13,6 +13,7 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
 import { pool } from "../db/database"
 
 import { authenticateToken } from "./auth"
+import { sendReportNotificationEmail } from "../services/emailService"
 
 export const resourcesRouter = Router()
 
@@ -630,3 +631,51 @@ resourcesRouter.delete("/:id", authenticateToken, async (req: any, res) => {
       .json({ error: error.message || "Failed to delete resource" })
   }
 })
+
+// POST Report an issue with a resource
+resourcesRouter.post("/:id/report", authenticateToken, async (req: any, res) => {
+  try {
+    const resourceId = parseInt(req.params.id)
+    const { reason, details } = req.body
+    const reporterEmail = req.user.email
+
+    if (!reason || !reason.trim()) {
+      return res.status(400).json({ error: "Please select a reason for reporting" })
+    }
+
+    const resourceRes = await pool.query("SELECT * FROM resources WHERE id = $1", [resourceId])
+    const resource = resourceRes.rows[0] as any
+    if (!resource) {
+      return res.status(404).json({ error: "Resource not found" })
+    }
+
+    if (resource.uploader_email === reporterEmail) {
+      return res.status(400).json({ error: "You cannot report your own upload" })
+    }
+
+    const insertRes = await pool.query(
+      `INSERT INTO resource_reports (resource_id, reporter_email, reason, details)
+       VALUES ($1, $2, $3, $4) RETURNING id`,
+      [resourceId, reporterEmail, reason.trim(), (details || "").trim()]
+    )
+
+    // Notify uploader asynchronously (without blocking response)
+    if (resource.uploader_email) {
+      sendReportNotificationEmail(
+        resource.uploader_email,
+        resource.title,
+        reason.trim(),
+        (details || "").trim()
+      ).catch((err) => console.error("Email notify error:", err))
+    }
+
+    res.json({
+      success: true,
+      message: "Feedback reported successfully. The uploader has been notified.",
+      reportId: insertRes.rows[0].id,
+    })
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || "Failed to submit report" })
+  }
+})
+

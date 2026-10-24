@@ -67,6 +67,16 @@ export async function initDatabase() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(user_email, course_id)
     );
+
+    CREATE TABLE IF NOT EXISTS resource_reports (
+      id SERIAL PRIMARY KEY,
+      resource_id INTEGER NOT NULL,
+      reporter_email TEXT NOT NULL,
+      reason TEXT NOT NULL,
+      details TEXT,
+      status TEXT DEFAULT 'pending',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
   `)
 
   // Seed default courses if empty

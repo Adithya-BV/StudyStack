@@ -415,6 +415,24 @@ export const api = {
 
       return data
     },
+
+    report: async (id: number, reason: string, details?: string) => {
+      const res = await fetch(`${API_BASE}/resources/${id}/report`, {
+        method: "POST",
+
+        headers: getHeaders(),
+
+        body: JSON.stringify({ reason, details }),
+      })
+
+      const data = await res.json()
+
+      checkSessionExpiry(data)
+
+      if (!res.ok) throw new Error(data.error || "Failed to submit report")
+
+      return data
+    },
   },
 
   // Profile
@@ -470,6 +488,22 @@ export const api = {
       checkSessionExpiry(data)
 
       if (!res.ok) throw new Error(data.error || "Failed to delete account")
+
+      return data
+    },
+
+    resolveReport: async (reportId: number) => {
+      const res = await fetch(`${API_BASE}/profile/reports/${reportId}/resolve`, {
+        method: "PATCH",
+
+        headers: getHeaders(),
+      })
+
+      const data = await res.json()
+
+      checkSessionExpiry(data)
+
+      if (!res.ok) throw new Error(data.error || "Failed to resolve report")
 
       return data
     },

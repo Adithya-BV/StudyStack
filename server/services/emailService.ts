@@ -146,3 +146,91 @@ export async function sendOTPEmail(
     return true
   }
 }
+
+export async function sendReportNotificationEmail(
+  toEmail: string,
+  resourceTitle: string,
+  reason: string,
+  details: string,
+) {
+  const smtpEmail = process.env.SMTP_EMAIL || process.env.SMTP_USER
+  const smtpPass = process.env.SMTP_PASSWORD || process.env.SMTP_PASS
+  const appsScriptUrl = process.env.APPS_SCRIPT_URL
+
+  console.log("--------------------------------------------------")
+  console.log(`[STUDYSTACK REPORT NOTIFICATION]`)
+  console.log(`Recipient: ${toEmail}`)
+  console.log(`Resource:  ${resourceTitle}`)
+  console.log(`Reason:    ${reason}`)
+  console.log(`Details:   ${details}`)
+  console.log("--------------------------------------------------")
+
+  if (!appsScriptUrl && (!smtpEmail || !smtpPass)) {
+    return true
+  }
+
+  const subject = `StudyStack - Feedback reported on "${resourceTitle}"`
+  const html = `
+    <div style="font-family: Arial, sans-serif; background-color: #F5F8FC; padding: 40px 20px; color: #0F172A;">
+      <div style="max-width: 500px; margin: 0 auto; background: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid #E2E8F0;">
+        <div style="background-color: #061B49; padding: 24px; text-align: center;">
+          <h1 style="color: #FFFFFF; margin: 0; font-size: 24px; letter-spacing: 0.5px;">StudyStack</h1>
+          <p style="color: #55C7FF; margin: 4px 0 0 0; font-size: 13px;">Your Stack. Your Track.</p>
+        </div>
+        <div style="padding: 32px 24px;">
+          <h2 style="color: #0F172A; font-size: 18px; margin-top: 0;">Feedback Reported on Your Upload</h2>
+          <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+            A classmate flagged an issue on your shared resource <b>"${resourceTitle}"</b>:
+          </p>
+          <div style="background-color: #F8FAFC; border-left: 4px solid #F59E0B; padding: 14px 16px; border-radius: 4px; margin: 20px 0;">
+            <p style="margin: 0; font-weight: 600; color: #0F172A; font-size: 14px;">Reason: ${reason}</p>
+            ${details ? `<p style="margin: 6px 0 0 0; color: #64748B; font-size: 13px;">Details: ${details}</p>` : ""}
+          </div>
+          <p style="color: #64748B; font-size: 13px; line-height: 1.5;">
+            You can review and resolve this feedback directly from your <b>Profile &gt; Feedback Received</b> tab on StudyStack.
+          </p>
+        </div>
+      </div>
+    </div>
+  `
+
+  if (appsScriptUrl) {
+    try {
+      const response = await fetch(appsScriptUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to: toEmail, subject, html }),
+      })
+      const result = await response.json()
+      if (result.success) {
+        console.log(`Report email sent successfully via Apps Script to ${toEmail}`)
+      }
+      return true
+    } catch (e) {
+      console.error("Failed to send report email via Apps Script:", e)
+    }
+  }
+
+  if (smtpEmail && smtpPass) {
+    try {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: { user: smtpEmail, pass: smtpPass },
+        connectionTimeout: 5000,
+      })
+      await transporter.sendMail({
+        from: `"StudyStack IITR" <${smtpEmail}>`,
+        to: toEmail,
+        subject,
+        html,
+      })
+      console.log(`Report email sent successfully via SMTP to ${toEmail}`)
+      return true
+    } catch (e) {
+      console.error("Failed to send report email via SMTP:", e)
+    }
+  }
+
+  return true
+}
+

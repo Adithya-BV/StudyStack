@@ -37,6 +37,17 @@ profileRouter.get("/", authenticateToken, async (req: any, res) => {
       )
     ).rows[0] as any
 
+    const reports = (
+      await pool.query(
+        `SELECT rr.id, rr.resource_id, rr.reason, rr.details, rr.status, rr.created_at, r.title as resource_title
+         FROM resource_reports rr
+         JOIN resources r ON rr.resource_id = r.id
+         WHERE r.uploader_email = $1
+         ORDER BY rr.id DESC`,
+        [userEmail],
+      )
+    ).rows as any[]
+
     res.json({
       success: true,
 
@@ -48,6 +59,8 @@ profileRouter.get("/", authenticateToken, async (req: any, res) => {
         pinsCount: pinCount ? pinCount.count : 0,
 
         uploads: uploads.map((u) => ({ ...u, course: u.course_code })),
+
+        reports,
       },
     })
   } catch (error: any) {
@@ -126,3 +139,28 @@ profileRouter.delete("/", authenticateToken, async (req: any, res) => {
     res.status(500).json({ error: error.message || "Failed to delete account" })
   }
 })
+
+// PATCH mark report as resolved
+profileRouter.patch("/reports/:reportId/resolve", authenticateToken, async (req: any, res) => {
+  try {
+    const reportId = parseInt(req.params.reportId)
+    const userEmail = req.user.email
+
+    const checkRes = await pool.query(
+      `SELECT rr.id FROM resource_reports rr
+       JOIN resources r ON rr.resource_id = r.id
+       WHERE rr.id = $1 AND r.uploader_email = $2`,
+      [reportId, userEmail],
+    )
+
+    if (checkRes.rows.length === 0) {
+      return res.status(403).json({ error: "Unauthorized or report not found" })
+    }
+
+    await pool.query("UPDATE resource_reports SET status = 'resolved' WHERE id = $1", [reportId])
+    res.json({ success: true, message: "Report marked as resolved" })
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || "Failed to resolve report" })
+  }
+})
+
