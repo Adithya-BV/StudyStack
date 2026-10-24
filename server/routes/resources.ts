@@ -214,19 +214,16 @@ resourcesRouter.post(
         const courseDept =
           (req.body.courseDept && req.body.courseDept.trim()) ||
           req.user?.department ||
-          "General Engineering"(
-            await pool.query(
-              "INSERT INTO courses (code, name, dept, resources) VALUES ($1, $2, $3, 1)",
+          "General Engineering"
 
-              [
-                cleanCourseCode,
-
-                courseName,
-
-                courseDept,
-              ],
-            ),
-          )
+        await pool.query(
+          "INSERT INTO courses (code, name, dept, resources) VALUES ($1, $2, $3, 1)",
+          [
+            cleanCourseCode,
+            courseName,
+            courseDept,
+          ],
+        )
 
         courseCreated = true
       } else {

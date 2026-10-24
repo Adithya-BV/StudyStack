@@ -3626,9 +3626,7 @@ function UploadPage({
 
   const [newCourseName, setNewCourseName] = useState("")
 
-  const [newCourseDept, setNewCourseDept] = useState(
-    "Computer Science & Engineering",
-  )
+  const [newCourseDept, setNewCourseDept] = useState("")
 
   const [resType, setResType] = useState("Notes")
 
@@ -3677,6 +3675,12 @@ function UploadPage({
 
       if (!newCourseName.trim()) {
         onToast("Please enter the Course Name", "error")
+
+        return
+      }
+
+      if (!newCourseDept.trim()) {
+        onToast("Please select a Department / Branch", "error")
 
         return
       }
@@ -3748,6 +3752,8 @@ function UploadPage({
         setNewCourseCode("")
 
         setNewCourseName("")
+
+        setNewCourseDept("")
 
         setIsNewCourse(false)
       }
@@ -4107,6 +4113,8 @@ function UploadPage({
                   setNewCourseCode("")
 
                   setNewCourseName("")
+
+                  setNewCourseDept("")
                 }}
                 style={{
                   background: "none",
@@ -4232,7 +4240,7 @@ function UploadPage({
                   marginBottom: 6,
                 }}
               >
-                Department / Branch
+                Department / Branch *
               </label>
               <select
                 value={newCourseDept}
@@ -4248,7 +4256,7 @@ function UploadPage({
 
                   fontSize: 14,
 
-                  color: C.text,
+                  color: newCourseDept ? C.text : C.muted,
 
                   background: "#fff",
 
@@ -4261,8 +4269,11 @@ function UploadPage({
                   cursor: "pointer",
                 }}
               >
+                <option value="" disabled>
+                  Select Department / Branch
+                </option>
                 {IITR_BRANCHES.map((b) => (
-                  <option key={b} value={b}>
+                  <option key={b} value={b} style={{ color: C.text }}>
                     {b}
                   </option>
                 ))}
