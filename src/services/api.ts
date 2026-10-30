@@ -368,6 +368,50 @@ export const api = {
 
     getDownloadUrl: (id: number) => `${API_BASE}/resources/${id}/download`,
 
+    download: async (id: number, fallbackTitle?: string) => {
+      const url = `${API_BASE}/resources/${id}/download`
+      const token = api.auth.getToken()
+      const headers: Record<string, string> = {}
+      if (token) headers["Authorization"] = `Bearer ${token}`
+
+      try {
+        const res = await fetch(url, { headers })
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}))
+          throw new Error(errData.error || "Failed to download file")
+        }
+
+        let filename = fallbackTitle ? `${fallbackTitle}.pdf` : `resource-${id}.pdf`
+        const disposition = res.headers.get("content-disposition")
+        if (disposition && disposition.includes("filename=")) {
+          const match = disposition.match(/filename=["']?([^"';]+)["']?/)
+          if (match && match[1]) {
+            filename = match[1].trim()
+          }
+        }
+
+        const blob = await res.blob()
+        const blobUrl = window.URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.style.display = "none"
+        a.href = blobUrl
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 2000)
+      } catch (err: any) {
+        // Fallback: trigger direct file download via invisible link without target="_blank"
+        const a = document.createElement("a")
+        a.style.display = "none"
+        a.href = url
+        if (fallbackTitle) a.download = `${fallbackTitle}.pdf`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+      }
+    },
+
     getViewUrl: (id: number) => `${API_BASE}/resources/${id}/view`,
 
     togglePin: async (id: number) => {

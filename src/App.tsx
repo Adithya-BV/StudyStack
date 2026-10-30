@@ -1193,10 +1193,25 @@ function ResourceCard({
 
   onReport?: (r: Resource) => void
 }) {
-  const handleDownload = () => {
-    window.open(api.resources.getDownloadUrl(r.id), "_blank")
+  const [downloading, setDownloading] = useState(false)
+  const [localDownloads, setLocalDownloads] = useState(r.downloads ?? 0)
 
+  useEffect(() => {
+    setLocalDownloads(r.downloads ?? 0)
+  }, [r.downloads])
+
+  const handleDownload = async () => {
+    if (downloading) return
+    setDownloading(true)
     onToast(`Downloading ${r.title}...`)
+    setLocalDownloads((prev) => prev + 1)
+    try {
+      await api.resources.download(r.id, r.title)
+    } catch (err: any) {
+      onToast(err.message || "Failed to download", "error")
+    } finally {
+      setDownloading(false)
+    }
   }
 
   return (
@@ -1257,11 +1272,11 @@ function ResourceCard({
           <span style={{ fontSize: 12, color: C.muted }}>{r.date}</span>
           <span style={{ fontSize: 12, color: C.muted }}>·</span>
           <span style={{ fontSize: 12, color: C.muted }}>{r.size}</span>
-          {(r.downloads ?? 0) > 0 && (
+          {localDownloads > 0 && (
             <>
               <span style={{ fontSize: 12, color: C.muted }}>·</span>
               <span style={{ fontSize: 12, color: C.muted }}>
-                📥 {r.downloads} {r.downloads === 1 ? "download" : "downloads"}
+                📥 {localDownloads} {localDownloads === 1 ? "download" : "downloads"}
               </span>
             </>
           )}
@@ -1298,6 +1313,7 @@ function ResourceCard({
         </button>
         <button
           onClick={handleDownload}
+          disabled={downloading}
           style={{
             display: "flex",
 
@@ -1319,10 +1335,14 @@ function ResourceCard({
 
             fontWeight: 600,
 
-            cursor: "pointer",
+            cursor: downloading ? "wait" : "pointer",
+
+            opacity: downloading ? 0.7 : 1,
+
+            transition: "all 0.15s",
           }}
         >
-          <Icon.Download /> Download
+          <Icon.Download /> {downloading ? "Downloading..." : "Download"}
         </button>
         {user && user.email === r.uploader_email && onDelete && (
           <button
@@ -5079,14 +5099,13 @@ function ProfilePage({
                       View
                     </button>
                     <button
-                      onClick={() => {
-                        window.open(
-                          api.resources.getDownloadUrl(r.id),
-
-                          "_blank",
-                        )
-
+                      onClick={async () => {
                         onToast(`Downloading ${r.title}...`)
+                        try {
+                          await api.resources.download(r.id, r.title)
+                        } catch (err: any) {
+                          onToast(err.message || "Failed to download", "error")
+                        }
                       }}
                       style={{
                         background: C.blue,
