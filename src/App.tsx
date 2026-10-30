@@ -60,6 +60,8 @@ type Resource = {
   uploader_email?: string
 
   downloads?: number
+
+  is_anonymous?: boolean
 }
 
 type Page = "login" | "signup" | "otp" | "forgot" | "home" | "courses" | "course-detail" | "upload" | "pins" | "profile"
@@ -1284,8 +1286,12 @@ function ResourceCard({
           >
             <TypeBadge type={r.type} />
             <span style={{ fontSize: 12, color: C.muted }}>{r.course}</span>
-            <span style={{ fontSize: 12, color: C.muted }}>·</span>
-            <span style={{ fontSize: 12, color: C.muted }}>{r.by}</span>
+            {r.by && r.by.trim() !== "" && (
+              <>
+                <span style={{ fontSize: 12, color: C.muted }}>·</span>
+                <span style={{ fontSize: 12, color: C.muted }}>{r.by}</span>
+              </>
+            )}
             <span style={{ fontSize: 12, color: C.muted }}>·</span>
             <span style={{ fontSize: 12, color: C.muted }}>{r.date}</span>
             <span style={{ fontSize: 12, color: C.muted }}>·</span>
@@ -3779,6 +3785,8 @@ function UploadPage({
 
   const [uploading, setUploading] = useState(false)
 
+  const [isAnonymous, setIsAnonymous] = useState(false)
+
   const [success, setSuccess] = useState(false)
 
   const coursesSortedByCode = [...courses].sort((a, b) =>
@@ -3879,6 +3887,8 @@ function UploadPage({
 
       if (selectedFile) formData.append("file", selectedFile)
 
+      formData.append("isAnonymous", String(isAnonymous))
+
       const res: any = await api.resources.upload(formData)
 
       setSuccess(true)
@@ -3894,6 +3904,8 @@ function UploadPage({
       setDesc("")
 
       setSelectedFile(null)
+
+      setIsAnonymous(false)
 
       if (isNewCourse) {
         setNewCourseCode("")
@@ -4569,6 +4581,34 @@ function UploadPage({
         </div>
       </div>
 
+      <div style={{ marginTop: 2, marginBottom: 18 }}>
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            cursor: "pointer",
+            userSelect: "none",
+            fontSize: 14,
+            fontWeight: 500,
+            color: C.text,
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={isAnonymous}
+            onChange={(e) => setIsAnonymous(e.target.checked)}
+            style={{
+              width: 17,
+              height: 17,
+              cursor: "pointer",
+              accentColor: C.blue,
+            }}
+          />
+          <span>Upload anonymously (hide my name on this resource)</span>
+        </label>
+      </div>
+
       <Btn onClick={handleSubmit} fullWidth disabled={uploading}>
         {uploading ? "Uploading Resource..." : "Upload Resource"}
       </Btn>
@@ -5113,6 +5153,11 @@ function ProfilePage({
                     </div>
                     <div style={{ fontSize: 12, color: C.muted, marginTop: 3 }}>
                       {r.course} · {r.type} · {r.date}
+                      {(r.is_anonymous || !r.by) && (
+                        <span style={{ color: "#7C3AED", fontWeight: 600, marginLeft: 6 }}>
+                          · (Anonymous)
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div

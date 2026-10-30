@@ -53,7 +53,7 @@ resourcesRouter.get("/", async (req, res) => {
 
     const user = getOptionalUser(req)
 
-    let query = "SELECT id, title, course_code, type, by, uploader_email, file_path, file_size, date, created_at, COALESCE(downloads, 0) as downloads FROM resources WHERE 1=1"
+    let query = "SELECT id, title, course_code, type, by, uploader_email, file_path, file_size, date, created_at, COALESCE(downloads, 0) as downloads, COALESCE(is_anonymous, false) as is_anonymous FROM resources WHERE 1=1"
 
     const params: any[] = []
 
@@ -101,6 +101,8 @@ resourcesRouter.get("/", async (req, res) => {
 
       course: r.course_code,
 
+      by: r.is_anonymous ? "" : r.by,
+
       pinned: userPinnedIds.has(r.id),
     }))
 
@@ -127,7 +129,7 @@ resourcesRouter.post(
 
   async (req: any, res) => {
     try {
-      const { title, course, type } = req.body
+      const { title, course, type, isAnonymous } = req.body
 
       if (!title || !course || !type) {
         return res
@@ -136,6 +138,9 @@ resourcesRouter.post(
 
           .json({ error: "Title, course, and type are required" })
       }
+
+      const anonymous = isAnonymous === "true" || isAnonymous === true
+      const uploaderName = anonymous ? "" : (req.user.name || "IITR Student")
 
       let filePath: string | null = null
 
@@ -168,10 +173,10 @@ resourcesRouter.post(
 
       const info = (
         await pool.query(
-          `INSERT INTO resources (title, course_code, type, by, uploader_email, file_path, file_size, date, file_data)
+          `INSERT INTO resources (title, course_code, type, by, uploader_email, file_path, file_size, date, file_data, is_anonymous)
 
 
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
 
           [
             title.trim(),
@@ -180,7 +185,7 @@ resourcesRouter.post(
 
             type.trim(),
 
-            req.user.name || "IITR Student",
+            uploaderName,
 
             req.user.email,
 
@@ -191,6 +196,8 @@ resourcesRouter.post(
             today,
 
             fileData,
+
+            anonymous,
           ],
         )
       ).rows[0]
@@ -483,7 +490,7 @@ resourcesRouter.get("/pinned", authenticateToken, async (req: any, res) => {
         `
 
 
-        SELECT r.id, r.title, r.course_code, r.type, r.by, r.uploader_email, r.file_path, r.file_size, r.date, r.created_at, COALESCE(r.downloads, 0) as downloads, 1 as pinned
+        SELECT r.id, r.title, r.course_code, r.type, r.by, r.uploader_email, r.file_path, r.file_size, r.date, r.created_at, COALESCE(r.downloads, 0) as downloads, COALESCE(r.is_anonymous, false) as is_anonymous, 1 as pinned
         FROM resources r
         JOIN pins p ON p.resource_id = r.id
         WHERE LOWER(TRIM(p.user_email)) = LOWER(TRIM($1))
@@ -502,6 +509,8 @@ resourcesRouter.get("/pinned", authenticateToken, async (req: any, res) => {
       ...r,
 
       course: r.course_code,
+
+      by: r.is_anonymous ? "" : r.by,
     }))
 
     res.json({ success: true, resources: result })

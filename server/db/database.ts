@@ -79,6 +79,7 @@ export async function initDatabase() {
     );
 
     ALTER TABLE resources ADD COLUMN IF NOT EXISTS downloads INTEGER DEFAULT 0;
+    ALTER TABLE resources ADD COLUMN IF NOT EXISTS is_anonymous BOOLEAN DEFAULT FALSE;
   `)
 
   // Seed default courses if empty
