@@ -851,13 +851,18 @@ function Card({
   children,
 
   style,
+
+  className,
 }: {
   children: React.ReactNode
 
   style?: React.CSSProperties
+
+  className?: string
 }) {
   return (
     <div
+      className={className}
       style={{
         background: C.card,
 
@@ -1216,6 +1221,7 @@ function ResourceCard({
 
   return (
     <Card
+      className="resource-card"
       style={{
         display: "flex",
 
@@ -1227,62 +1233,75 @@ function ResourceCard({
       }}
     >
       <div
+        className="resource-header-info"
         style={{
-          background: "#EFF6FF",
-
-          borderRadius: 10,
-
-          padding: 10,
-
-          flexShrink: 0,
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 14,
+          flex: 1,
+          minWidth: 0,
         }}
       >
-        <Icon.File />
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
         <div
           style={{
-            fontWeight: 600,
+            background: "#EFF6FF",
 
-            fontSize: 14,
+            borderRadius: 10,
 
-            color: C.text,
+            padding: 10,
 
-            marginBottom: 4,
+            flexShrink: 0,
           }}
         >
-          {r.title}
+          <Icon.File />
         </div>
-        <div
-          style={{
-            display: "flex",
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              fontWeight: 600,
 
-            gap: 8,
+              fontSize: 14,
 
-            alignItems: "center",
+              color: C.text,
 
-            flexWrap: "wrap",
-          }}
-        >
-          <TypeBadge type={r.type} />
-          <span style={{ fontSize: 12, color: C.muted }}>{r.course}</span>
-          <span style={{ fontSize: 12, color: C.muted }}>·</span>
-          <span style={{ fontSize: 12, color: C.muted }}>{r.by}</span>
-          <span style={{ fontSize: 12, color: C.muted }}>·</span>
-          <span style={{ fontSize: 12, color: C.muted }}>{r.date}</span>
-          <span style={{ fontSize: 12, color: C.muted }}>·</span>
-          <span style={{ fontSize: 12, color: C.muted }}>{r.size}</span>
-          {localDownloads > 0 && (
-            <>
-              <span style={{ fontSize: 12, color: C.muted }}>·</span>
-              <span style={{ fontSize: 12, color: C.muted }}>
-                📥 {localDownloads} {localDownloads === 1 ? "download" : "downloads"}
-              </span>
-            </>
-          )}
+              marginBottom: 4,
+
+              wordBreak: "break-word",
+            }}
+          >
+            {r.title}
+          </div>
+          <div
+            style={{
+              display: "flex",
+
+              gap: 8,
+
+              alignItems: "center",
+
+              flexWrap: "wrap",
+            }}
+          >
+            <TypeBadge type={r.type} />
+            <span style={{ fontSize: 12, color: C.muted }}>{r.course}</span>
+            <span style={{ fontSize: 12, color: C.muted }}>·</span>
+            <span style={{ fontSize: 12, color: C.muted }}>{r.by}</span>
+            <span style={{ fontSize: 12, color: C.muted }}>·</span>
+            <span style={{ fontSize: 12, color: C.muted }}>{r.date}</span>
+            <span style={{ fontSize: 12, color: C.muted }}>·</span>
+            <span style={{ fontSize: 12, color: C.muted }}>{r.size}</span>
+            {localDownloads > 0 && (
+              <>
+                <span style={{ fontSize: 12, color: C.muted }}>·</span>
+                <span style={{ fontSize: 12, color: C.muted }}>
+                  📥 {localDownloads} {localDownloads === 1 ? "download" : "downloads"}
+                </span>
+              </>
+            )}
+          </div>
         </div>
       </div>
-      <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+      <div className="resource-actions" style={{ display: "flex", gap: 8, flexShrink: 0 }}>
         <button
           onClick={() => window.open(api.resources.getViewUrl(r.id), "_blank")}
           style={{
@@ -1520,6 +1539,7 @@ function LoginPage({
     <div style={{ minHeight: "100%", display: "flex", background: C.bg }}>
       {/* Left panel */}
       <div
+        className="desktop-only"
         style={{
           width: 420,
 
@@ -1559,6 +1579,7 @@ function LoginPage({
 
       {/* Right panel */}
       <div
+        className="auth-right-panel"
         style={{
           flex: 1,
 
@@ -1572,6 +1593,25 @@ function LoginPage({
         }}
       >
         <div style={{ width: "100%", maxWidth: 400 }} onKeyDown={handleKeyDown}>
+          {/* Mobile-only logo */}
+          <div
+            className="mobile-only"
+            style={{
+              justifyContent: "center",
+              marginBottom: 20,
+            }}
+          >
+            <img
+              src={logoImg}
+              alt="StudyStack"
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: 14,
+                objectFit: "cover",
+              }}
+            />
+          </div>
           <div
             style={{
               fontSize: 28,
@@ -2666,7 +2706,7 @@ function HomePage({
   )
 
   return (
-    <div style={{ padding: "32px 36px", maxWidth: 1400, margin: "0 auto" }}>
+    <div className="page-container" style={{ padding: "32px 36px", maxWidth: 1400, margin: "0 auto" }}>
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <h1
@@ -2966,7 +3006,7 @@ function CoursesPage({
   }
 
   return (
-    <div style={{ padding: "32px 36px", maxWidth: 1400, margin: "0 auto" }}>
+    <div className="page-container" style={{ padding: "32px 36px", maxWidth: 1400, margin: "0 auto" }}>
       <div
         style={{
           display: "flex",
@@ -3459,7 +3499,7 @@ function CourseDetailPage({
     : []
 
   return (
-    <div style={{ padding: "32px 36px", maxWidth: 1400, margin: "0 auto" }}>
+    <div className="page-container" style={{ padding: "32px 36px", maxWidth: 1400, margin: "0 auto" }}>
       <button
         onClick={() => setPage(previousCoursePage)}
         style={{
@@ -3876,7 +3916,7 @@ function UploadPage({
   }
 
   return (
-    <div style={{ padding: "32px 36px", maxWidth: 800, margin: "0 auto" }}>
+    <div className="page-container" style={{ padding: "32px 36px", maxWidth: 800, margin: "0 auto" }}>
       <h1
         style={{
           fontSize: 28,
@@ -4576,7 +4616,7 @@ function PinsPage({
   )
 
   return (
-    <div style={{ padding: "32px 36px", maxWidth: 1200, margin: "0 auto" }}>
+    <div className="page-container" style={{ padding: "32px 36px", maxWidth: 1200, margin: "0 auto" }}>
       <h1
         style={{
           fontSize: 28,
@@ -4888,7 +4928,7 @@ function ProfilePage({
   }
 
   return (
-    <div style={{ padding: "32px 36px", maxWidth: 1400, margin: "0 auto" }}>
+    <div className="page-container" style={{ padding: "32px 36px", maxWidth: 1400, margin: "0 auto" }}>
       <h1
         style={{
           fontSize: 28,
@@ -4907,44 +4947,46 @@ function ProfilePage({
 
       {/* Profile card */}
       <Card style={{ marginBottom: 24 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <div
-            style={{
-              width: 72,
+        <div className="profile-header-content" style={{ display: "flex", alignItems: "center", gap: 20 }}>
+          <div className="profile-user-info" style={{ display: "flex", alignItems: "center", gap: 16, flex: 1, minWidth: 0 }}>
+            <div
+              style={{
+                width: 64,
 
-              height: 72,
+                height: 64,
 
-              borderRadius: "50%",
+                borderRadius: "50%",
 
-              background: `linear-gradient(135deg, ${C.blue}, ${C.cyan})`,
+                background: `linear-gradient(135deg, ${C.blue}, ${C.cyan})`,
 
-              display: "flex",
+                display: "flex",
 
-              alignItems: "center",
+                alignItems: "center",
 
-              justifyContent: "center",
+                justifyContent: "center",
 
-              fontSize: 28,
+                fontSize: 26,
 
-              fontWeight: 700,
+                fontWeight: 700,
 
-              color: "#fff",
+                color: "#fff",
 
-              flexShrink: 0,
-            }}
-          >
-            {displayName.charAt(0).toUpperCase()}
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 18, color: C.text }}>
-              {displayName}
+                flexShrink: 0,
+              }}
+            >
+              {displayName.charAt(0).toUpperCase()}
             </div>
-            <div style={{ color: C.muted, fontSize: 14 }}>{displayEmail}</div>
-            <div style={{ color: C.muted, fontSize: 13, marginTop: 2 }}>
-              {displayDept} · {displayYear}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 700, fontSize: 18, color: C.text, overflow: "hidden", textOverflow: "ellipsis" }}>
+                {displayName}
+              </div>
+              <div style={{ color: C.muted, fontSize: 14, overflow: "hidden", textOverflow: "ellipsis" }}>{displayEmail}</div>
+              <div style={{ color: C.muted, fontSize: 13, marginTop: 2, wordBreak: "break-word" }}>
+                {displayDept} · {displayYear}
+              </div>
             </div>
           </div>
-          <div style={{ display: "flex", gap: 24 }}>
+          <div className="profile-stats-row" style={{ display: "flex", gap: 24, flexShrink: 0 }}>
             {[
               {
                 label: "Uploads",
@@ -4956,7 +4998,7 @@ function ProfilePage({
 
               { label: "Community", val: "IITR" },
             ].map(({ label, val }) => (
-              <div key={label} style={{ textAlign: "center" }}>
+              <div key={label} style={{ textAlign: "center", flex: 1 }}>
                 <div style={{ fontSize: 22, fontWeight: 800, color: C.blue }}>
                   {val}
                 </div>
@@ -4983,6 +5025,8 @@ function ProfilePage({
           marginBottom: 20,
 
           border: `1px solid ${C.border}`,
+
+          overflowX: "auto",
         }}
       >
         {(["uploads", "pins", "feedback", "settings"] as const).map((t) => (
@@ -4992,7 +5036,11 @@ function ProfilePage({
             style={{
               flex: 1,
 
-              padding: "8px 0",
+              minWidth: "fit-content",
+
+              whiteSpace: "nowrap",
+
+              padding: "8px 6px",
 
               borderRadius: 7,
 
@@ -5018,7 +5066,7 @@ function ProfilePage({
             ) : t === "pins" ? (
               "My Pins"
             ) : t === "feedback" ? (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
                 Feedback
                 {pendingReportsCount > 0 && (
                   <span
@@ -5027,8 +5075,9 @@ function ProfilePage({
                       color: "#fff",
                       fontSize: 10,
                       fontWeight: 700,
-                      padding: "1px 6px",
+                      padding: "1px 5px",
                       borderRadius: 10,
+                      lineHeight: "12px",
                     }}
                   >
                     {pendingReportsCount}
@@ -5036,7 +5085,7 @@ function ProfilePage({
                 )}
               </span>
             ) : (
-              "Account Settings"
+              "Settings"
             )}
           </button>
         ))}
