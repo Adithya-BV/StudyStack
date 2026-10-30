@@ -108,7 +108,22 @@ input[type='password']::-ms-clear {
     gap: 12px !important;
   }
 
-  /* Resource Card mobile stacking */
+  /* Course detail mobile header */
+  .course-detail-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+  }
+  .course-detail-actions {
+    width: 100% !important;
+    flex-direction: row-reverse !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    border-top: 1px solid #f1f5f9 !important;
+    padding-top: 12px !important;
+  }
+
+    /* Resource Card mobile stacking */
   .resource-card {
     flex-direction: column !important;
     gap: 12px !important;

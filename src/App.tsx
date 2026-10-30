@@ -3445,6 +3445,12 @@ function CourseDetailPage({
   onDeleteResource,
 
   onReport,
+
+  enrolledCourseIds = [],
+
+  onEnroll,
+
+  onUnenroll,
 }: {
   setPage: (p: Page) => void
 
@@ -3461,7 +3467,14 @@ function CourseDetailPage({
   onDeleteResource?: (id: number) => Promise<boolean> | void
 
   onReport?: (r: Resource) => void
+
+  enrolledCourseIds?: number[]
+
+  onEnroll?: (id: number) => void
+
+  onUnenroll?: (id: number) => void
 }) {
+  const isEnrolled = course ? enrolledCourseIds.includes(course.id) : false
   const [activeTab, setActiveTab] = useState<string | null>(null)
 
   const tabs = [
@@ -3535,12 +3548,15 @@ function CourseDetailPage({
 
       <Card style={{ marginBottom: 28 }}>
         <div
+          className="course-detail-header"
           style={{
             display: "flex",
 
             justifyContent: "space-between",
 
             alignItems: "flex-start",
+
+            gap: 16,
           }}
         >
           <div>
@@ -3584,11 +3600,69 @@ function CourseDetailPage({
               {course?.dept || "Computer Science"} · IIT Roorkee
             </p>
           </div>
-          <div style={{ textAlign: "right", flexShrink: 0 }}>
-            <div style={{ fontSize: 28, fontWeight: 800, color: C.blue }}>
-              {courseResources.length}
+          <div
+            className="course-detail-actions"
+            style={{
+              textAlign: "right",
+              flexShrink: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-end",
+              gap: 10,
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 28, fontWeight: 800, color: C.blue }}>
+                {courseResources.length}
+              </div>
+              <div style={{ fontSize: 12, color: C.muted }}>Resources</div>
             </div>
-            <div style={{ fontSize: 12, color: C.muted }}>Resources</div>
+
+            {course && (
+              isEnrolled ? (
+                <button
+                  onClick={() => onUnenroll?.(course.id)}
+                  style={{
+                    background: "#F0FDF4",
+                    color: "#15803D",
+                    border: "1.5px solid #BBF7D0",
+                    borderRadius: 8,
+                    padding: "7px 14px",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    transition: "all 0.15s ease",
+                  }}
+                  title="Click to remove from My Courses"
+                >
+                  <Icon.Check /> In My Courses
+                </button>
+              ) : (
+                <button
+                  onClick={() => onEnroll?.(course.id)}
+                  style={{
+                    background: C.blue,
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 8,
+                    padding: "8px 16px",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    boxShadow: "0 2px 8px rgba(20,110,245,0.25)",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  + Add to My Courses
+                </button>
+              )
+            )}
           </div>
         </div>
       </Card>
@@ -6739,6 +6813,9 @@ export default function App() {
                 user={currentUser}
                 onDeleteResource={handleDeleteResource}
                 onReport={setReportingResource}
+                enrolledCourseIds={enrolledCourseIds}
+                onEnroll={enrollCourse}
+                onUnenroll={removeCourse}
               />
             )}
             {page === "upload" && (
