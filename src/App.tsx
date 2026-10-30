@@ -4720,7 +4720,10 @@ function ProfilePage({
   const userUploads =
     profileData?.uploads || resources.filter((r) => r.by === displayName)
 
+  const [feedbackSubTab, setFeedbackSubTab] = useState<"received" | "submitted">("received")
+
   const reports = profileData?.reports || []
+  const myReports = profileData?.myReports || []
   const pendingReportsCount = reports.filter((rp: any) => rp.status === "pending").length
 
   const handleResolveReport = async (reportId: number) => {
@@ -5137,12 +5140,14 @@ function ProfilePage({
       )}
 
       {tab === "feedback" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div
             style={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
+              flexWrap: "wrap",
+              gap: 12,
               marginBottom: 4,
             }}
           >
@@ -5151,7 +5156,7 @@ function ProfilePage({
                 Feedback & Discrepancies
               </div>
               <div style={{ fontSize: 13, color: C.muted }}>
-                Issues reported by classmates on your uploaded materials.
+                Review issues on your uploads or track reports you submitted.
               </div>
             </div>
             <button
@@ -5176,89 +5181,366 @@ function ProfilePage({
             </button>
           </div>
 
+          {/* Sub-tab Pill Switcher */}
+          <div
+            style={{
+              display: "inline-flex",
+              background: "#F1F5F9",
+              padding: 4,
+              borderRadius: 8,
+              width: "fit-content",
+              gap: 4,
+            }}
+          >
+            <button
+              onClick={() => setFeedbackSubTab("received")}
+              style={{
+                padding: "6px 14px",
+                borderRadius: 6,
+                border: "none",
+                cursor: "pointer",
+                fontSize: 13,
+                fontWeight: 600,
+                background: feedbackSubTab === "received" ? "#fff" : "transparent",
+                color: feedbackSubTab === "received" ? C.navy : C.muted,
+                boxShadow: feedbackSubTab === "received" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                transition: "all 0.15s",
+              }}
+            >
+              Feedback on My Uploads
+              {pendingReportsCount > 0 && (
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    background: "#EF4444",
+                    color: "#fff",
+                    borderRadius: 10,
+                    padding: "1px 6px",
+                    lineHeight: "14px",
+                  }}
+                >
+                  {pendingReportsCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => setFeedbackSubTab("submitted")}
+              style={{
+                padding: "6px 14px",
+                borderRadius: 6,
+                border: "none",
+                cursor: "pointer",
+                fontSize: 13,
+                fontWeight: 600,
+                background: feedbackSubTab === "submitted" ? "#fff" : "transparent",
+                color: feedbackSubTab === "submitted" ? C.navy : C.muted,
+                boxShadow: feedbackSubTab === "submitted" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                transition: "all 0.15s",
+              }}
+            >
+              Issues I Reported
+              {myReports.length > 0 && (
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 600,
+                    background: "#E2E8F0",
+                    color: "#475569",
+                    borderRadius: 10,
+                    padding: "1px 6px",
+                    lineHeight: "14px",
+                  }}
+                >
+                  {myReports.length}
+                </span>
+              )}
+            </button>
+          </div>
+
           {loadingProfile && !profileData ? (
             <div style={{ textAlign: "center", padding: "40px 0", color: C.muted }}>
               Loading feedback reports...
             </div>
-          ) : reports.length > 0 ? (
-            reports.map((rp: any) => (
-              <Card key={rp.id} style={{ padding: "16px 20px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    gap: 12,
-                    marginBottom: 8,
-                  }}
-                >
-                  <div>
-                    <div
-                      style={{
-                        fontWeight: 600,
-                        fontSize: 14,
-                        color: C.text,
-                        marginBottom: 6,
-                      }}
-                    >
-                      {rp.resource_title}
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: 8,
-                        alignItems: "center",
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      <span
+          ) : feedbackSubTab === "received" ? (
+            reports.length > 0 ? (
+              reports.map((rp: any) => (
+                <Card key={rp.id} style={{ padding: "16px 20px" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      gap: 12,
+                      marginBottom: 8,
+                    }}
+                  >
+                    <div>
+                      <div
                         style={{
-                          fontSize: 12,
                           fontWeight: 600,
-                          padding: "2px 8px",
-                          borderRadius: 6,
-                          background: "#FEF3C7",
-                          color: "#92400E",
+                          fontSize: 14,
+                          color: C.text,
+                          marginBottom: 6,
                         }}
                       >
-                        {rp.reason}
-                      </span>
-                      <span style={{ fontSize: 12, color: C.muted }}>
-                        {new Date(rp.created_at).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </span>
-                      <span
+                        {rp.resource_title}
+                      </div>
+                      <div
                         style={{
-                          fontSize: 11,
-                          fontWeight: 600,
-                          padding: "2px 8px",
-                          borderRadius: 6,
-                          background:
-                            rp.status === "resolved" ? "#DCFCE7" : "#FEE2E2",
-                          color:
-                            rp.status === "resolved" ? "#166534" : "#991B1B",
-                          display: "inline-flex",
+                          display: "flex",
+                          gap: 8,
                           alignItems: "center",
-                          gap: 5,
+                          flexWrap: "wrap",
                         }}
                       >
                         <span
                           style={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: "50%",
-                            background:
-                              rp.status === "resolved" ? "#16A34A" : "#DC2626",
+                            fontSize: 12,
+                            fontWeight: 600,
+                            padding: "2px 8px",
+                            borderRadius: 6,
+                            background: "#FEF3C7",
+                            color: "#92400E",
                           }}
-                        />
-                        {rp.status === "resolved" ? "Resolved" : "Needs Review"}
-                      </span>
+                        >
+                          {rp.reason}
+                        </span>
+                        <span style={{ fontSize: 12, color: C.muted }}>
+                          {new Date(rp.created_at).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 600,
+                            padding: "2px 8px",
+                            borderRadius: 6,
+                            background:
+                              rp.status === "resolved" ? "#DCFCE7" : "#FEE2E2",
+                            color:
+                              rp.status === "resolved" ? "#166534" : "#991B1B",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 5,
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: "50%",
+                              background:
+                                rp.status === "resolved" ? "#16A34A" : "#DC2626",
+                            }}
+                          />
+                          {rp.status === "resolved" ? "Resolved" : "Needs Review"}
+                        </span>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                      <button
+                        onClick={() =>
+                          window.open(
+                            api.resources.getViewUrl(rp.resource_id),
+                            "_blank",
+                          )
+                        }
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 4,
+                          padding: "6px 12px",
+                          background: "#EFF6FF",
+                          color: C.blue,
+                          border: "none",
+                          borderRadius: 6,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                      >
+                        <Icon.Eye /> View File
+                      </button>
+                      {rp.status !== "resolved" && (
+                        <button
+                          onClick={() => handleResolveReport(rp.id)}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                            padding: "6px 12px",
+                            background: "#F0FDF4",
+                            color: "#16A34A",
+                            border: "1px solid #BBF7D0",
+                            borderRadius: 6,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                          }}
+                        >
+                          <Icon.CheckCircle /> Mark as Resolved
+                        </button>
+                      )}
                     </div>
                   </div>
-                  <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                  {rp.details && (
+                    <div
+                      style={{
+                        background: "#F8FAFC",
+                        borderRadius: 8,
+                        padding: "8px 12px",
+                        fontSize: 13,
+                        color: "#475569",
+                        marginTop: 8,
+                        border: `1px solid ${C.border}`,
+                      }}
+                    >
+                      <b>Note:</b> {rp.details}
+                    </div>
+                  )}
+                </Card>
+              ))
+            ) : (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "60px 0",
+                  color: C.muted,
+                }}
+              >
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: "50%",
+                    background: "#ECFDF5",
+                    color: "#059669",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 12px",
+                  }}
+                >
+                  <Icon.Check />
+                </div>
+                <div
+                  style={{
+                    fontWeight: 700,
+                    color: C.text,
+                    fontSize: 16,
+                    marginBottom: 6,
+                  }}
+                >
+                  No reported issues
+                </div>
+                <div style={{ fontSize: 13 }}>
+                  Classmates haven't reported any issues with your uploads. Everything looks great!
+                </div>
+              </div>
+            )
+          ) : (
+            myReports.length > 0 ? (
+              myReports.map((rp: any) => (
+                <Card key={rp.id} style={{ padding: "16px 20px" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      gap: 12,
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          fontWeight: 600,
+                          fontSize: 14,
+                          color: C.text,
+                          marginBottom: 6,
+                        }}
+                      >
+                        {rp.resource_title}
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: 8,
+                          alignItems: "center",
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: 12,
+                            fontWeight: 600,
+                            padding: "2px 8px",
+                            borderRadius: 6,
+                            background: "#FEF3C7",
+                            color: "#92400E",
+                          }}
+                        >
+                          {rp.reason}
+                        </span>
+                        <span style={{ fontSize: 12, color: C.muted }}>
+                          Reported on{" "}
+                          {new Date(rp.created_at).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 600,
+                            padding: "2px 8px",
+                            borderRadius: 6,
+                            background:
+                              rp.status === "resolved" ? "#DCFCE7" : "#FEF3C7",
+                            color:
+                              rp.status === "resolved" ? "#166534" : "#92400E",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 5,
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: "50%",
+                              background:
+                                rp.status === "resolved" ? "#16A34A" : "#F59E0B",
+                            }}
+                          />
+                          {rp.status === "resolved"
+                            ? "Resolved by Uploader"
+                            : "Pending Review"}
+                        </span>
+                      </div>
+                      {rp.details && (
+                        <div
+                          style={{
+                            fontSize: 13,
+                            color: "#64748B",
+                            marginTop: 8,
+                          }}
+                        >
+                          <b>Your note:</b> {rp.details}
+                        </div>
+                      )}
+                    </div>
                     <button
                       onClick={() =>
                         window.open(
@@ -5278,86 +5560,52 @@ function ProfilePage({
                         fontSize: 12,
                         fontWeight: 600,
                         cursor: "pointer",
+                        flexShrink: 0,
                       }}
                     >
                       <Icon.Eye /> View File
                     </button>
-                    {rp.status !== "resolved" && (
-                      <button
-                        onClick={() => handleResolveReport(rp.id)}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 4,
-                          padding: "6px 12px",
-                          background: "#F0FDF4",
-                          color: "#16A34A",
-                          border: "1px solid #BBF7D0",
-                          borderRadius: 6,
-                          fontSize: 12,
-                          fontWeight: 600,
-                          cursor: "pointer",
-                        }}
-                      >
-                        <Icon.CheckCircle /> Mark as Resolved
-                      </button>
-                    )}
                   </div>
+                </Card>
+              ))
+            ) : (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "60px 0",
+                  color: C.muted,
+                }}
+              >
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: "50%",
+                    background: "#F1F5F9",
+                    color: C.muted,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 12px",
+                  }}
+                >
+                  <Icon.Flag />
                 </div>
-                {rp.details && (
-                  <div
-                    style={{
-                      background: "#F8FAFC",
-                      borderRadius: 8,
-                      padding: "8px 12px",
-                      fontSize: 13,
-                      color: "#475569",
-                      marginTop: 8,
-                      border: `1px solid ${C.border}`,
-                    }}
-                  >
-                    <b>Note:</b> {rp.details}
-                  </div>
-                )}
-              </Card>
-            ))
-          ) : (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "60px 0",
-                color: C.muted,
-              }}
-            >
-              <div
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: "50%",
-                  background: "#ECFDF5",
-                  color: "#059669",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "0 auto 12px",
-                }}
-              >
-                <Icon.Check />
+                <div
+                  style={{
+                    fontWeight: 700,
+                    color: C.text,
+                    fontSize: 16,
+                    marginBottom: 6,
+                  }}
+                >
+                  No reports submitted
+                </div>
+                <div style={{ fontSize: 13 }}>
+                  You haven't reported any issues on course resources yet.
+                </div>
               </div>
-              <div
-                style={{
-                  fontWeight: 700,
-                  color: C.text,
-                  fontSize: 16,
-                  marginBottom: 6,
-                }}
-              >
-                No reported issues
-              </div>
-              <div style={{ fontSize: 13 }}>
-                Classmates haven't reported any issues with your uploads. Everything looks great!
-              </div>
-            </div>
+            )
           )}
         </div>
       )}

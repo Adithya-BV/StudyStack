@@ -1,6 +1,7 @@
 import { Router } from "express"
 import { pool } from "../db/database"
 import { authenticateToken } from "./auth"
+import { sendReportResolvedEmail } from "../services/emailService"
 
 export const profileRouter = Router()
 
@@ -45,6 +46,17 @@ profileRouter.get("/", authenticateToken, async (req: any, res) => {
       )
     ).rows as any[]
 
+    const myReports = (
+      await pool.query(
+        `SELECT rr.id, rr.resource_id, rr.reason, rr.details, rr.status, rr.created_at, r.title as resource_title
+         FROM resource_reports rr
+         JOIN resources r ON rr.resource_id = r.id
+         WHERE LOWER(TRIM(rr.reporter_email)) = LOWER(TRIM($1))
+         ORDER BY rr.id DESC`,
+        [userEmail],
+      )
+    ).rows as any[]
+
     res.json({
       success: true,
       profile: {
@@ -53,6 +65,7 @@ profileRouter.get("/", authenticateToken, async (req: any, res) => {
         pinsCount: pinCount ? parseInt(pinCount.count, 10) : 0,
         uploads: uploads.map((u) => ({ ...u, course: u.course_code })),
         reports,
+        myReports,
       },
     })
   } catch (error: any) {
@@ -125,7 +138,8 @@ profileRouter.patch("/reports/:reportId/resolve", authenticateToken, async (req:
     const userEmail = req.user.email
 
     const checkRes = await pool.query(
-      `SELECT rr.id FROM resource_reports rr
+      `SELECT rr.id, rr.reporter_email, rr.reason, r.title as resource_title
+       FROM resource_reports rr
        JOIN resources r ON rr.resource_id = r.id
        WHERE rr.id = $1 AND LOWER(TRIM(r.uploader_email)) = LOWER(TRIM($2))`,
       [reportId, userEmail],
@@ -135,7 +149,17 @@ profileRouter.patch("/reports/:reportId/resolve", authenticateToken, async (req:
       return res.status(403).json({ error: "Unauthorized or report not found" })
     }
 
+    const report = checkRes.rows[0]
     await pool.query("UPDATE resource_reports SET status = 'resolved' WHERE id = $1", [reportId])
+
+    if (report.reporter_email) {
+      sendReportResolvedEmail(
+        report.reporter_email,
+        report.resource_title,
+        report.reason,
+      ).catch((err) => console.error("Report resolution email failed:", err))
+    }
+
     res.json({ success: true, message: "Report marked as resolved" })
   } catch (error: any) {
     res.status(500).json({ error: error.message || "Failed to resolve report" })
