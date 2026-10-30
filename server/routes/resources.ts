@@ -53,7 +53,7 @@ resourcesRouter.get("/", async (req, res) => {
 
     const user = getOptionalUser(req)
 
-    let query = "SELECT * FROM resources WHERE 1=1"
+    let query = "SELECT id, title, course_code, type, by, uploader_email, file_path, file_size, date, created_at FROM resources WHERE 1=1"
 
     const params: any[] = []
 
@@ -237,7 +237,7 @@ resourcesRouter.post(
       }
 
       const newResource = (
-        await pool.query("SELECT * FROM resources WHERE id = $1", [info.id])
+        await pool.query("SELECT id, title, course_code, type, by, uploader_email, file_path, file_size, date, created_at FROM resources WHERE id = $1", [info.id])
       ).rows[0] as any
 
       res.status(201).json({
@@ -478,16 +478,10 @@ resourcesRouter.get("/pinned", authenticateToken, async (req: any, res) => {
         `
 
 
-        SELECT r.*, 1 as pinned
-
-
+        SELECT r.id, r.title, r.course_code, r.type, r.by, r.uploader_email, r.file_path, r.file_size, r.date, r.created_at, 1 as pinned
         FROM resources r
-
-
         JOIN pins p ON p.resource_id = r.id
-
-
-        WHERE p.user_email = $1
+        WHERE LOWER(TRIM(p.user_email)) = LOWER(TRIM($1))
 
 
         ORDER BY p.id DESC

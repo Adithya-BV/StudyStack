@@ -4608,6 +4608,8 @@ function ProfilePage({
 
   const [profileData, setProfileData] = useState<any>(null)
 
+  const [loadingProfile, setLoadingProfile] = useState(false)
+
   const [editName, setEditName] = useState("")
 
   const [editBranch, setEditBranch] = useState("Computer Science & Engineering")
@@ -4620,29 +4622,38 @@ function ProfilePage({
 
   const pinned = resources.filter((r) => r.pinned)
 
+  const loadProfile = async (silent = false) => {
+    if (!silent) setLoadingProfile(true)
+    try {
+      const data = await api.profile.get()
+      setProfileData(data)
+      setEditName(data.name || user?.name || "")
+      setEditBranch(
+        data.department ||
+          user?.department ||
+          "Computer Science & Engineering",
+      )
+    } catch (err: any) {
+      console.error("Failed to load profile:", err)
+      if (!silent) {
+        onToast(err.message || "Failed to load profile", "error")
+      }
+      setEditName(user?.name || "")
+      setEditBranch(user?.department || "Computer Science & Engineering")
+    } finally {
+      if (!silent) setLoadingProfile(false)
+    }
+  }
+
   useEffect(() => {
-    api.profile
-
-      .get()
-
-      .then((data) => {
-        setProfileData(data)
-
-        setEditName(data.name || user?.name || "")
-
-        setEditBranch(
-          data.department ||
-            user?.department ||
-            "Computer Science & Engineering",
-        )
-      })
-
-      .catch(() => {
-        setEditName(user?.name || "")
-
-        setEditBranch(user?.department || "Computer Science & Engineering")
-      })
+    loadProfile()
   }, [user])
+
+  useEffect(() => {
+    if (tab === "feedback") {
+      loadProfile(true)
+    }
+  }, [tab])
 
   const displayName = profileData?.name || user?.name || "IITR Student"
 
@@ -5068,7 +5079,49 @@ function ProfilePage({
 
       {tab === "feedback" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {reports.length > 0 ? (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 4,
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.text }}>
+                Feedback & Discrepancies
+              </div>
+              <div style={{ fontSize: 13, color: C.muted }}>
+                Issues reported by classmates on your uploaded materials.
+              </div>
+            </div>
+            <button
+              onClick={() => loadProfile(false)}
+              disabled={loadingProfile}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 12px",
+                background: "#F1F5F9",
+                color: C.navy,
+                border: `1px solid ${C.border}`,
+                borderRadius: 6,
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: loadingProfile ? "not-allowed" : "pointer",
+                opacity: loadingProfile ? 0.6 : 1,
+              }}
+            >
+              {loadingProfile ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
+
+          {loadingProfile && !profileData ? (
+            <div style={{ textAlign: "center", padding: "40px 0", color: C.muted }}>
+              Loading feedback reports...
+            </div>
+          ) : reports.length > 0 ? (
             reports.map((rp: any) => (
               <Card key={rp.id} style={{ padding: "16px 20px" }}>
                 <div
@@ -5128,9 +5181,21 @@ function ProfilePage({
                             rp.status === "resolved" ? "#DCFCE7" : "#FEE2E2",
                           color:
                             rp.status === "resolved" ? "#166534" : "#991B1B",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 5,
                         }}
                       >
-                        {rp.status === "resolved" ? "✓ Resolved" : "● Needs Review"}
+                        <span
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: "50%",
+                            background:
+                              rp.status === "resolved" ? "#16A34A" : "#DC2626",
+                          }}
+                        />
+                        {rp.status === "resolved" ? "Resolved" : "Needs Review"}
                       </span>
                     </div>
                   </div>
@@ -5205,7 +5270,21 @@ function ProfilePage({
                 color: C.muted,
               }}
             >
-              <div style={{ fontSize: 36, marginBottom: 12 }}>🎉</div>
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: "50%",
+                  background: "#ECFDF5",
+                  color: "#059669",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 12px",
+                }}
+              >
+                <Icon.Check />
+              </div>
               <div
                 style={{
                   fontWeight: 700,
