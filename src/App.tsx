@@ -457,6 +457,8 @@ function Sidebar({
   setPage,
 
   onLogout,
+
+  pendingFeedbackCount = 0,
 }: {
   page: Page
 
@@ -465,6 +467,8 @@ function Sidebar({
   onLogout: () => void
 
   onDeleteResource?: (id: number) => Promise<boolean> | void
+
+  pendingFeedbackCount?: number
 }) {
   const navItems: { label: string; icon: keyof typeof Icon; target: Page }[] = [
     { label: "Home", icon: "Home", target: "home" },
@@ -609,7 +613,22 @@ function Sidebar({
               }}
             >
               <IconComp />
-              {label}
+              <span style={{ flex: 1 }}>{label}</span>
+              {target === "profile" && pendingFeedbackCount > 0 && (
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    background: "#EF4444",
+                    color: "#fff",
+                    borderRadius: 10,
+                    padding: "1px 6px",
+                    lineHeight: "14px",
+                  }}
+                >
+                  {pendingFeedbackCount}
+                </span>
+              )}
             </button>
           )
         })}
@@ -899,10 +918,12 @@ function ReportModal({
   resource,
   onClose,
   onToast,
+  onSuccess,
 }: {
   resource: Resource | null
   onClose: () => void
   onToast: (msg: string, type?: "success" | "error") => void
+  onSuccess?: () => void
 }) {
   const [reason, setReason] = useState("Missing or blurry pages")
   const [details, setDetails] = useState("")
@@ -931,6 +952,7 @@ function ReportModal({
         "success",
       )
       onClose()
+      onSuccess?.()
     } catch (err: any) {
       onToast(err.message || "Failed to submit feedback", "error")
     } finally {
@@ -4591,6 +4613,8 @@ function ProfilePage({
   onUserUpdated,
 
   onDeleteResource,
+
+  onFeedbackCountChange,
 }: {
   resources: Resource[]
 
@@ -4603,6 +4627,8 @@ function ProfilePage({
   onUserUpdated: (u: any) => void
 
   onDeleteResource?: (id: number) => Promise<boolean> | void
+
+  onFeedbackCountChange?: (count: number) => void
 }) {
   const [tab, setTab] = useState<"uploads" | "pins" | "feedback" | "settings">("uploads")
 
@@ -4633,6 +4659,10 @@ function ProfilePage({
           user?.department ||
           "Computer Science & Engineering",
       )
+      if (data?.reports && onFeedbackCountChange) {
+        const pending = data.reports.filter((rp: any) => rp.status === "pending").length
+        onFeedbackCountChange(pending)
+      }
     } catch (err: any) {
       console.error("Failed to load profile:", err)
       if (!silent) {
@@ -4647,11 +4677,32 @@ function ProfilePage({
 
   useEffect(() => {
     loadProfile()
-  }, [user])
+  }, [])
 
   useEffect(() => {
-    if (tab === "feedback") {
-      loadProfile(true)
+    loadProfile(true)
+  }, [tab])
+
+  useEffect(() => {
+    const handleFocus = () => {
+      if (document.visibilityState === "visible") {
+        loadProfile(true)
+      }
+    }
+    window.addEventListener("focus", handleFocus)
+    document.addEventListener("visibilitychange", handleFocus)
+
+    const intervalTime = tab === "feedback" ? 8000 : 20000
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible" && !document.hidden) {
+        loadProfile(true)
+      }
+    }, intervalTime)
+
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener("focus", handleFocus)
+      document.removeEventListener("visibilitychange", handleFocus)
     }
   }, [tab])
 
@@ -4676,12 +4727,20 @@ function ProfilePage({
     try {
       await api.profile.resolveReport(reportId)
       onToast("Feedback marked as resolved!", "success")
-      setProfileData((prev: any) => ({
-        ...prev,
-        reports: (prev?.reports || []).map((rp: any) =>
+      setProfileData((prev: any) => {
+        const updatedReports = (prev?.reports || []).map((rp: any) =>
           rp.id === reportId ? { ...rp, status: "resolved" } : rp,
-        ),
-      }))
+        )
+        if (onFeedbackCountChange) {
+          const pending = updatedReports.filter((rp: any) => rp.status === "pending").length
+          onFeedbackCountChange(pending)
+        }
+        return {
+          ...prev,
+          reports: updatedReports,
+        }
+      })
+      loadProfile(true)
     } catch (err: any) {
       onToast(err.message || "Failed to resolve report", "error")
     }
@@ -5724,15 +5783,29 @@ export default function App() {
 
   const [reportingResource, setReportingResource] = useState<Resource | null>(null)
 
+  const [pendingFeedbackCount, setPendingFeedbackCount] = useState(0)
+
   const { toast, show } = useToast()
 
   const [appLoading, setAppLoading] = useState(true)
 
-  // Load data from backend
-
-  const loadData = async () => {
+  const loadFeedbackCount = async () => {
+    if (!api.auth.getToken()) return
     try {
-      setAppLoading(true)
+      const profile = await api.profile.get()
+      if (profile?.reports) {
+        const pending = profile.reports.filter((rp: any) => rp.status === "pending").length
+        setPendingFeedbackCount(pending)
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // Load data from backend
+  const loadData = async (showLoading = false) => {
+    try {
+      if (showLoading) setAppLoading(true)
 
       const [fetchedCourses, fetchedResources, fetchedEnrolled] =
         await Promise.all([
@@ -5748,10 +5821,14 @@ export default function App() {
       if (fetchedResources) setResources(fetchedResources)
 
       if (fetchedEnrolled) setEnrolledCourseIds(fetchedEnrolled)
+
+      if (api.auth.getToken()) {
+        loadFeedbackCount()
+      }
     } catch {
       // Fallback if offline
     } finally {
-      setAppLoading(false)
+      if (showLoading) setAppLoading(false)
     }
   }
 
@@ -5765,12 +5842,44 @@ export default function App() {
 
       setPage("home")
 
-      loadData()
+      loadData(true)
     } else {
       setAppLoading(false)
 
-      loadData() // try fetching global data anyway if needed, though APIs might reject
+      loadData(false)
     }
+  }, [])
+
+  // Auto-sync whenever page changes
+  useEffect(() => {
+    if (currentUser) {
+      loadData(false)
+    }
+  }, [page])
+
+  // Auto-sync on window focus / tab visibility change (e.g. returning from email or another tab)
+  useEffect(() => {
+    const handleSync = () => {
+      if (document.visibilityState === "visible") {
+        loadData(false)
+      }
+    }
+    window.addEventListener("focus", handleSync)
+    document.addEventListener("visibilitychange", handleSync)
+    return () => {
+      window.removeEventListener("focus", handleSync)
+      document.removeEventListener("visibilitychange", handleSync)
+    }
+  }, [])
+
+  // Live background polling every 12 seconds while tab is active
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible" && !document.hidden) {
+        loadData(false)
+      }
+    }, 12000)
+    return () => clearInterval(interval)
   }, [])
 
   useEffect(() => {
@@ -5801,6 +5910,7 @@ export default function App() {
 
   const handleViewCourse = (c: Course) => {
     setSelectedCourse(c)
+    loadData(false)
 
     try {
       const saved = localStorage.getItem("studyStack_recentCourses")
@@ -6038,7 +6148,12 @@ export default function App() {
         fontFamily: "Inter, sans-serif",
       }}
     >
-      <Sidebar page={page} setPage={setPage} onLogout={handleLogout} />
+      <Sidebar
+        page={page}
+        setPage={setPage}
+        onLogout={handleLogout}
+        pendingFeedbackCount={pendingFeedbackCount}
+      />
       <main style={{ flex: 1, overflow: "auto", height: "100%" }}>
         {appLoading ? (
           <div
@@ -6139,6 +6254,7 @@ export default function App() {
                   api.auth.setUser(u)
                 }}
                 onDeleteResource={handleDeleteResource}
+                onFeedbackCountChange={setPendingFeedbackCount}
               />
             )}
           </>
@@ -6149,6 +6265,7 @@ export default function App() {
           resource={reportingResource}
           onClose={() => setReportingResource(null)}
           onToast={show}
+          onSuccess={() => loadData(false)}
         />
       )}
 
