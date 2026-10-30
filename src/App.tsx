@@ -6754,7 +6754,7 @@ export default function App() {
       >
         {[
           { label: "Home", icon: "Home", target: "home" as Page },
-          { label: "Courses", icon: "Book", target: "courses" as Page },
+          { label: "My Courses", icon: "Book", target: "courses" as Page },
           { label: "Pins", icon: "Bookmark", target: "pins" as Page },
           { label: "Upload", icon: "Upload", target: "upload" as Page },
           { label: "Profile", icon: "User", target: "profile" as Page },
