@@ -3620,26 +3620,44 @@ function CourseDetailPage({
 
             {course && (
               isEnrolled ? (
-                <button
-                  onClick={() => onUnenroll?.(course.id)}
-                  style={{
-                    background: "#F0FDF4",
-                    color: "#15803D",
-                    border: "1.5px solid #BBF7D0",
-                    borderRadius: 8,
-                    padding: "7px 14px",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    transition: "all 0.15s ease",
-                  }}
-                  title="Click to remove from My Courses"
-                >
-                  <Icon.Check /> In My Courses
-                </button>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <span
+                    style={{
+                      background: "#F0FDF4",
+                      color: "#15803D",
+                      border: "1.5px solid #BBF7D0",
+                      borderRadius: 8,
+                      padding: "7px 14px",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <Icon.Check /> In My Courses
+                  </span>
+                  <button
+                    onClick={() => onUnenroll?.(course.id)}
+                    style={{
+                      background: "#FEF2F2",
+                      color: "#DC2626",
+                      border: "1px solid #FECACA",
+                      borderRadius: 8,
+                      padding: "7px 12px",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                      transition: "all 0.15s ease",
+                    }}
+                    title="Remove from My Courses"
+                  >
+                    Remove
+                  </button>
+                </div>
               ) : (
                 <button
                   onClick={() => onEnroll?.(course.id)}
