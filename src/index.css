@@ -48,3 +48,29 @@ input[type='password']::-ms-clear {
   animation: fade-in-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+
+
+/* Responsive Navigation & Mobile Support */
+@media (min-width: 769px) {
+  .mobile-only {
+    display: none !important;
+  }
+  .desktop-sidebar {
+    display: flex !important;
+  }
+  .main-content-scroll {
+    padding-bottom: 0 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .desktop-sidebar {
+    display: none !important;
+  }
+  .mobile-only {
+    display: flex !important;
+  }
+  .main-content-scroll {
+    padding-bottom: 74px !important;
+  }
+}

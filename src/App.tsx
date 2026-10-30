@@ -58,6 +58,8 @@ type Resource = {
   pinned?: boolean
 
   uploader_email?: string
+
+  downloads?: number
 }
 
 type Page = "login" | "signup" | "otp" | "forgot" | "home" | "courses" | "course-detail" | "upload" | "pins" | "profile"
@@ -484,6 +486,7 @@ function Sidebar({
 
   return (
     <aside
+      className="desktop-sidebar"
       style={{
         width: 248,
 
@@ -1254,6 +1257,14 @@ function ResourceCard({
           <span style={{ fontSize: 12, color: C.muted }}>{r.date}</span>
           <span style={{ fontSize: 12, color: C.muted }}>·</span>
           <span style={{ fontSize: 12, color: C.muted }}>{r.size}</span>
+          {(r.downloads ?? 0) > 0 && (
+            <>
+              <span style={{ fontSize: 12, color: C.muted }}>·</span>
+              <span style={{ fontSize: 12, color: C.muted }}>
+                📥 {r.downloads} {r.downloads === 1 ? "download" : "downloads"}
+              </span>
+            </>
+          )}
         </div>
       </div>
       <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
@@ -2506,6 +2517,10 @@ function HomePage({
 
     .filter(Boolean) as Course[]
 
+  const [selectedType, setSelectedType] = useState<string>("All")
+
+  const isFiltering = Boolean(search || selectedType !== "All")
+
   const filteredCourses = search
     ? courses.filter(
         (c) =>
@@ -2514,13 +2529,16 @@ function HomePage({
       )
     : courses
 
-  const filteredResources = search
-    ? resources.filter(
-        (r) =>
-          r.title.toLowerCase().includes(search.toLowerCase()) ||
-          r.course.toLowerCase().includes(search.toLowerCase()),
-      )
-    : resources
+  const filteredResources = resources.filter((r) => {
+    const matchesSearch =
+      !search ||
+      r.title.toLowerCase().includes(search.toLowerCase()) ||
+      r.course.toLowerCase().includes(search.toLowerCase())
+    const matchesType =
+      selectedType === "All" ||
+      r.type.toLowerCase() === selectedType.toLowerCase()
+    return matchesSearch && matchesType
+  })
 
   const renderCourseGrid = (courseList: Course[]) => (
     <div
@@ -2651,56 +2669,97 @@ function HomePage({
         </p>
       </div>
 
-      {/* Search */}
-      <div style={{ position: "relative", marginBottom: 36 }}>
+      {/* Search & Category Quick Filters */}
+      <div style={{ marginBottom: 36 }}>
+        <div style={{ position: "relative" }}>
+          <div
+            style={{
+              position: "absolute",
+
+              left: 16,
+
+              top: "50%",
+
+              transform: "translateY(-50%)",
+
+              color: C.muted,
+            }}
+          >
+            <Icon.Search />
+          </div>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search courses, notes, PYQs, assignments..."
+            style={{
+              width: "100%",
+
+              padding: "14px 14px 14px 48px",
+
+              border: `1.5px solid ${C.border}`,
+
+              borderRadius: 12,
+
+              fontSize: 15,
+
+              color: C.text,
+
+              background: "#fff",
+
+              outline: "none",
+
+              boxSizing: "border-box",
+
+              fontFamily: "Inter, sans-serif",
+
+              boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+            }}
+          />
+        </div>
+
+        {/* Quick Filter Category Pills */}
         <div
           style={{
-            position: "absolute",
-
-            left: 16,
-
-            top: "50%",
-
-            transform: "translateY(-50%)",
-
-            color: C.muted,
+            display: "flex",
+            gap: 8,
+            marginTop: 12,
+            flexWrap: "wrap",
+            alignItems: "center",
           }}
         >
-          <Icon.Search />
+          <span style={{ fontSize: 13, fontWeight: 600, color: C.muted, marginRight: 2 }}>
+            Filter:
+          </span>
+          {["All", "Notes", "PYQ", "Assignments", "Labs"].map((t) => {
+            const active = selectedType === t
+            return (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setSelectedType(t)}
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: 20,
+                  border: active ? `1.5px solid ${C.blue}` : `1px solid ${C.border}`,
+                  background: active ? "#EFF6FF" : "#fff",
+                  color: active ? C.blue : C.muted,
+                  fontWeight: active ? 700 : 500,
+                  fontSize: 13,
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                  boxShadow: active ? "0 1px 4px rgba(20,110,245,0.15)" : "none",
+                }}
+              >
+                {t}
+              </button>
+            )
+          })}
         </div>
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search courses, notes, PYQs, assignments..."
-          style={{
-            width: "100%",
-
-            padding: "14px 14px 14px 48px",
-
-            border: `1.5px solid ${C.border}`,
-
-            borderRadius: 12,
-
-            fontSize: 15,
-
-            color: C.text,
-
-            background: "#fff",
-
-            outline: "none",
-
-            boxSizing: "border-box",
-
-            fontFamily: "Inter, sans-serif",
-
-            boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-          }}
-        />
       </div>
 
-      {search ? (
+      {isFiltering ? (
         <>
-          {filteredCourses.length > 0 && (
+          {search && filteredCourses.length > 0 && (
             <div style={{ marginBottom: 36 }}>
               <h2
                 style={{
@@ -2732,7 +2791,7 @@ function HomePage({
                   marginBottom: 16,
                 }}
               >
-                Resources ({filteredResources.length})
+                {selectedType !== "All" ? `${selectedType} Resources` : "Resources"} ({filteredResources.length})
               </h2>
               <div
                 style={{ display: "flex", flexDirection: "column", gap: 10 }}
@@ -2752,11 +2811,13 @@ function HomePage({
             </div>
           )}
 
-          {filteredCourses.length === 0 && filteredResources.length === 0 && (
+          {(!search || filteredCourses.length === 0) && filteredResources.length === 0 && (
             <div
               style={{ textAlign: "center", padding: "40px 0", color: C.muted }}
             >
-              No courses or resources match your search.
+              {search
+                ? "No courses or resources match your search."
+                : `No ${selectedType.toLowerCase()} resources found.`}
             </div>
           )}
         </>
@@ -3675,6 +3736,10 @@ function UploadPage({
     const file = e.dataTransfer.files[0]
 
     if (file) {
+      if (file.size > 25 * 1024 * 1024) {
+        onToast("File is larger than the 25 MB limit", "error")
+        return
+      }
       setSelectedFile(file)
 
       if (!title) setTitle(file.name.replace(/\.[^/.]+$/, ""))
@@ -3882,7 +3947,7 @@ function UploadPage({
               Drag & drop your file here
             </div>
             <div style={{ color: C.muted, fontSize: 13, marginBottom: 14 }}>
-              PDF, DOCX, Images up to 50MB
+              Supported formats: PDF, PNG, JPG, WebP (up to 25 MB)
             </div>
             <label
               style={{
@@ -3904,10 +3969,15 @@ function UploadPage({
               Browse Files
               <input
                 type="file"
+                accept=".pdf,.png,.jpg,.jpeg,.webp"
                 style={{ display: "none" }}
                 onChange={(e) => {
                   if (e.target.files?.[0]) {
                     const f = e.target.files[0]
+                    if (f.size > 25 * 1024 * 1024) {
+                      onToast("File is larger than the 25 MB limit", "error")
+                      return
+                    }
 
                     setSelectedFile(f)
 
@@ -6402,7 +6472,93 @@ export default function App() {
         onLogout={handleLogout}
         pendingFeedbackCount={pendingFeedbackCount}
       />
-      <main style={{ flex: 1, overflow: "auto", height: "100%" }}>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          overflow: "hidden",
+          minWidth: 0,
+        }}
+      >
+        {/* Mobile Header (Hidden on Desktop) */}
+        <header
+          className="mobile-only"
+          style={{
+            height: 56,
+            background: C.navy,
+            padding: "0 16px",
+            alignItems: "center",
+            justifyContent: "space-between",
+            borderBottom: "1px solid rgba(255,255,255,0.08)",
+            flexShrink: 0,
+            zIndex: 30,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <img
+              src={sidebarIcon}
+              alt="StudyStack logo"
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 8,
+                objectFit: "cover",
+                mixBlendMode: "lighten",
+              }}
+            />
+            <div>
+              <div
+                style={{
+                  color: "#fff",
+                  fontWeight: 700,
+                  fontSize: 16,
+                  letterSpacing: "-0.3px",
+                  lineHeight: "18px",
+                }}
+              >
+                StudyStack
+              </div>
+              <div
+                style={{
+                  color: C.cyan,
+                  fontSize: 10,
+                  fontWeight: 500,
+                  lineHeight: "12px",
+                }}
+              >
+                Your Stack. Your Track.
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={handleLogout}
+            title="Log Out"
+            style={{
+              background: "rgba(255,255,255,0.08)",
+              border: "none",
+              borderRadius: 8,
+              padding: "6px 10px",
+              color: "rgba(255,255,255,0.8)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: 12,
+              fontWeight: 600,
+            }}
+          >
+            <Icon.Logout />
+            <span>Logout</span>
+          </button>
+        </header>
+
+        {/* Scrollable Main Content */}
+        <main
+          className="main-content-scroll"
+          style={{ flex: 1, overflow: "auto", height: "100%" }}
+        >
         {appLoading ? (
           <div
             style={{
@@ -6508,6 +6664,99 @@ export default function App() {
           </>
         )}
       </main>
+      </div>
+
+      {/* Mobile Bottom Navigation (Hidden on Desktop) */}
+      <nav
+        className="mobile-only"
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 60,
+          background: C.navy,
+          borderTop: "1px solid rgba(255,255,255,0.1)",
+          zIndex: 999,
+          justifyContent: "space-around",
+          alignItems: "center",
+          padding: "0 6px",
+          boxShadow: "0 -2px 10px rgba(0,0,0,0.15)",
+        }}
+      >
+        {[
+          { label: "Home", icon: "Home", target: "home" as Page },
+          { label: "Courses", icon: "Book", target: "courses" as Page },
+          { label: "Pins", icon: "Bookmark", target: "pins" as Page },
+          { label: "Upload", icon: "Upload", target: "upload" as Page },
+          { label: "Profile", icon: "User", target: "profile" as Page },
+        ].map(({ label, icon, target }) => {
+          const active =
+            page === target ||
+            (page === "course-detail" && target === previousCoursePage)
+          const IconComp = Icon[icon as keyof typeof Icon] as () => React.ReactElement
+          return (
+            <button
+              key={label}
+              onClick={() => setPage(target)}
+              style={{
+                background: "transparent",
+                border: "none",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "6px 4px",
+                cursor: "pointer",
+                color: active ? C.cyan : "rgba(255,255,255,0.6)",
+                position: "relative",
+                flex: 1,
+                transition: "all 0.15s ease",
+              }}
+            >
+              <div
+                style={{
+                  position: "relative",
+                  display: "flex",
+                  transform: active ? "scale(1.1)" : "scale(1)",
+                  transition: "transform 0.15s",
+                }}
+              >
+                <IconComp />
+                {target === "profile" && pendingFeedbackCount > 0 && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: -4,
+                      right: -7,
+                      fontSize: 9,
+                      fontWeight: 700,
+                      background: "#EF4444",
+                      color: "#fff",
+                      borderRadius: 10,
+                      padding: "1px 5px",
+                      lineHeight: "11px",
+                      minWidth: 12,
+                      textAlign: "center",
+                    }}
+                  >
+                    {pendingFeedbackCount}
+                  </span>
+                )}
+              </div>
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: active ? 700 : 500,
+                  marginTop: 3,
+                }}
+              >
+                {label}
+              </span>
+            </button>
+          )
+        })}
+      </nav>
       {reportingResource && (
         <ReportModal
           resource={reportingResource}

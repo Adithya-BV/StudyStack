@@ -68,6 +68,18 @@ app.use("/api/resources", resourcesRouter)
 
 app.use("/api/profile", profileRouter)
 
+// Error handling middleware (e.g. Multer LIMIT_FILE_SIZE)
+app.use((err: any, req: any, res: any, next: any) => {
+  if (err && err.code === "LIMIT_FILE_SIZE") {
+    return res.status(400).json({ error: "File is too large. Maximum allowed size is 25 MB." })
+  }
+  if (err) {
+    console.error("Unhandled server error:", err)
+    return res.status(err.status || 500).json({ error: err.message || "Internal server error" })
+  }
+  next()
+})
+
 // Serve built frontend in production
 
 const distDir = path.resolve(process.cwd(), "dist")

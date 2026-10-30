@@ -26,7 +26,7 @@ const storage = multer.memoryStorage()
 const upload = multer({
   storage,
 
-  limits: { fileSize: 15 * 1024 * 1024 }, // 50MB
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB
 })
 
 // Optional auth helper to check if user has pinned a resource
@@ -53,7 +53,7 @@ resourcesRouter.get("/", async (req, res) => {
 
     const user = getOptionalUser(req)
 
-    let query = "SELECT id, title, course_code, type, by, uploader_email, file_path, file_size, date, created_at FROM resources WHERE 1=1"
+    let query = "SELECT id, title, course_code, type, by, uploader_email, file_path, file_size, date, created_at, COALESCE(downloads, 0) as downloads FROM resources WHERE 1=1"
 
     const params: any[] = []
 
@@ -290,6 +290,11 @@ resourcesRouter.get("/:id/download", async (req, res) => {
         ? cleanTitle
         : `${cleanTitle}${ext}`
 
+      await pool.query(
+        "UPDATE resources SET downloads = COALESCE(downloads, 0) + 1 WHERE id = $1",
+        [Number(id)],
+      ).catch((err) => console.error("Error updating download count:", err))
+
       res.setHeader(
         "Content-Disposition",
 
@@ -478,7 +483,7 @@ resourcesRouter.get("/pinned", authenticateToken, async (req: any, res) => {
         `
 
 
-        SELECT r.id, r.title, r.course_code, r.type, r.by, r.uploader_email, r.file_path, r.file_size, r.date, r.created_at, 1 as pinned
+        SELECT r.id, r.title, r.course_code, r.type, r.by, r.uploader_email, r.file_path, r.file_size, r.date, r.created_at, COALESCE(r.downloads, 0) as downloads, 1 as pinned
         FROM resources r
         JOIN pins p ON p.resource_id = r.id
         WHERE LOWER(TRIM(p.user_email)) = LOWER(TRIM($1))
@@ -530,13 +535,15 @@ resourcesRouter.get("/:id/view", async (req, res) => {
 
       res.setHeader("Content-Disposition", `inline; filename="${filename}"`)
 
-      res.setHeader(
-        "Content-Type",
+      let contentType = "application/octet-stream"
+      const lowerExt = ext.toLowerCase()
+      if (lowerExt === ".pdf") contentType = "application/pdf"
+      else if (lowerExt === ".png") contentType = "image/png"
+      else if (lowerExt === ".jpg" || lowerExt === ".jpeg") contentType = "image/jpeg"
+      else if (lowerExt === ".webp") contentType = "image/webp"
+      else if (lowerExt === ".txt") contentType = "text/plain; charset=utf-8"
 
-        ext.toLowerCase() === ".pdf"
-          ? "application/pdf"
-          : "application/octet-stream",
-      )
+      res.setHeader("Content-Type", contentType)
 
       return res.send(resource.file_data)
     }
@@ -595,17 +602,15 @@ resourcesRouter.delete("/:id", authenticateToken, async (req: any, res) => {
       return res.status(404).json({ error: "Resource not found" })
     }
 
-    if (resource.uploader_email !== userEmail) {
+    if (resource.uploader_email.trim().toLowerCase() !== userEmail.trim().toLowerCase()) {
       return res
-
         .status(403)
-
         .json({ error: "Unauthorized to delete this resource" })
     }
 
-    await pool.query("DELETE FROM resources WHERE id = $1", [resourceId])
-
+    await pool.query("DELETE FROM resource_reports WHERE resource_id = $1", [resourceId])
     await pool.query("DELETE FROM pins WHERE resource_id = $1", [resourceId])
+    await pool.query("DELETE FROM resources WHERE id = $1", [resourceId])
 
     await pool.query(
       "UPDATE courses SET resources = GREATEST(0, resources - 1) WHERE code = $1",

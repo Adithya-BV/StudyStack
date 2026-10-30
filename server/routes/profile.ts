@@ -23,7 +23,7 @@ profileRouter.get("/", authenticateToken, async (req: any, res) => {
 
     const uploads = (
       await pool.query(
-        "SELECT id, title, course_code, type, by, uploader_email, file_path, file_size, date, created_at FROM resources WHERE LOWER(TRIM(uploader_email)) = LOWER(TRIM($1)) ORDER BY id DESC",
+        "SELECT id, title, course_code, type, by, uploader_email, file_path, file_size, date, created_at, COALESCE(downloads, 0) as downloads FROM resources WHERE LOWER(TRIM(uploader_email)) = LOWER(TRIM($1)) ORDER BY id DESC",
         [userEmail],
       )
     ).rows as any[]

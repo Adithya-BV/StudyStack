@@ -45,7 +45,7 @@ coursesRouter.get(
     try {
       const enrolled = (
         await pool.query(
-          "SELECT course_id FROM user_courses WHERE user_email = $1",
+          "SELECT course_id FROM user_courses WHERE LOWER(TRIM(user_email)) = LOWER(TRIM($1))",
 
           [req.user.email],
         )
@@ -133,8 +133,7 @@ coursesRouter.post("/", authenticateToken, async (req, res) => {
     // Automatically enroll creator
 
     await pool.query(
-      "INSERT INTO user_courses (user_email, course_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
-
+      "INSERT INTO user_courses (user_email, course_id) VALUES (LOWER(TRIM($1)), $2) ON CONFLICT DO NOTHING",
       [req.user.email, info.id],
     )
 
@@ -160,8 +159,7 @@ coursesRouter.post(
   async (req: any, res: any) => {
     try {
       await pool.query(
-        "INSERT INTO user_courses (user_email, course_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
-
+        "INSERT INTO user_courses (user_email, course_id) VALUES (LOWER(TRIM($1)), $2) ON CONFLICT DO NOTHING",
         [req.user.email, req.params.id],
       )
 
@@ -182,8 +180,7 @@ coursesRouter.delete(
   async (req: any, res: any) => {
     try {
       await pool.query(
-        "DELETE FROM user_courses WHERE user_email = $1 AND course_id = $2",
-
+        "DELETE FROM user_courses WHERE LOWER(TRIM(user_email)) = LOWER(TRIM($1)) AND course_id = $2",
         [req.user.email, req.params.id],
       )
 

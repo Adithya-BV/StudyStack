@@ -77,6 +77,8 @@ export async function initDatabase() {
       status TEXT DEFAULT 'pending',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
+
+    ALTER TABLE resources ADD COLUMN IF NOT EXISTS downloads INTEGER DEFAULT 0;
   `)
 
   // Seed default courses if empty
