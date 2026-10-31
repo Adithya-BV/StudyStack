@@ -654,7 +654,10 @@ resourcesRouter.post("/:id/report", authenticateToken, async (req: any, res) => 
       return res.status(404).json({ error: "Resource not found" })
     }
 
-    if (resource.uploader_email === reporterEmail) {
+    if (
+      resource.uploader_email &&
+      resource.uploader_email.trim().toLowerCase() === reporterEmail.trim().toLowerCase()
+    ) {
       return res.status(400).json({ error: "You cannot report your own upload" })
     }
 

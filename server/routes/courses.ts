@@ -197,6 +197,7 @@ coursesRouter.delete("/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params
 
+    await pool.query("DELETE FROM user_courses WHERE course_id = $1", [Number(id)])
     await pool.query("DELETE FROM courses WHERE id = $1", [Number(id)])
 
     res.json({ success: true, message: "Course removed" })

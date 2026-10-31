@@ -118,6 +118,9 @@ profileRouter.delete("/", authenticateToken, async (req: any, res) => {
     // Remove user's pins
     await pool.query("DELETE FROM pins WHERE LOWER(TRIM(user_email)) = LOWER(TRIM($1))", [userEmail])
 
+    // Remove user's enrolled courses
+    await pool.query("DELETE FROM user_courses WHERE LOWER(TRIM(user_email)) = LOWER(TRIM($1))", [userEmail])
+
     // Remove user's OTPs
     await pool.query("DELETE FROM otps WHERE LOWER(TRIM(email)) = LOWER(TRIM($1))", [userEmail])
 

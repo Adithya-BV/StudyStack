@@ -2097,7 +2097,7 @@ function OtpPage({
     try {
       await api.auth.resendOtp(email)
 
-      onToast("New OTP sent! (Check console if SMTP unconfigured)")
+      onToast("New OTP sent to your email!")
     } catch (err: any) {
       onToast(err.message || "Failed to resend OTP", "error")
     }
@@ -2595,11 +2595,19 @@ function HomePage({
       )
     : courses
 
+  const courseCodeToNameMap = new Map(
+    courses.map((c) => [c.code.toUpperCase(), c.name.toLowerCase()]),
+  )
+
+  const searchLower = search.trim().toLowerCase()
+
   const filteredResources = resources.filter((r) => {
+    const courseFullName = courseCodeToNameMap.get(r.course.toUpperCase()) || ""
     const matchesSearch =
-      !search ||
-      r.title.toLowerCase().includes(search.toLowerCase()) ||
-      r.course.toLowerCase().includes(search.toLowerCase())
+      !searchLower ||
+      r.title.toLowerCase().includes(searchLower) ||
+      r.course.toLowerCase().includes(searchLower) ||
+      courseFullName.includes(searchLower)
     const matchesType =
       selectedType === "All" ||
       r.type.toLowerCase() === selectedType.toLowerCase()
@@ -2796,7 +2804,7 @@ function HomePage({
           <span style={{ fontSize: 13, fontWeight: 600, color: C.muted, marginRight: 2 }}>
             Filter:
           </span>
-          {["All", "Notes", "PYQ", "Assignments", "Labs"].map((t) => {
+          {["All", "Notes", "PYQ", "Assignments", "Labs", "Other"].map((t) => {
             const active = selectedType === t
             return (
               <button
@@ -3502,6 +3510,14 @@ function CourseDetailPage({
       emoji: "🧪",
 
       desc: "Lab sheets, files and useful lab resources.",
+    },
+
+    {
+      label: "Other",
+
+      emoji: "📌",
+
+      desc: "Syllabus, reference books, cheat sheets and other resources.",
     },
   ]
 
@@ -4743,8 +4759,12 @@ function PinsPage({
 
   const [search, setSearch] = useState("")
 
-  const filtered = pinned.filter((r) =>
-    r.title.toLowerCase().includes(search.toLowerCase()),
+  const searchLower = search.trim().toLowerCase()
+
+  const filtered = pinned.filter(
+    (r) =>
+      r.title.toLowerCase().includes(searchLower) ||
+      r.course.toLowerCase().includes(searchLower),
   )
 
   return (
