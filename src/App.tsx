@@ -2061,18 +2061,85 @@ function OtpPage({
 
   const [loading, setLoading] = useState(false)
 
-  const refs = Array.from({ length: 6 }, () => useRef<HTMLInputElement>(null))
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+
+  useEffect(() => {
+    inputRefs.current[0]?.focus()
+  }, [])
+
+  const handleInputKeyDown = (
+    i: number,
+    e: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
+    if (e.key === "Backspace") {
+      if (!otp[i] && i > 0) {
+        // Current box is empty: clear previous box and jump focus back
+        e.preventDefault()
+        const next = [...otp]
+        next[i - 1] = ""
+        setOtp(next)
+        inputRefs.current[i - 1]?.focus()
+      } else if (otp[i]) {
+        // Current box has a digit: clear it
+        e.preventDefault()
+        const next = [...otp]
+        next[i] = ""
+        setOtp(next)
+      }
+    } else if (e.key === "ArrowLeft" && i > 0) {
+      e.preventDefault()
+      inputRefs.current[i - 1]?.focus()
+    } else if (e.key === "ArrowRight" && i < 5) {
+      e.preventDefault()
+      inputRefs.current[i + 1]?.focus()
+    } else if (e.key === "Enter") {
+      e.preventDefault()
+      handleVerify()
+    }
+  }
 
   const handleChange = (i: number, v: string) => {
-    if (!/^\d?$/.test(v)) return
+    const digits = v.replace(/\D/g, "")
+    if (!digits) {
+      const next = [...otp]
+      next[i] = ""
+      setOtp(next)
+      return
+    }
+
+    if (digits.length > 1) {
+      // Handle multi-character paste / auto-fill
+      const next = [...otp]
+      const chars = digits.slice(0, 6 - i)
+      for (let j = 0; j < chars.length; j++) {
+        next[i + j] = chars[j]
+      }
+      setOtp(next)
+      const nextIdx = Math.min(i + chars.length, 5)
+      inputRefs.current[nextIdx]?.focus()
+      return
+    }
 
     const next = [...otp]
-
-    next[i] = v
-
+    next[i] = digits
     setOtp(next)
 
-    if (v && i < 5) refs[i + 1].current?.focus()
+    if (i < 5) {
+      inputRefs.current[i + 1]?.focus()
+    }
+  }
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault()
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6)
+    if (!pasted) return
+    const next = [...otp]
+    for (let j = 0; j < pasted.length; j++) {
+      next[j] = pasted[j]
+    }
+    setOtp(next)
+    const nextIdx = Math.min(pasted.length, 5)
+    inputRefs.current[nextIdx]?.focus()
   }
 
   const handleVerify = async () => {
@@ -2109,16 +2176,6 @@ function OtpPage({
     }
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      const target = e.target as HTMLElement
-      if (target.tagName !== "BUTTON") {
-        e.preventDefault()
-        handleVerify()
-      }
-    }
-  }
-
   return (
     <div
       style={{
@@ -2137,7 +2194,6 @@ function OtpPage({
     >
       <div
         className="animate-step"
-        onKeyDown={handleKeyDown}
         style={{
           width: "100%",
 
@@ -2175,6 +2231,7 @@ function OtpPage({
         </div>
 
         <div
+          onPaste={handlePaste}
           style={{
             display: "flex",
 
@@ -2188,9 +2245,16 @@ function OtpPage({
           {otp.map((d, i) => (
             <input
               key={i}
-              ref={refs[i]}
+              ref={(el) => {
+                inputRefs.current[i] = el
+              }}
               value={d}
               onChange={(e) => handleChange(i, e.target.value)}
+              onKeyDown={(e) => handleInputKeyDown(i, e)}
+              onFocus={(e) => e.target.select()}
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
               maxLength={1}
               style={{
                 width: 44,
@@ -2212,6 +2276,7 @@ function OtpPage({
                 color: C.text,
 
                 fontFamily: "Inter, sans-serif",
+                transition: "border-color 0.15s ease",
               }}
             />
           ))}
