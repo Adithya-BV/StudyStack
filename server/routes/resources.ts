@@ -58,24 +58,26 @@ resourcesRouter.get("/", async (req, res) => {
     const params: any[] = []
 
     if (q) {
-      query +=
-        " AND (LOWER(title) LIKE ? OR LOWER(course_code) LIKE ? OR LOWER(by) LIKE ?)"
-
       const term = `%${String(q).toLowerCase()}%`
-
       params.push(term, term, term)
+      query +=
+        " AND (LOWER(title) LIKE $" +
+        (params.length - 2) +
+        " OR LOWER(course_code) LIKE $" +
+        (params.length - 1) +
+        " OR LOWER(by) LIKE $" +
+        params.length +
+        ")"
     }
 
     if (course && course !== "ALL") {
-      query += " AND UPPER(course_code) = UPPER(?)"
-
       params.push(String(course))
+      query += " AND UPPER(course_code) = UPPER($" + params.length + ")"
     }
 
     if (type && type !== "ALL") {
-      query += " AND LOWER(type) = LOWER(?)"
-
       params.push(String(type))
+      query += " AND LOWER(type) = LOWER($" + params.length + ")"
     }
 
     query += " ORDER BY id DESC"
@@ -88,7 +90,7 @@ resourcesRouter.get("/", async (req, res) => {
 
     if (user?.email) {
       const pins = (
-        await pool.query("SELECT resource_id FROM pins WHERE user_email = $1", [
+        await pool.query("SELECT resource_id FROM pins WHERE LOWER(TRIM(user_email)) = LOWER(TRIM($1))", [
           user.email,
         ])
       ).rows as any[]
@@ -437,7 +439,7 @@ resourcesRouter.post("/:id/pin", authenticateToken, async (req: any, res) => {
 
     const existing = (
       await pool.query(
-        "SELECT * FROM pins WHERE user_email = $1 AND resource_id = $2",
+        "SELECT * FROM pins WHERE LOWER(TRIM(user_email)) = LOWER(TRIM($1)) AND resource_id = $2",
 
         [userEmail, resourceId],
       )
@@ -445,7 +447,7 @@ resourcesRouter.post("/:id/pin", authenticateToken, async (req: any, res) => {
 
     if (existing) {
       await pool.query(
-        "DELETE FROM pins WHERE user_email = $1 AND resource_id = $2",
+        "DELETE FROM pins WHERE LOWER(TRIM(user_email)) = LOWER(TRIM($1)) AND resource_id = $2",
 
         [userEmail, resourceId],
       )
@@ -459,7 +461,7 @@ resourcesRouter.post("/:id/pin", authenticateToken, async (req: any, res) => {
       })
     } else {
       await pool.query(
-        "INSERT INTO pins (user_email, resource_id) VALUES ($1, $2)",
+        "INSERT INTO pins (user_email, resource_id) VALUES (LOWER(TRIM($1)), $2)",
 
         [userEmail, resourceId],
       )

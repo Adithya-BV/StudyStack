@@ -196,9 +196,20 @@ coursesRouter.delete(
 coursesRouter.delete("/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params
+    const courseId = Number(id)
 
-    await pool.query("DELETE FROM user_courses WHERE course_id = $1", [Number(id)])
-    await pool.query("DELETE FROM courses WHERE id = $1", [Number(id)])
+    const course = (await pool.query("SELECT code FROM courses WHERE id = $1", [courseId])).rows[0]
+    if (course) {
+      const resList = (await pool.query("SELECT id FROM resources WHERE UPPER(course_code) = UPPER($1)", [course.code])).rows
+      for (const r of resList) {
+        await pool.query("DELETE FROM resource_reports WHERE resource_id = $1", [r.id])
+        await pool.query("DELETE FROM pins WHERE resource_id = $1", [r.id])
+      }
+      await pool.query("DELETE FROM resources WHERE UPPER(course_code) = UPPER($1)", [course.code])
+    }
+
+    await pool.query("DELETE FROM user_courses WHERE course_id = $1", [courseId])
+    await pool.query("DELETE FROM courses WHERE id = $1", [courseId])
 
     res.json({ success: true, message: "Course removed" })
   } catch (error: any) {

@@ -1207,6 +1207,12 @@ function ResourceCard({
     setLocalDownloads(r.downloads ?? 0)
   }, [r.downloads])
 
+  const isOwner = Boolean(
+    user?.email &&
+      r.uploader_email &&
+      user.email.trim().toLowerCase() === r.uploader_email.trim().toLowerCase(),
+  )
+
   const handleDownload = async () => {
     if (downloading) return
     setDownloading(true)
@@ -1369,7 +1375,7 @@ function ResourceCard({
         >
           <Icon.Download /> {downloading ? "Downloading..." : "Download"}
         </button>
-        {user && user.email === r.uploader_email && onDelete && (
+        {isOwner && onDelete && (
           <button
             onClick={() => onDelete(r.id)}
             style={{
@@ -1399,7 +1405,7 @@ function ResourceCard({
             Delete
           </button>
         )}
-        {onReport && (!user || !r.uploader_email || user.email !== r.uploader_email) && (
+        {onReport && !isOwner && (
           <button
             onClick={() => onReport(r)}
             title="Report an issue or discrepancy"
@@ -4853,7 +4859,7 @@ function PinsPage({
           <div style={{ color: C.muted, fontSize: 14, marginBottom: 24 }}>
             Pin useful resources and they'll appear here.
           </div>
-          <Btn onClick={() => setPage(previousCoursePage)}>Explore Courses</Btn>
+          <Btn onClick={() => setPage("home")}>Explore Resources</Btn>
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
