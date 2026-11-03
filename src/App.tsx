@@ -5318,141 +5318,159 @@ function ProfilePage({
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {userUploads.length > 0 ? (
             userUploads.map((r: any) => (
-              <Card key={r.id} style={{ padding: "14px 18px" }}>
+              <Card
+                key={r.id}
+                className="resource-card"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 14,
+                  padding: "14px 18px",
+                }}
+              >
                 <div
+                  className="resource-header-info"
                   style={{
                     display: "flex",
-
-                    justifyContent: "space-between",
-
                     alignItems: "center",
+                    gap: 12,
+                    flex: 1,
+                    minWidth: 0,
                   }}
                 >
-                  <div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div
-                      style={{ fontWeight: 600, fontSize: 14, color: C.text }}
+                      style={{
+                        fontWeight: 600,
+                        fontSize: 14,
+                        color: C.text,
+                        wordBreak: "break-word",
+                      }}
                     >
                       {r.title}
                     </div>
-                    <div style={{ fontSize: 12, color: C.muted, marginTop: 3 }}>
-                      {r.course} · {r.type} · {r.date}
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: C.muted,
+                        marginTop: 4,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <TypeBadge type={r.type} />
+                      <span>{r.course}</span>
+                      <span>·</span>
+                      <span>{r.date}</span>
                       {(r.is_anonymous || !r.by) && (
-                        <span style={{ color: "#7C3AED", fontWeight: 600, marginLeft: 6 }}>
+                        <span
+                          style={{
+                            color: "#7C3AED",
+                            fontWeight: 600,
+                          }}
+                        >
                           · (Anonymous)
                         </span>
                       )}
                     </div>
                   </div>
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 12 }}
+                </div>
+                <div
+                  className="resource-actions"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    flexShrink: 0,
+                  }}
+                >
+                  <button
+                    onClick={() =>
+                      window.open(api.resources.getViewUrl(r.id), "_blank")
+                    }
+                    style={{
+                      background: "#EFF6FF",
+                      color: C.blue,
+                      border: "none",
+                      borderRadius: 8,
+                      padding: "6px 14px",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 4,
+                    }}
                   >
-                    <TypeBadge type={r.type} />
-                    <button
-                      onClick={() =>
-                        window.open(api.resources.getViewUrl(r.id), "_blank")
+                    View
+                  </button>
+                  <button
+                    onClick={async () => {
+                      onToast(`Downloading ${r.title}...`)
+                      try {
+                        await api.resources.download(r.id, r.title)
+                      } catch (err: any) {
+                        onToast(err.message || "Failed to download", "error")
                       }
-                      style={{
-                        background: "#EFF6FF",
-
-                        color: C.blue,
-
-                        border: "none",
-
-                        borderRadius: 8,
-
-                        padding: "6px 12px",
-
-                        fontSize: 12,
-
-                        fontWeight: 600,
-
-                        cursor: "pointer",
-
-                        display: "flex",
-
-                        alignItems: "center",
-                      }}
-                    >
-                      View
-                    </button>
+                    }}
+                    style={{
+                      background: C.blue,
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 8,
+                      padding: "6px 14px",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 4,
+                    }}
+                  >
+                    Download
+                  </button>
+                  {onDeleteResource && (
                     <button
                       onClick={async () => {
-                        onToast(`Downloading ${r.title}...`)
-                        try {
-                          await api.resources.download(r.id, r.title)
-                        } catch (err: any) {
-                          onToast(err.message || "Failed to download", "error")
+                        const success = await onDeleteResource(r.id)
+
+                        if (success) {
+                          setProfileData((prev: any) => {
+                            if (!prev) return prev
+
+                            return {
+                              ...prev,
+
+                              uploads: prev.uploads.filter(
+                                (u: any) => u.id !== r.id,
+                              ),
+                            }
+                          })
                         }
                       }}
                       style={{
-                        background: C.blue,
-
-                        color: "#fff",
-
+                        background: "#FEE2E2",
+                        color: "#DC2626",
                         border: "none",
-
                         borderRadius: 8,
-
-                        padding: "6px 12px",
-
+                        padding: "6px 14px",
                         fontSize: 12,
-
                         fontWeight: 600,
-
                         cursor: "pointer",
-
                         display: "flex",
-
                         alignItems: "center",
+                        justifyContent: "center",
+                        gap: 4,
                       }}
                     >
-                      Download
+                      Delete
                     </button>
-                    {onDeleteResource && (
-                      <button
-                        onClick={async () => {
-                          const success = await onDeleteResource(r.id)
-
-                          if (success) {
-                            setProfileData((prev: any) => {
-                              if (!prev) return prev
-
-                              return {
-                                ...prev,
-
-                                uploads: prev.uploads.filter(
-                                  (u: any) => u.id !== r.id,
-                                ),
-                              }
-                            })
-                          }
-                        }}
-                        style={{
-                          background: "#FEE2E2",
-
-                          color: "#DC2626",
-
-                          border: "none",
-
-                          borderRadius: 8,
-
-                          padding: "6px 12px",
-
-                          fontSize: 12,
-
-                          fontWeight: 600,
-
-                          cursor: "pointer",
-
-                          display: "flex",
-
-                          alignItems: "center",
-                        }}
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </div>
+                  )}
                 </div>
               </Card>
             ))
@@ -5481,15 +5499,19 @@ function ProfilePage({
                 <div
                   style={{
                     display: "flex",
-
                     justifyContent: "space-between",
-
                     alignItems: "center",
+                    gap: 12,
                   }}
                 >
-                  <div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div
-                      style={{ fontWeight: 600, fontSize: 14, color: C.text }}
+                      style={{
+                        fontWeight: 600,
+                        fontSize: 14,
+                        color: C.text,
+                        wordBreak: "break-word",
+                      }}
                     >
                       {r.title}
                     </div>
@@ -5497,7 +5519,9 @@ function ProfilePage({
                       {r.course} · {r.type} · {r.date}
                     </div>
                   </div>
-                  <TypeBadge type={r.type} />
+                  <div style={{ flexShrink: 0 }}>
+                    <TypeBadge type={r.type} />
+                  </div>
                 </div>
               </Card>
             ))
@@ -5640,6 +5664,7 @@ function ProfilePage({
               reports.map((rp: any) => (
                 <Card key={rp.id} style={{ padding: "16px 20px" }}>
                   <div
+                    className="feedback-card-header"
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
@@ -5648,13 +5673,14 @@ function ProfilePage({
                       marginBottom: 8,
                     }}
                   >
-                    <div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <div
                         style={{
                           fontWeight: 600,
                           fontSize: 14,
                           color: C.text,
                           marginBottom: 6,
+                          wordBreak: "break-word",
                         }}
                       >
                         {rp.resource_title}
@@ -5714,7 +5740,7 @@ function ProfilePage({
                         </span>
                       </div>
                     </div>
-                    <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                    <div className="feedback-card-actions" style={{ display: "flex", gap: 8, flexShrink: 0 }}>
                       <button
                         onClick={() =>
                           window.open(
@@ -5820,6 +5846,7 @@ function ProfilePage({
               myReports.map((rp: any) => (
                 <Card key={rp.id} style={{ padding: "16px 20px" }}>
                   <div
+                    className="feedback-card-header"
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
@@ -5827,13 +5854,14 @@ function ProfilePage({
                       gap: 12,
                     }}
                   >
-                    <div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <div
                         style={{
                           fontWeight: 600,
                           fontSize: 14,
                           color: C.text,
                           marginBottom: 6,
+                          wordBreak: "break-word",
                         }}
                       >
                         {rp.resource_title}
@@ -5907,30 +5935,32 @@ function ProfilePage({
                         </div>
                       )}
                     </div>
-                    <button
-                      onClick={() =>
-                        window.open(
-                          api.resources.getViewUrl(rp.resource_id),
-                          "_blank",
-                        )
-                      }
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 4,
-                        padding: "6px 12px",
-                        background: "#EFF6FF",
-                        color: C.blue,
-                        border: "none",
-                        borderRadius: 6,
-                        fontSize: 12,
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Icon.Eye /> View File
-                    </button>
+                    <div className="feedback-card-actions" style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                      <button
+                        onClick={() =>
+                          window.open(
+                            api.resources.getViewUrl(rp.resource_id),
+                            "_blank",
+                          )
+                        }
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 4,
+                          padding: "6px 12px",
+                          background: "#EFF6FF",
+                          color: C.blue,
+                          border: "none",
+                          borderRadius: 6,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Icon.Eye /> View File
+                      </button>
+                    </div>
                   </div>
                 </Card>
               ))
