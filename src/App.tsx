@@ -891,7 +891,7 @@ const typeColors: Record<string, { bg: string; text: string }> = {
   "Lecture Notes": { bg: "#EFF6FF", text: "#1D4ED8" },
   Notes: { bg: "#EFF6FF", text: "#1D4ED8" },
 
-  "Pyq's": { bg: "#FFF7ED", text: "#C2410C" },
+  "PYQ's": { bg: "#FFF7ED", text: "#C2410C" },
   "PYQ's": { bg: "#FFF7ED", text: "#C2410C" },
   PYQ: { bg: "#FFF7ED", text: "#C2410C" },
   PYQs: { bg: "#FFF7ED", text: "#C2410C" },
@@ -3581,7 +3581,7 @@ function CourseDetailPage({
 
   const tabs = [
     {
-      label: "Pyq's",
+      label: "PYQ's",
       emoji: "📝",
       desc: "Previous year question papers and exam archives.",
     },
@@ -4684,7 +4684,7 @@ function UploadPage({
               fontFamily: "Inter, sans-serif",
             }}
           >
-            {["Pyq's", "Lecture notes", "Assignments", "Books", "Lecture slides", "Labs", "Other"].map((t) => (
+            {["PYQ's", "Lecture notes", "Assignments", "Books", "Lecture slides", "Labs", "Other"].map((t) => (
               <option key={t} value={t}>
                 {t}
               </option>
