@@ -933,6 +933,29 @@ function TypeBadge({ type }: { type: string }) {
   )
 }
 
+function matchesResourceType(rType: string, filterLabel: string): boolean {
+  if (!filterLabel || filterLabel === "All") return true;
+  const r = (rType || "").toLowerCase().trim();
+  const f = filterLabel.toLowerCase().trim();
+  if (f.includes("pyq")) return r.includes("pyq");
+  if (f.includes("note")) return r.includes("note");
+  if (f.includes("slide")) return r.includes("slide");
+  if (f.includes("book")) return r.includes("book");
+  if (f.includes("assign")) return r.includes("assign");
+  if (f.includes("lab")) return r.includes("lab");
+  if (f.includes("other")) {
+    const isKnown =
+      r.includes("pyq") ||
+      r.includes("note") ||
+      r.includes("slide") ||
+      r.includes("book") ||
+      r.includes("assign") ||
+      r.includes("lab");
+    return r.includes("other") || !isKnown;
+  }
+  return r === f;
+}
+
 // ── Report Modal ──
 
 function ReportModal({
@@ -2690,9 +2713,7 @@ function HomePage({
       r.title.toLowerCase().includes(searchLower) ||
       r.course.toLowerCase().includes(searchLower) ||
       courseFullName.includes(searchLower)
-    const matchesType =
-      selectedType === "All" ||
-      r.type.toLowerCase() === selectedType.toLowerCase()
+    const matchesType = matchesResourceType(r.type, selectedType)
     return matchesSearch && matchesType
   })
 
@@ -2846,7 +2867,7 @@ function HomePage({
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search courses, notes, PYQs, assignments..."
+            placeholder="Search courses, notes, PYQ's, assignments, books, slides..."
             style={{
               width: "100%",
 
@@ -2886,7 +2907,7 @@ function HomePage({
           <span style={{ fontSize: 13, fontWeight: 600, color: C.muted, marginRight: 2 }}>
             Filter:
           </span>
-          {["All", "Notes", "PYQ", "Assignments", "Labs", "Other"].map((t) => {
+          {["All", "PYQ's", "Lecture notes", "Assignments", "Books", "Lecture slides", "Labs", "Other"].map((t) => {
             const active = selectedType === t
             return (
               <button
@@ -3566,18 +3587,6 @@ function CourseDetailPage({
 }) {
   const isEnrolled = course ? enrolledCourseIds.includes(course.id) : false
   const [activeTab, setActiveTab] = useState<string | null>(null)
-
-  const matchesResourceType = (rType: string, tabLabel: string) => {
-    const r = (rType || "").toLowerCase();
-    const t = tabLabel.toLowerCase();
-    if (t.includes("pyq")) return r.includes("pyq");
-    if (t.includes("note")) return r.includes("note");
-    if (t.includes("slide")) return r.includes("slide");
-    if (t.includes("book")) return r.includes("book");
-    if (t.includes("assign")) return r.includes("assign");
-    if (t.includes("lab")) return r.includes("lab");
-    return r === t;
-  };
 
   const tabs = [
     {
