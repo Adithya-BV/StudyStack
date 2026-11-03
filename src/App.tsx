@@ -3624,9 +3624,7 @@ function CourseDetailPage({
   )
 
   const filtered = activeTab
-    ? courseResources.filter(
-        (r) => r.type.toLowerCase() === activeTab.toLowerCase(),
-      )
+    ? courseResources.filter((r) => matchesResourceType(r.type, activeTab))
     : []
 
   return (
