@@ -887,13 +887,24 @@ function Card({
 // ── Badge ─────────────────────────────────────────────────────────────────────
 
 const typeColors: Record<string, { bg: string; text: string }> = {
+  "Lecture notes": { bg: "#EFF6FF", text: "#1D4ED8" },
+  "Lecture Notes": { bg: "#EFF6FF", text: "#1D4ED8" },
   Notes: { bg: "#EFF6FF", text: "#1D4ED8" },
 
+  "Pyq's": { bg: "#FFF7ED", text: "#C2410C" },
+  "PYQ's": { bg: "#FFF7ED", text: "#C2410C" },
   PYQ: { bg: "#FFF7ED", text: "#C2410C" },
+  PYQs: { bg: "#FFF7ED", text: "#C2410C" },
 
   Assignments: { bg: "#F0FDF4", text: "#15803D" },
 
-  Labs: { bg: "#FDF4FF", text: "#7E22CE" },
+  Books: { bg: "#FEF3C7", text: "#B45309" },
+
+  "Lecture slides": { bg: "#FDF4FF", text: "#7E22CE" },
+  "Lecture Slides": { bg: "#FDF4FF", text: "#7E22CE" },
+  Slides: { bg: "#FDF4FF", text: "#7E22CE" },
+
+  Labs: { bg: "#ECFDF5", text: "#047857" },
 
   Other: { bg: "#F8FAFC", text: "#475569" },
 }
@@ -3556,41 +3567,55 @@ function CourseDetailPage({
   const isEnrolled = course ? enrolledCourseIds.includes(course.id) : false
   const [activeTab, setActiveTab] = useState<string | null>(null)
 
+  const matchesResourceType = (rType: string, tabLabel: string) => {
+    const r = (rType || "").toLowerCase();
+    const t = tabLabel.toLowerCase();
+    if (t.includes("pyq")) return r.includes("pyq");
+    if (t.includes("note")) return r.includes("note");
+    if (t.includes("slide")) return r.includes("slide");
+    if (t.includes("book")) return r.includes("book");
+    if (t.includes("assign")) return r.includes("assign");
+    if (t.includes("lab")) return r.includes("lab");
+    return r === t;
+  };
+
   const tabs = [
     {
-      label: "Notes",
-
+      label: "Pyq's",
+      emoji: "📝",
+      desc: "Previous year question papers and exam archives.",
+    },
+    {
+      label: "Lecture notes",
       emoji: "📚",
-
       desc: "Lecture notes, study material and summaries.",
     },
-
-    { label: "PYQ", emoji: "📝", desc: "Previous year question papers." },
-
     {
       label: "Assignments",
-
       emoji: "📄",
-
-      desc: "Assignments and problem sets.",
+      desc: "Assignments, tutorial sheets and problem sets.",
     },
-
+    {
+      label: "Books",
+      emoji: "📖",
+      desc: "Standard reference books and textbooks.",
+    },
+    {
+      label: "Lecture slides",
+      emoji: "🖥️",
+      desc: "Official lecture presentations and professor slides.",
+    },
     {
       label: "Labs",
-
       emoji: "🧪",
-
-      desc: "Lab sheets, files and useful lab resources.",
+      desc: "Lab sheets, manuals, files and useful resources.",
     },
-
     {
       label: "Other",
-
       emoji: "📌",
-
-      desc: "Syllabus, reference books, cheat sheets and other resources.",
+      desc: "Syllabus, cheat sheets and other resources.",
     },
-  ]
+  ];
 
   const courseCode = course ? course.code : "CSN-201"
 
@@ -3783,9 +3808,7 @@ function CourseDetailPage({
           }}
         >
           {tabs.map((t) => {
-            const count = courseResources.filter(
-              (r) => r.type.toLowerCase() === t.label.toLowerCase(),
-            ).length
+            const count = courseResources.filter((r) => matchesResourceType(r.type, t.label)).length
 
             return (
               <button
@@ -4661,7 +4684,7 @@ function UploadPage({
               fontFamily: "Inter, sans-serif",
             }}
           >
-            {["Notes", "PYQ", "Assignments", "Labs", "Other"].map((t) => (
+            {["Pyq's", "Lecture notes", "Assignments", "Books", "Lecture slides", "Labs", "Other"].map((t) => (
               <option key={t} value={t}>
                 {t}
               </option>
